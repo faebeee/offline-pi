@@ -1,0 +1,26 @@
+services:
+  offline-maps:
+    build: .
+    image: offline-maps
+    ports:
+      - "${PORT:-8080}:8080"
+    environment:
+      # extra origins allowed to call /api, e.g. http://maps.local:8080
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
+      # unset -> sqlite at data/offline-maps.db; set to move POIs to Postgres,
+      # e.g. postgres://maps:secret@db:5432/maps
+      DATABASE_URL: ${DATABASE_URL:-}
+    volumes:
+      - ./data:/app/data
+      - ./assets:/app/assets
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:8080/api/status').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

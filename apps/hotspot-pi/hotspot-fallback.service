@@ -1,0 +1,15 @@
+[Unit]
+Description=WiFi hotspot fallback (connect to preferred WLAN or start hotspot)
+After=NetworkManager.service network-pre.target
+Wants=network-pre.target
+Before=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/bin/hotspot-fallback.sh
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

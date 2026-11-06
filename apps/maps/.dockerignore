@@ -1,0 +1,17 @@
+.git
+node_modules
+**/node_modules
+**/dist
+*.tsbuildinfo
+apps/backend/public
+
+# host-specific binary and multi-GB map data, mounted at runtime instead
+bin
+data
+assets
+.tmp
+
+*.log
+.env
+.env.*
+.DS_Store

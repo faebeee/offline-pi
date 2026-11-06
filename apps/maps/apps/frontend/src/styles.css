@@ -1,0 +1,741 @@
+:root {
+  --bg: #0f1317;
+  --panel: #161b22;
+  --panel-raised: #1d232c;
+  --border: #272e38;
+  --text: #e6edf3;
+  --muted: #8b98a8;
+  --accent: #4f8cff;
+  font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  height: 100%;
+}
+
+/* ----------------------------------------------------------- sidebar --- */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+}
+
+.brand {
+  padding: 18px 16px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.brand h1 {
+  margin: 0 0 2px;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+}
+
+.regions {
+  flex: 0 1 auto;
+  max-height: 45%;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.region {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 3px 6px 3px 10px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+}
+
+.region-main {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.region:hover {
+  background: var(--panel-raised);
+}
+
+/* Per-row PMTiles download. An <a>, so it needs the icon styling spelled out. */
+.region-download {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.3;
+  text-decoration: none;
+  opacity: 0;
+}
+
+.region-download:hover {
+  background: var(--panel-raised);
+  border-color: var(--border);
+}
+
+.region-label {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  border-top: 1px solid var(--border);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+select {
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel-raised);
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+}
+
+/* -------------------------------------------------------------- map --- */
+
+.viewport {
+  position: relative;
+  min-width: 0;
+}
+
+.map {
+  position: absolute;
+  inset: 0;
+}
+
+.status {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 1;
+  display: flex;
+  gap: 14px;
+  padding: 6px 11px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--panel) 88%, transparent);
+  backdrop-filter: blur(8px);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------ empty --- */
+
+.empty {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: 24px;
+}
+
+.empty-card {
+  max-width: 440px;
+  padding: 26px 28px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.empty-card h1 {
+  margin: 0 0 12px;
+  font-size: 17px;
+}
+
+.empty-card p {
+  margin: 0 0 10px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+pre,
+code {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  font-size: 12.5px;
+}
+
+pre {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--bg);
+  overflow-x: auto;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.small {
+  font-size: 11.5px;
+}
+
+/* MapLibre controls blended into the dark chrome */
+.maplibregl-ctrl-group {
+  background: var(--panel);
+  border: 1px solid var(--border);
+}
+
+.maplibregl-ctrl-group button + button {
+  border-top-color: var(--border);
+}
+
+.maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+.maplibregl-ctrl-attrib {
+  background: color-mix(in srgb, var(--panel) 88%, transparent) !important;
+  color: var(--muted);
+}
+
+.maplibregl-ctrl-attrib a {
+  color: var(--muted);
+}
+
+@media (max-width: 720px) {
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    max-height: 42vh;
+  }
+}
+
+/* ------------------------------------------------- buttons & dialogs --- */
+
+button {
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 7px 12px;
+  background: var(--panel-raised);
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--muted);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 500;
+}
+
+button.danger {
+  background: #b4232a;
+  border-color: #b4232a;
+  color: #fff;
+}
+
+button.icon {
+  padding: 2px 8px;
+  line-height: 1.3;
+  font-size: 16px;
+  background: transparent;
+  border-color: transparent;
+}
+
+button.icon:hover:not(:disabled) {
+  background: var(--panel-raised);
+  border-color: var(--border);
+}
+
+button.icon.subtle {
+  color: var(--muted);
+  opacity: 0;
+}
+
+.region:hover button.icon.subtle,
+.region:focus-within button.icon.subtle,
+.region:hover .region-download,
+.region:focus-within .region-download {
+  opacity: 1;
+}
+
+.confirm {
+  display: flex;
+  gap: 4px;
+}
+
+.confirm button {
+  padding: 4px 8px;
+}
+
+.back {
+  align-self: flex-start;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: 13px;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgb(0 0 0 / 55%);
+}
+
+.modal {
+  width: min(460px, 100%);
+  max-height: min(640px, 90vh);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+  box-shadow: 0 20px 60px rgb(0 0 0 / 45%);
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 12px 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-head h2 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 18px 18px;
+}
+
+.modal-body p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+input {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--panel-raised);
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+}
+
+input.search {
+  font-size: 14px;
+}
+
+input:focus-visible,
+select:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* ----------------------------------------------------------- results --- */
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.result {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 8px 10px;
+  border-color: transparent;
+  background: transparent;
+  text-align: left;
+}
+
+.result:hover {
+  background: var(--panel-raised);
+}
+
+.estimate {
+  display: flex;
+  gap: 22px;
+  margin: 4px 0 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.estimate div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.estimate dt,
+.estimate dd {
+  margin: 0;
+}
+
+.estimate dd {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* -------------------------------------------------------------- job --- */
+
+.job {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  width: 100%;
+}
+
+.job-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12.5px;
+}
+
+.bar {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.bar-fill.indeterminate {
+  width: 35%;
+  animation: slide 1.4s ease-in-out infinite;
+}
+
+@keyframes slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}
+
+.job-log {
+  max-height: 92px;
+  margin: 0;
+  overflow: auto;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.activity {
+  margin: 0 8px 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}
+
+.checklist li {
+  color: var(--muted);
+}
+
+.checklist li.done {
+  color: var(--text);
+}
+
+.error {
+  color: #ff8d8d;
+}
+
+.warn {
+  color: #f0c36d;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* -------------------------------------------------------------- pois --- */
+
+.pois {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 10px 8px 8px;
+  border-top: 1px solid var(--border);
+}
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 8px 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.pois > p {
+  margin: 0 8px;
+  line-height: 1.5;
+}
+
+.poi-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.poi {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 3px 6px 3px 10px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+}
+
+.poi:hover {
+  background: var(--panel-raised);
+}
+
+.poi.active {
+  background: var(--panel-raised);
+  border-color: var(--accent);
+}
+
+.poi-main {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.poi-icon {
+  flex: none;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.poi-text {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.poi-name {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.poi:hover button.icon.subtle,
+.poi.active button.icon.subtle {
+  opacity: 1;
+}
+
+/* Map marker. A DOM button rather than a symbol layer, so it survives the
+   style swaps the theme picker triggers and needs no glyphs for the emoji. */
+.poi-marker {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50% 50% 50% 4px;
+  background: var(--panel);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 45%);
+  font-size: 15px;
+  line-height: 1;
+  cursor: grab;
+  transition: transform 120ms ease;
+}
+
+.poi-marker:hover {
+  transform: scale(1.12);
+}
+
+.poi-marker:active {
+  cursor: grabbing;
+}
+
+.poi-marker.selected {
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent),
+    0 2px 6px rgb(0 0 0 / 45%);
+}
+
+/* --------------------------------------------------------- poi form --- */
+
+.emoji-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.emoji-input {
+  width: 52px;
+  flex: none;
+  text-align: center;
+  font-size: 17px;
+}
+
+.emoji-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.emoji-preset {
+  width: 30px;
+  padding: 3px 0;
+  border-color: transparent;
+  background: transparent;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.emoji-preset:hover:not(:disabled) {
+  background: var(--panel-raised);
+  border-color: var(--border);
+}
+
+.emoji-preset.active {
+  border-color: var(--accent);
+  background: var(--panel-raised);
+}
+
+.coords {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* Destructive actions sit opposite the confirm button. */
+.modal-actions > .danger:first-child,
+.modal-actions > .confirm:first-child {
+  margin-right: auto;
+}

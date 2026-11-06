@@ -1,0 +1,26 @@
+{
+  "name": "offline-maps",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "setup": "npm run -w @offline-maps/shared build && npm run -w @offline-maps/backend setup",
+    "assets:fetch": "npm run -w @offline-maps/shared build && npm run -w @offline-maps/backend assets:fetch",
+    "dev": "npm run -w @offline-maps/shared build && concurrently -n shared,backend,frontend -c gray,cyan,magenta \"npm:dev:shared\" \"npm:dev:backend\" \"npm:dev:frontend\"",
+    "dev:shared": "npm run -w @offline-maps/shared dev",
+    "dev:backend": "npm run -w @offline-maps/backend dev",
+    "dev:frontend": "npm run -w @offline-maps/frontend dev",
+    "build": "npm run -w @offline-maps/shared build && npm run -w @offline-maps/backend build && npm run -w @offline-maps/frontend build",
+    "start": "npm run -w @offline-maps/backend start",
+    "typecheck": "npm run -w @offline-maps/shared build && npm run --workspaces --if-present typecheck"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
