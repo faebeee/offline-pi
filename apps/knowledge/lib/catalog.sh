@@ -56,3 +56,27 @@ human_size() {
     printf "%.1f %s", b, units[u]
   }'
 }
+
+# Filter a parsed catalog TSV ($1) down to only the rows whose name column
+# (field 1) matches one of the given names ($3, $4, ...), writing the result
+# to $2. Preserves every other field (size/url/updated/...) straight from the
+# live catalog, so a curated name list stays accurate without needing to
+# duplicate catalog data.
+catalog_filter_names() {
+  local in_file="$1"
+  local out_file="$2"
+  shift 2
+
+  if (( $# == 0 )); then
+    : > "$out_file"
+    return 0
+  fi
+
+  awk -F'\t' -v names="$(printf '%s\n' "$@")" '
+    BEGIN {
+      n = split(names, arr, "\n")
+      for (i = 1; i <= n; i++) wanted[arr[i]] = 1
+    }
+    ($1 in wanted) { print }
+  ' "$in_file" > "$out_file"
+}

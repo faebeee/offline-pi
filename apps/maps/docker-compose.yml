@@ -10,6 +10,8 @@ services:
       # unset -> sqlite at data/offline-maps.db; set to move POIs to Postgres,
       # e.g. postgres://maps:secret@db:5432/maps
       DATABASE_URL: ${DATABASE_URL:-}
+      # true logs every SQL statement (debugging only)
+      DB_LOGGING: ${DB_LOGGING:-false}
     volumes:
       - ./data:/app/data
       - ./assets:/app/assets

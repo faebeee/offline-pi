@@ -167,14 +167,19 @@ Backend dev runs `tsc --watch` next to `node --watch dist/main.js`, so a saved
 ### Podman
 
 ```sh
-./install.sh   # one-time: build the image, bootstrap pmtiles/fonts/sprites
+./install.sh   # one-time: write .env, build the image, bootstrap pmtiles/fonts/sprites
 ./start.sh     # podman compose up -d --build; prints the local/LAN URL
 ```
+
+`./install.sh` copies `.env.example` to `.env` on first run (skipped if `.env`
+already exists) and ends by calling `./start.sh`, so a fresh clone only ever
+needs `./install.sh`. Edit `.env` to change `PORT`, `ALLOWED_ORIGINS`,
+`DATABASE_URL` or `DB_LOGGING`, then re-run `./start.sh` to apply it.
 
 Equivalently, by hand:
 
 ```sh
-podman compose up -d --build   # production server on :8080
+podman compose --env-file .env up -d --build   # production server on :8080
 ```
 
 The image ships its own Linux `pmtiles` binary; `data/` and `assets/` are
@@ -187,17 +192,22 @@ podman compose run --rm offline-maps node apps/backend/dist/cli/main.js setup
 ```
 
 `/api` only answers `http://localhost:8080` and `http://127.0.0.1:8080`. When
-publishing on another port (`PORT=9000 podman compose up`) or hostname, list the
-viewer's origin in `ALLOWED_ORIGINS`, comma-separated. On Linux, create `data/`
-and `assets/` before the first start so they are owned by your user (uid 1000)
-rather than root (`install.sh` does this for you).
+publishing on another port or hostname, set `PORT` and list the viewer's
+origin in `ALLOWED_ORIGINS` (comma-separated) in `.env`, then `./start.sh`
+again. On Linux, create `data/` and `assets/` before the first start so they
+are owned by your user (uid 1000) rather than root (`install.sh` does this
+for you).
 
 | Variable | Default | |
 |---|---|---|
-| `PORT`, `HOST` | `8080`, `127.0.0.1` | where the server listens |
+| `PORT` | `8080` | host port mapped to the container (container always listens on `8080` internally) |
+| `HOST` | `127.0.0.1` (`0.0.0.0` in the container, fixed by the Dockerfile) | address the server binds to; only relevant running `npm start` directly outside Docker |
 | `ALLOWED_ORIGINS` | — | extra origins allowed to call `/api` |
 | `DATABASE_URL` | — | unset uses sqlite in `data/`; set to a `postgres://` url to use Postgres |
 | `DB_LOGGING` | `false` | `true` logs every SQL statement |
+
+`PORT`, `ALLOWED_ORIGINS`, `DATABASE_URL` and `DB_LOGGING` are read from `.env`
+by `docker-compose.yml`; see `.env.example` for defaults and comments.
 
 ## API
 

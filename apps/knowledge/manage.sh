@@ -9,6 +9,8 @@ cd "$SCRIPT_DIR"
 source "$SCRIPT_DIR/lib/deps.sh"
 # shellcheck source=lib/catalog.sh
 source "$SCRIPT_DIR/lib/catalog.sh"
+# shellcheck source=lib/emergency.sh
+source "$SCRIPT_DIR/lib/emergency.sh"
 # shellcheck source=lib/ui.sh
 source "$SCRIPT_DIR/lib/ui.sh"
 # shellcheck source=lib/diskcheck.sh
@@ -31,14 +33,15 @@ ZIM_DIR="$CONTENT_DIR/zim"
 
 usage() {
   cat <<EOF
-Usage: $0 <command>
+Usage: $0 <command> [options]
 
 Commands:
-  list     Show installed topics with sizes
-  add      Pick and download additional topics
-  update   Check installed topics against the catalog for newer versions
-  remove   Pick installed topics to delete
-  status   Show container status and disk usage
+  list          Show installed topics with sizes
+  add [--all]   Pick and download more topics (curated emergency subset by
+                default; --all browses the full Kiwix catalog instead)
+  update        Check installed topics against the catalog for newer versions
+  remove        Pick installed topics to delete
+  status        Show container status and disk usage
 EOF
 }
 
@@ -67,10 +70,29 @@ cmd_list() {
 }
 
 cmd_add() {
+  local full_catalog=false
+  local arg
+  for arg in "$@"; do
+    case "$arg" in
+      --all|--full-catalog) full_catalog=true ;;
+    esac
+  done
+
   refresh_catalog
+
+  local picker_tsv="$CATALOG_TSV"
+  if [[ "$full_catalog" == true ]]; then
+    log_info "Browsing the full catalog ($(wc -l < "$CATALOG_TSV") topics)."
+  else
+    local emergency_tsv="$CACHE_DIR/emergency.tsv"
+    catalog_filter_names "$CATALOG_TSV" "$emergency_tsv" $(emergency_zim_names)
+    log_ok "Curated emergency subset: $(wc -l < "$emergency_tsv") topic(s). Use 'add --all' to browse the full catalog."
+    picker_tsv="$emergency_tsv"
+  fi
+
   read -r -p "Filter by language code (e.g. eng, fra) or leave blank for all: " lang_filter
   local selected_tsv="$CACHE_DIR/selected.tsv"
-  if ! ui_select_topics "$CATALOG_TSV" "$lang_filter" > "$selected_tsv"; then
+  if ! ui_select_topics "$picker_tsv" "$lang_filter" > "$selected_tsv"; then
     log_warn "No topics selected."
     return
   fi
@@ -198,7 +220,7 @@ cmd_status() {
 
 case "${1:-}" in
   list)   cmd_list ;;
-  add)    cmd_add ;;
+  add)    shift; cmd_add "$@" ;;
   update) cmd_update ;;
   remove) cmd_remove ;;
   status) cmd_status ;;

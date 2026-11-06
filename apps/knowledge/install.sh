@@ -1,14 +1,25 @@
 #!/usr/bin/env bash
-# install.sh - interactive installer for the offline Kiwix knowledge box
+# install.sh - interactive installer for the offline emergency-knowledge box
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
+# --all / --full-catalog: skip the curated emergency subset and browse every
+# ZIM in the Kiwix catalog instead (same escape hatch as `manage.sh add --all`).
+FULL_CATALOG=false
+for arg in "$@"; do
+  case "$arg" in
+    --all|--full-catalog) FULL_CATALOG=true ;;
+  esac
+done
+
 # shellcheck source=lib/deps.sh
 source "$SCRIPT_DIR/lib/deps.sh"
 # shellcheck source=lib/catalog.sh
 source "$SCRIPT_DIR/lib/catalog.sh"
+# shellcheck source=lib/emergency.sh
+source "$SCRIPT_DIR/lib/emergency.sh"
 # shellcheck source=lib/ui.sh
 source "$SCRIPT_DIR/lib/ui.sh"
 # shellcheck source=lib/diskcheck.sh
@@ -85,13 +96,31 @@ total_entries=$(wc -l < "$CATALOG_TSV")
 log_ok "Catalog loaded: $total_entries topics available"
 
 # ---------------------------------------------------------------------------
-# Step 4: optional language filter + topic selection
+# Step 4: curated emergency subset (or full catalog) + topic selection
 # ---------------------------------------------------------------------------
+picker_tsv="$CATALOG_TSV"
+if [[ "$FULL_CATALOG" == false ]]; then
+  read -r -p "Show only curated emergency topics, or browse the full Kiwix catalog? [emergency/all] (default: emergency): " catalog_mode
+  if [[ "$catalog_mode" =~ ^[Aa] ]]; then
+    FULL_CATALOG=true
+  fi
+fi
+
+if [[ "$FULL_CATALOG" == true ]]; then
+  log_info "Browsing the full catalog ($total_entries topics)."
+else
+  emergency_tsv="$CACHE_DIR/emergency.tsv"
+  catalog_filter_names "$CATALOG_TSV" "$emergency_tsv" $(emergency_zim_names)
+  emergency_count=$(wc -l < "$emergency_tsv")
+  log_ok "Curated emergency subset: $emergency_count topic(s) (survivorlibrary.com is ~220 GB on its own — make sure you have the room)"
+  picker_tsv="$emergency_tsv"
+fi
+
 read -r -p "Filter by language code (e.g. eng, fra) or leave blank for all: " lang_filter
 
 log_info "Opening topic picker..."
 selected_tsv="$CACHE_DIR/selected.tsv"
-if ! ui_select_topics "$CATALOG_TSV" "$lang_filter" > "$selected_tsv"; then
+if ! ui_select_topics "$picker_tsv" "$lang_filter" > "$selected_tsv"; then
   log_warn "No topics selected. Exiting."
   exit 0
 fi

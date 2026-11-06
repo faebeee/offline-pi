@@ -30,6 +30,18 @@ if ! podman compose version >/dev/null 2>&1 && ! command -v podman-compose >/dev
   exit 1
 fi
 
+ENV_FILE="$SCRIPT_DIR/.env"
+ENV_EXAMPLE="$SCRIPT_DIR/.env.example"
+
+if [[ -f "$ENV_FILE" ]]; then
+  log_ok "Found existing .env"
+else
+  cp "$ENV_EXAMPLE" "$ENV_FILE"
+  log_ok "Wrote $ENV_FILE with defaults — edit it to change PORT/ALLOWED_ORIGINS/DATABASE_URL/DB_LOGGING."
+fi
+# shellcheck disable=SC1090
+source "$ENV_FILE"
+
 # data/ and assets/ are bind-mounted into the container as uid 1000 (node);
 # creating them first keeps them owned by the current user on Linux.
 mkdir -p data/regions assets
@@ -41,4 +53,5 @@ compose build
 log_info "Running first-run setup (pmtiles CLI, fonts, sprites)..."
 compose run --rm offline-maps node apps/backend/dist/cli/main.js setup
 
-log_ok "Install complete. Run ./start.sh to bring the server up."
+log_ok "Install complete."
+exec "$SCRIPT_DIR/start.sh"

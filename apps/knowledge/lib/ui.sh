@@ -5,6 +5,10 @@ set -euo pipefail
 # Given a TSV file (name<TAB>title<TAB>language<TAB>category<TAB>size<TAB>url<TAB>updated)
 # and an optional language filter, show a multi-select checkbox list.
 # Prints selected rows (full TSV lines) to stdout, one per line.
+#
+# If a function named `emergency_zim_group` is defined (see lib/emergency.sh)
+# and returns a group for a given name, each line is prefixed with
+# "[Group] " so a short curated list reads clearly.
 ui_select_topics() {
   local tsv_file="$1"
   local filter_lang="${2:-}"
@@ -17,9 +21,14 @@ ui_select_topics() {
     if [[ -n "$filter_lang" && "$lang" != *"$filter_lang"* ]]; then
       continue
     fi
-    local human
+    local human group prefix
     human=$(human_size "$size")
-    display_lines+=("$(printf '%-60s %-6s %10s  [%s]' "$title" "$lang" "$human" "$name")")
+    prefix=""
+    if command -v emergency_zim_group >/dev/null 2>&1; then
+      group="$(emergency_zim_group "$name" 2>/dev/null || true)"
+      [[ -n "$group" ]] && prefix="[$group] "
+    fi
+    display_lines+=("$(printf '%s%-60s %-6s %10s  [%s]' "$prefix" "$title" "$lang" "$human" "$name")")
     raw_lines+=("$name"$'\t'"$title"$'\t'"$lang"$'\t'"$category"$'\t'"$size"$'\t'"$url"$'\t'"$updated")
   done < "$tsv_file"
 

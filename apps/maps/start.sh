@@ -25,8 +25,16 @@ if ! command -v podman >/dev/null 2>&1; then
   exit 1
 fi
 
+ENV_FILE="$SCRIPT_DIR/.env"
+if [[ ! -f "$ENV_FILE" ]]; then
+  log_error "No .env found. Run ./install.sh first."
+  exit 1
+fi
+# shellcheck disable=SC1090
+source "$ENV_FILE"
+
 log_info "Starting offline-maps..."
-compose up -d --build
+compose --env-file "$ENV_FILE" up -d --build
 
 PORT="${PORT:-8080}"
 LAN_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
