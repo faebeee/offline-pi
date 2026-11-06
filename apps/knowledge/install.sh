@@ -52,8 +52,8 @@ setup_env_file() {
   mkdir -p "$content_dir/zim"
 
   local port
-  read -r -p "Port for kiwix-serve [8080]: " port
-  port="${port:-8080}"
+  read -r -p "Port for kiwix-serve [8081]: " port
+  port="${port:-8081}"
 
   local bind
   read -r -p "Bind address (all/ipv4/ipv6/specific IP) [all]: " bind
@@ -129,17 +129,6 @@ done < "$selected_tsv"
 log_ok "All downloads complete."
 
 # ---------------------------------------------------------------------------
-# Step 7: start kiwix-serve via docker compose
+# Step 7: start kiwix-serve
 # ---------------------------------------------------------------------------
-log_info "Starting kiwix-serve..."
-docker compose --env-file "$ENV_FILE" up -d
-
-LAN_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
-echo
-log_ok "Kiwix is up and running!"
-echo "  Local:   http://localhost:${KIWIX_PORT}"
-if [[ -n "$LAN_IP" ]]; then
-  echo "  LAN:     http://${LAN_IP}:${KIWIX_PORT}"
-fi
-echo
-echo "Use ./manage.sh to add more topics, check status, update, or remove content."
+exec "$SCRIPT_DIR/start.sh"

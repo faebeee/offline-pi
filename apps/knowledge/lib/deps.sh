@@ -27,27 +27,36 @@ apt_install() {
   sudo apt-get install -y "$@"
 }
 
-ensure_docker() {
-  if has_cmd docker; then
-    log_ok "docker found"
+ensure_podman() {
+  if has_cmd podman; then
+    log_ok "podman found"
   else
-    log_warn "docker not found."
-    read -r -p "Install Docker now via get.docker.com script? [y/N] " reply
+    log_warn "podman not found."
+    read -r -p "Install Podman now via apt? [y/N] " reply
     if [[ "$reply" =~ ^[Yy]$ ]]; then
-      curl -fsSL https://get.docker.com | sh
-      sudo usermod -aG docker "$USER" || true
-      log_ok "Docker installed. You may need to log out/in for group membership to take effect."
+      apt_install podman
+      log_ok "Podman installed."
     else
-      log_error "Docker is required. Install it manually and re-run install.sh"
+      log_error "Podman is required. Install it manually and re-run install.sh"
       exit 1
     fi
   fi
 
-  if ! docker compose version >/dev/null 2>&1; then
-    log_error "The 'docker compose' plugin is missing. Install docker-compose-plugin (apt) and re-run."
-    exit 1
+  if podman compose version >/dev/null 2>&1; then
+    log_ok "podman compose found"
+  elif has_cmd podman-compose; then
+    log_ok "podman-compose found"
+  else
+    log_warn "No compose backend found for podman."
+    read -r -p "Install podman-compose now via apt? [y/N] " reply
+    if [[ "$reply" =~ ^[Yy]$ ]]; then
+      apt_install podman-compose
+      log_ok "podman-compose installed."
+    else
+      log_error "'podman compose' (or podman-compose) is required. Install it manually and re-run install.sh"
+      exit 1
+    fi
   fi
-  log_ok "docker compose plugin found"
 }
 
 ensure_aria2() {
@@ -109,8 +118,19 @@ ensure_gum() {
 }
 
 ensure_all_deps() {
-  ensure_docker
+  ensure_podman
   ensure_aria2
   ensure_xmlstarlet
   ensure_gum
+}
+
+# compose - run the available podman compose backend with the given args.
+# Prefers the built-in `podman compose` subcommand, falls back to the
+# standalone `podman-compose` binary.
+compose() {
+  if podman compose version >/dev/null 2>&1; then
+    podman compose "$@"
+  else
+    podman-compose "$@"
+  fi
 }

@@ -49,7 +49,7 @@ refresh_catalog() {
 
 restart_server() {
   log_info "Restarting kiwix-serve..."
-  docker compose --env-file "$ENV_FILE" up -d --force-recreate
+  compose --env-file "$ENV_FILE" up -d --force-recreate
   log_ok "Done."
 }
 
@@ -191,7 +191,7 @@ cmd_remove() {
 }
 
 cmd_status() {
-  docker compose --env-file "$ENV_FILE" ps
+  compose --env-file "$ENV_FILE" ps
   echo
   df -h "$CONTENT_DIR" | awk 'NR==1 || NR==2'
 }

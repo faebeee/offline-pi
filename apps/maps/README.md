@@ -123,7 +123,7 @@ POI near a border shows up on every region that covers it.
 POIs go through [TypeORM](https://typeorm.io), so the engine is a configuration
 choice rather than something baked into the queries. The default is a sqlite
 file at `data/offline-maps.db`, which is what a self-hosted install wants and
-which `docker-compose` already persists along with the archives.
+which `podman compose` already persists along with the archives.
 
 To move to Postgres, point `DATABASE_URL` at it and restart — nothing else
 changes, and the migrations run themselves on boot:
@@ -133,8 +133,8 @@ DATABASE_URL=postgres://maps:secret@localhost:5432/maps npm start
 ```
 
 Both drivers ship with the backend (`better-sqlite3`, `pg`). better-sqlite3
-publishes N-API prebuilds, so there is still nothing to compile and the Docker
-image keeps installing with `--ignore-scripts`.
+publishes N-API prebuilds, so there is still nothing to compile and the
+container image keeps installing with `--ignore-scripts`.
 
 Keeping that promise honest costs a little discipline:
 
@@ -164,25 +164,33 @@ npm run build && npm start  # single server on :8080
 Backend dev runs `tsc --watch` next to `node --watch dist/main.js`, so a saved
 `.ts` file restarts the server.
 
-### Docker
+### Podman
 
 ```sh
-docker compose up -d --build   # production server on :8080
+./install.sh   # one-time: build the image, bootstrap pmtiles/fonts/sprites
+./start.sh     # podman compose up -d --build; prints the local/LAN URL
+```
+
+Equivalently, by hand:
+
+```sh
+podman compose up -d --build   # production server on :8080
 ```
 
 The image ships its own Linux `pmtiles` binary; `data/` and `assets/` are
 bind-mounted, so regions and fonts survive rebuilds and are shared with a local
-checkout. On a fresh clone, run setup from the viewer, or through the CLI:
+checkout. On a fresh clone, `./install.sh` runs setup for you; the same thing
+by hand is:
 
 ```sh
-docker compose run --rm offline-maps node apps/backend/dist/cli/main.js setup
+podman compose run --rm offline-maps node apps/backend/dist/cli/main.js setup
 ```
 
 `/api` only answers `http://localhost:8080` and `http://127.0.0.1:8080`. When
-publishing on another port (`PORT=9000 docker compose up`) or hostname, list the
+publishing on another port (`PORT=9000 podman compose up`) or hostname, list the
 viewer's origin in `ALLOWED_ORIGINS`, comma-separated. On Linux, create `data/`
 and `assets/` before the first start so they are owned by your user (uid 1000)
-rather than root.
+rather than root (`install.sh` does this for you).
 
 | Variable | Default | |
 |---|---|---|

@@ -7,7 +7,7 @@ attached SSD.
 
 - Pick topics from the **live Kiwix catalog** via an interactive checkbox menu
 - Resumable, checksum-verified downloads (via `aria2c` + Kiwix's `.meta4` metalinks)
-- Content served locally over your LAN via `kiwix-serve` in Docker
+- Content served locally over your LAN via `kiwix-serve` in Podman
 - Configurable storage location (point it at your SSD)
 - Auto-starts on boot, survives reboots
 - `manage.sh` for adding/updating/removing topics and checking status later
@@ -15,8 +15,8 @@ attached SSD.
 ## Requirements
 
 - A Debian-based Linux system (Raspberry Pi OS, Ubuntu, Debian). The installer
-  will offer to install missing dependencies (`docker`, `aria2`, `xmlstarlet`,
-  `gum`) via `apt` where possible.
+  will offer to install missing dependencies (`podman`, `podman-compose`,
+  `aria2`, `xmlstarlet`, `gum`) via `apt` where possible.
 - Enough free disk space at your chosen storage location for the content you
   select (Wikipedia-with-media sets can be tens of GB; text-only/`nopic`
   editions are much smaller).
@@ -31,17 +31,21 @@ cd offline-knowledge
 
 The installer will:
 
-1. Check/install dependencies (Docker, aria2c, xmlstarlet, gum).
+1. Check/install dependencies (Podman, aria2c, xmlstarlet, gum).
 2. Ask where to store content (e.g. `/mnt/ssd/kiwix`) and write a `.env` file.
 3. Fetch the current Kiwix catalog.
 4. Let you filter by language and pick topics in a checkbox menu (shows size
    per item).
 5. Check available disk space before downloading.
 6. Download selected ZIM files with resume + checksum verification.
-7. Start `kiwix-serve` via Docker Compose (`restart: unless-stopped`).
+7. Start `kiwix-serve` via Podman Compose (`restart: unless-stopped`).
 
-Once done, access your content at `http://<pi-ip>:8080` from any device on
+Once done, access your content at `http://<pi-ip>:8081` from any device on
 your network.
+
+Already configured and just need to (re)start the container (e.g. after a
+reboot or a manual stop)? Run `./start.sh` — it reuses the existing `.env`
+instead of asking any setup questions.
 
 ## Managing content later
 
@@ -62,12 +66,16 @@ you're happy.
 | Variable        | Description                                         | Default   |
 |-----------------|------------------------------------------------------|-----------|
 | `CONTENT_DIR`   | Where ZIM files and cache live. Point at your SSD.   | `./data`  |
-| `KIWIX_PORT`    | Host port for kiwix-serve.                           | `8080`    |
+| `KIWIX_PORT`    | Host port for kiwix-serve.                           | `8081`    |
 | `BIND_ADDRESS`  | `all` / `ipv4` / `ipv6` / specific IP for the server.| `all`     |
 
+Default ports are chosen to avoid colliding with other `offline-pi` apps
+running on the same host (e.g. `maps` defaults to `8080`). If you change
+`KIWIX_PORT`, make sure it doesn't clash with another app's port.
+
 To move your library to a new disk: stop the service
-(`docker compose down`), move the `CONTENT_DIR` directory, update `.env`,
-then `docker compose up -d` (or just re-run `./install.sh`, which detects the
+(`podman compose down`), move the `CONTENT_DIR` directory, update `.env`,
+then `podman compose up -d` (or just re-run `./install.sh`, which detects the
 existing `.env`).
 
 ## How it works
@@ -84,7 +92,8 @@ existing `.env`).
 ## Project layout
 
 ```
-install.sh              Interactive first-run installer
+install.sh              Interactive first-run installer (ends by calling start.sh)
+start.sh                 Start/restart kiwix-serve from an existing .env
 manage.sh                list / add / update / remove / status commands
 lib/
   deps.sh                Dependency detection & installation
