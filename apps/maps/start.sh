@@ -44,5 +44,7 @@ echo "  Local:   http://localhost:${PORT}"
 if [[ -n "$LAN_IP" ]]; then
   echo "  LAN:     http://${LAN_IP}:${PORT}"
 fi
+echo "  Data:    ${DATA_DIR:-./data}"
+echo "  Assets:  ${ASSETS_DIR:-./assets}"
 echo
 echo "Use 'podman compose logs -f' to follow logs, 'podman compose down' to stop."

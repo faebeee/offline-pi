@@ -7,14 +7,14 @@ services:
     environment:
       # extra origins allowed to call /api, e.g. http://maps.local:8080
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
-      # unset -> sqlite at data/offline-maps.db; set to move POIs to Postgres,
+      # unset -> sqlite at $DATA_DIR/offline-maps.db; set to move POIs to Postgres,
       # e.g. postgres://maps:secret@db:5432/maps
       DATABASE_URL: ${DATABASE_URL:-}
       # true logs every SQL statement (debugging only)
       DB_LOGGING: ${DB_LOGGING:-false}
     volumes:
-      - ./data:/app/data
-      - ./assets:/app/assets
+      - ${DATA_DIR:-./data}:/app/data
+      - ${ASSETS_DIR:-./assets}:/app/assets
     restart: unless-stopped
     healthcheck:
       test:

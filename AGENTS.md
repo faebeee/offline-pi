@@ -27,7 +27,9 @@ apps/<name>/
   manage.sh              # optional: ongoing content/lifecycle commands
   lib/*.sh               # optional: shared helpers if the app is non-trivial
   README.md              # quick start + config table
-  data/, assets/          # gitignored, bind-mounted persistent dirs
+  data/, assets/          # gitignored, bind-mounted persistent dirs; location
+                          # configurable via .env (e.g. DATA_DIR) so they can
+                          # point at external storage (SSD on a Pi)
 ```
 
 ## Entry point scripts
@@ -50,7 +52,9 @@ cd "$SCRIPT_DIR"
 - If no `.env` exists: copy `.env.example` to `.env`, interactively prompt for
   the handful of settings that matter (storage path, port, bind address),
   `sed` them into `.env`, then `source` it.
-- If `.env` exists: just `source` it and skip prompts.
+- If `.env` exists: just `source` it and skip prompts — **except** for
+  storage-path variables (see "Persistent data & external storage" below),
+  which are always re-prompted so an existing install can be relocated.
 - Builds the image (`compose build`) and runs any first-run bootstrap.
 - Ends by calling (`exec`'ing) `start.sh` — a fresh clone only ever needs
   `./install.sh`.
@@ -100,6 +104,40 @@ cd "$SCRIPT_DIR"
   truth; persistent state is a bind mount under `./data` (and `./assets` etc.
   as needed); set `restart: unless-stopped`; add a `healthcheck` where the
   service exposes a cheap status endpoint.
+
+## Persistent data & external storage
+
+Every bind-mounted directory that can grow large (archives, tile/content
+caches, databases, downloaded media) must be relocatable via its own `.env`
+variable — never hardcode `./data`/`./assets` as the literal source in
+`docker-compose.yml`. This is what lets a user point storage at an external
+SSD mounted on the Pi instead of filling the SD card.
+
+- **Naming:** one var per independently-relocatable directory, named
+  `<PURPOSE>_DIR` (e.g. `DATA_DIR`, `CONTENT_DIR`, `ASSETS_DIR`).
+- **`docker-compose.yml`:** `- ${DATA_DIR:-./data}:/app/data`, matching the
+  `${VAR:-default}` rule above.
+- **`.env.example`:** document each with a comment that explicitly calls out
+  SSD use, e.g. `# Point this at your SSD mount on a Raspberry Pi, e.g.
+  /mnt/ssd/<app>/data`.
+- **`install.sh`:** storage-path variables are re-prompted on *every* run
+  (unlike other settings, which only prompt when `.env` is missing),
+  defaulting to the current `.env` value if one exists. Each answer is
+  expanded to an absolute path, `mkdir -p`'d, and checked writable before
+  continuing — fail fast with `log_error` if the path/mount isn't available
+  (e.g. the SSD isn't plugged in).
+- **Relocation/resync:** when an answer differs from the previous value in
+  `.env`, treat it as "move my data here": if the old path exists and has
+  content, confirm with the user, then copy it to the new path (`rsync -a`,
+  falling back to `cp -a` if `rsync` isn't installed) before removing the
+  old copy and writing the new value to `.env`. If the copy fails partway,
+  leave both old and new data in place, don't touch `.env`, and tell the
+  user how to retry — never silently lose data. If the old path doesn't
+  exist or is empty, just create the new one and move on.
+- Document every such variable in the app's `README.md` config table, and
+  note in its Podman usage section that re-running `install.sh` with a new
+  path is the supported way to relocate storage (e.g. to a newly mounted
+  SSD) without losing existing data.
 
 ## `.env` pattern
 

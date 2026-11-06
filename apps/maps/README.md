@@ -19,22 +19,24 @@ download and delete all happen in the browser.
 
 Regions are extracted out of the global [Protomaps](https://protomaps.com) planet
 build using HTTP range requests, so adding a city downloads only that city's
-tiles — not the 130 GB planet file. Each region lands in `data/regions/<name>.pmtiles`.
+tiles — not the 130 GB planet file. Each region lands in
+`$DATA_DIR/regions/<name>.pmtiles` (`DATA_DIR` defaults to `./data`; point it
+at an external SSD mount to keep large catalogs off the SD card).
 
 The backend serves tiles, a MapLibre style, glyphs and sprites, all from
 localhost. Nothing is fetched from a CDN at runtime, which is what makes the
 viewer work with the network unplugged.
 
 ```
-bin/pmtiles                 go-pmtiles CLI (installed on first run)
-data/regions/*.pmtiles      one archive per region
-data/regions.json           registry: bbox, zoom range, build date, size
-data/offline-maps.db        default database: your points of interest
-data/geofabrik-index.json   catalog of 554 named regions
-assets/fonts, assets/sprites  vendored map assets
-apps/backend/               NestJS server + region CLI
-apps/frontend/              Vite + React + MapLibre viewer
-packages/shared/            types shared by server and viewer
+bin/pmtiles                       go-pmtiles CLI (installed on first run)
+$DATA_DIR/regions/*.pmtiles       one archive per region
+$DATA_DIR/regions.json            registry: bbox, zoom range, build date, size
+$DATA_DIR/offline-maps.db         default database: your points of interest
+$DATA_DIR/geofabrik-index.json    catalog of 554 named regions
+$ASSETS_DIR/fonts, $ASSETS_DIR/sprites  vendored map assets
+apps/backend/                     NestJS server + region CLI
+apps/frontend/                    Vite + React + MapLibre viewer
+packages/shared/                  types shared by server and viewer
 ```
 
 The repo is an npm workspaces monorepo: `apps/*` are deployables, `packages/*`
@@ -114,7 +116,7 @@ The sidebar lists the POIs inside the current viewport and shows how many are
 outside it. Clicking one flies to it and opens its editor; **×** deletes it
 behind an inline confirm.
 
-POIs are global, not owned by a region. They are stored in `data/offline-maps.db`
+POIs are global, not owned by a region. They are stored in `$DATA_DIR/offline-maps.db`
 so deleting or re-downloading the region they sit in leaves them alone, and a
 POI near a border shows up on every region that covers it.
 
@@ -122,7 +124,7 @@ POI near a border shows up on every region that covers it.
 
 POIs go through [TypeORM](https://typeorm.io), so the engine is a configuration
 choice rather than something baked into the queries. The default is a sqlite
-file at `data/offline-maps.db`, which is what a self-hosted install wants and
+file at `$DATA_DIR/offline-maps.db`, which is what a self-hosted install wants and
 which `podman compose` already persists along with the archives.
 
 To move to Postgres, point `DATABASE_URL` at it and restart — nothing else
@@ -167,14 +169,22 @@ Backend dev runs `tsc --watch` next to `node --watch dist/main.js`, so a saved
 ### Podman
 
 ```sh
-./install.sh   # one-time: write .env, build the image, bootstrap pmtiles/fonts/sprites
+./install.sh   # write .env, build the image, bootstrap pmtiles/fonts/sprites
 ./start.sh     # podman compose up -d --build; prints the local/LAN URL
 ```
 
 `./install.sh` copies `.env.example` to `.env` on first run (skipped if `.env`
-already exists) and ends by calling `./start.sh`, so a fresh clone only ever
-needs `./install.sh`. Edit `.env` to change `PORT`, `ALLOWED_ORIGINS`,
-`DATABASE_URL` or `DB_LOGGING`, then re-run `./start.sh` to apply it.
+already exists) and always prompts for `DATA_DIR`/`ASSETS_DIR` (defaulting to
+whatever is already in `.env`), then ends by calling `./start.sh`, so a fresh
+clone only ever needs `./install.sh`. Edit `.env` to change `PORT`,
+`ALLOWED_ORIGINS`, `DATABASE_URL` or `DB_LOGGING`, then re-run `./start.sh` to
+apply it.
+
+Re-running `./install.sh` is also how you relocate storage — e.g. to an
+external SSD mounted at `/mnt/ssd`: answer the `DATA_DIR`/`ASSETS_DIR`
+prompts with the new path and any existing regions/POIs/assets are moved
+there for you (after confirming) before `.env` is updated; nothing is deleted
+if the move fails partway.
 
 Equivalently, by hand:
 
@@ -182,10 +192,10 @@ Equivalently, by hand:
 podman compose --env-file .env up -d --build   # production server on :8080
 ```
 
-The image ships its own Linux `pmtiles` binary; `data/` and `assets/` are
-bind-mounted, so regions and fonts survive rebuilds and are shared with a local
-checkout. On a fresh clone, `./install.sh` runs setup for you; the same thing
-by hand is:
+The image ships its own Linux `pmtiles` binary; `$DATA_DIR` and `$ASSETS_DIR`
+(default `./data`/`./assets`) are bind-mounted, so regions and fonts survive
+rebuilds and are shared with a local checkout. On a fresh clone, `./install.sh`
+runs setup for you; the same thing by hand is:
 
 ```sh
 podman compose run --rm offline-maps node apps/backend/dist/cli/main.js setup
@@ -194,20 +204,23 @@ podman compose run --rm offline-maps node apps/backend/dist/cli/main.js setup
 `/api` only answers `http://localhost:8080` and `http://127.0.0.1:8080`. When
 publishing on another port or hostname, set `PORT` and list the viewer's
 origin in `ALLOWED_ORIGINS` (comma-separated) in `.env`, then `./start.sh`
-again. On Linux, create `data/` and `assets/` before the first start so they
-are owned by your user (uid 1000) rather than root (`install.sh` does this
-for you).
+again. On Linux, create `$DATA_DIR` and `$ASSETS_DIR` before the first start
+so they are owned by your user (uid 1000) rather than root (`install.sh` does
+this for you).
 
 | Variable | Default | |
 |---|---|---|
+| `DATA_DIR` | `./data` | where regions, the POI db and the registry are stored; point at an external SSD mount for large catalogs |
+| `ASSETS_DIR` | `./assets` | where vendored fonts/sprites are stored; can also point at an SSD mount |
 | `PORT` | `8080` | host port mapped to the container (container always listens on `8080` internally) |
 | `HOST` | `127.0.0.1` (`0.0.0.0` in the container, fixed by the Dockerfile) | address the server binds to; only relevant running `npm start` directly outside Docker |
 | `ALLOWED_ORIGINS` | — | extra origins allowed to call `/api` |
-| `DATABASE_URL` | — | unset uses sqlite in `data/`; set to a `postgres://` url to use Postgres |
+| `DATABASE_URL` | — | unset uses sqlite in `$DATA_DIR`; set to a `postgres://` url to use Postgres |
 | `DB_LOGGING` | `false` | `true` logs every SQL statement |
 
-`PORT`, `ALLOWED_ORIGINS`, `DATABASE_URL` and `DB_LOGGING` are read from `.env`
-by `docker-compose.yml`; see `.env.example` for defaults and comments.
+`DATA_DIR`, `ASSETS_DIR`, `PORT`, `ALLOWED_ORIGINS`, `DATABASE_URL` and
+`DB_LOGGING` are read from `.env` by `docker-compose.yml`; see `.env.example`
+for defaults and comments.
 
 ## API
 
