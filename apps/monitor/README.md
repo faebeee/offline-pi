@@ -97,6 +97,19 @@ with:
 The container runs as its root user, which under rootless Podman is your own
 unprivileged user on the host.
 
+## Uninstall
+
+```sh
+./uninstall.sh            # asks before deleting anything
+./uninstall.sh --purge    # also deletes DATA_DIR (history) and .env
+```
+
+Always removes the container and the `pi-monitor` image. The history in
+`DATA_DIR` is kept unless you confirm deleting it (or pass `--purge`), and
+`.env` stays as long as the history does, so a later `./install.sh` picks it
+up again. Podman, `podman-restart.service` and lingering are left alone for
+the other apps.
+
 ## API
 
 | Endpoint | Description |

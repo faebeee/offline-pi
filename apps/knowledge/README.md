@@ -119,6 +119,19 @@ To move your library to a new disk: stop the service
 then `podman compose up -d` (or just re-run `./install.sh`, which detects the
 existing `.env`).
 
+## Uninstall
+
+```sh
+./uninstall.sh            # asks before deleting anything
+./uninstall.sh --purge    # also deletes CONTENT_DIR (all ZIM files) and .env
+```
+
+Always removes the container and the `kiwix-serve` image. Your ZIM library in
+`CONTENT_DIR` is kept unless you confirm deleting it (or pass `--purge`), and
+`.env` stays as long as the library does, so a later `./install.sh` picks it
+up again. Podman, gum, aria2, `podman-restart.service` and lingering are left
+alone.
+
 ## How it works
 
 - Content is fetched from the official Kiwix OPDS v2 catalog
@@ -135,6 +148,7 @@ existing `.env`).
 ```
 install.sh              Interactive first-run installer (ends by calling start.sh)
 start.sh                 Start/restart kiwix-serve from an existing .env
+uninstall.sh             Remove container/image; ZIM files only on confirmation
 manage.sh                list / add / update / remove / status commands
 lib/
   deps.sh                Dependency detection & installation

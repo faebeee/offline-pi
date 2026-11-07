@@ -15,17 +15,24 @@ See each app's own README for setup, architecture and usage details.
 
 ## Running an app
 
-Every app under `apps/*` exposes the same two entry points:
+Every app under `apps/*` exposes the same three entry points:
 
 ```sh
 cd apps/<app>
-./install.sh   # one-time setup: install deps, build the image, bootstrap
-./start.sh     # start (or restart) the app; safe to re-run after a reboot
+./install.sh     # one-time setup: install deps, build the image, bootstrap
+./start.sh       # start (or restart) the app; safe to re-run after a reboot
+./uninstall.sh   # remove containers and image; asks before deleting data
 ```
 
 `install.sh` is idempotent and ends by calling `start.sh`, so a fresh clone
 only ever needs `./install.sh`. Use `./start.sh` on its own afterwards (e.g.
 after a reboot, or once you've edited `.env`).
+
+`./uninstall.sh` stops and removes the app's containers and image. Data
+directories are kept unless you confirm deleting each one (or pass
+`--purge`), and `.env` stays as long as data does, so `./install.sh` picks it
+up again. `apps/hotspot-pi` is a host service rather than a container; it has
+`install-hotspot-fallback.sh` / `uninstall-hotspot-fallback.sh` instead.
 
 ## Port allocation
 

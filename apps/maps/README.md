@@ -223,6 +223,19 @@ this for you).
 `DB_LOGGING` are read from `.env` by `docker-compose.yml`; see `.env.example`
 for defaults and comments.
 
+## Uninstall
+
+```sh
+./uninstall.sh            # asks before deleting anything
+./uninstall.sh --purge    # also deletes DATA_DIR, ASSETS_DIR and .env
+```
+
+Always removes the containers and the `offline-maps` image. Regions, POIs and
+fonts in `DATA_DIR` and `ASSETS_DIR` are kept unless you confirm deleting each
+one (or pass `--purge`), and `.env` stays as long as any data does, so a later
+`./install.sh` picks it up again. Podman, `podman-restart.service` and
+lingering are left alone for the other apps.
+
 ## API
 
 | Route | Purpose |
