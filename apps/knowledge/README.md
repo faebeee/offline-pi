@@ -49,7 +49,7 @@ The installer will:
 6. Download selected ZIM files with resume + checksum verification.
 7. Start `kiwix-serve` via Podman Compose (`restart: always`; `install.sh` enables `podman-restart.service` so it comes back after a reboot).
 
-Once done, access your content at `http://<pi-ip>:8081` from any device on
+Once done, access your content at `http://<pi-ip>:8082` from any device on
 your network.
 
 Already configured and just need to (re)start the container (e.g. after a
@@ -107,17 +107,30 @@ gets update checks.
 | Variable        | Description                                         | Default   |
 |-----------------|------------------------------------------------------|-----------|
 | `CONTENT_DIR`   | Where ZIM files and cache live. Point at your SSD.   | `./data`  |
-| `KIWIX_PORT`    | Host port for kiwix-serve.                           | `8081`    |
+| `KIWIX_PORT`    | Host port for kiwix-serve.                           | `8082`    |
 | `BIND_ADDRESS`  | `all` / `ipv4` / `ipv6` / specific IP for the server.| `all`     |
 
 Default ports are chosen to avoid colliding with other `offline-pi` apps
-running on the same host (e.g. `maps` defaults to `8080`). If you change
+running on the same host (`monitor` defaults to `8080`, `maps` to `8081`). If you change
 `KIWIX_PORT`, make sure it doesn't clash with another app's port.
 
 To move your library to a new disk: stop the service
 (`podman compose down`), move the `CONTENT_DIR` directory, update `.env`,
 then `podman compose up -d` (or just re-run `./install.sh`, which detects the
 existing `.env`).
+
+## Uninstall
+
+```sh
+./uninstall.sh            # asks before deleting anything
+./uninstall.sh --purge    # also deletes CONTENT_DIR (all ZIM files) and .env
+```
+
+Always removes the container and the `kiwix-serve` image. Your ZIM library in
+`CONTENT_DIR` is kept unless you confirm deleting it (or pass `--purge`), and
+`.env` stays as long as the library does, so a later `./install.sh` picks it
+up again. Podman, gum, aria2, `podman-restart.service` and lingering are left
+alone.
 
 ## How it works
 
@@ -135,6 +148,7 @@ existing `.env`).
 ```
 install.sh              Interactive first-run installer (ends by calling start.sh)
 start.sh                 Start/restart kiwix-serve from an existing .env
+uninstall.sh             Remove container/image; ZIM files only on confirmation
 manage.sh                list / add / update / remove / status commands
 lib/
   deps.sh                Dependency detection & installation

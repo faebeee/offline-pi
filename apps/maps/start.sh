@@ -34,9 +34,11 @@ fi
 source "$ENV_FILE"
 
 log_info "Starting offline-maps..."
-compose --env-file "$ENV_FILE" up -d --build
+# --force-recreate: podman-compose only replaces a running container when
+# the compose config changed, not when --build produced a new image.
+compose --env-file "$ENV_FILE" up -d --build --force-recreate
 
-PORT="${PORT:-8080}"
+PORT="${PORT:-8081}"
 LAN_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
 echo
 log_ok "offline-maps is up and running!"

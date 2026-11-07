@@ -4,7 +4,7 @@ services:
     container_name: offline-knowledge-kiwix
     restart: always
     ports:
-      - "${KIWIX_PORT:-8081}:8080"
+      - "${KIWIX_PORT:-8082}:8080"
     volumes:
       - ${CONTENT_DIR:-./data}:/data
     command: ["-k", "-i", "${BIND_ADDRESS:-all}", "/data/zim/*.zim"]

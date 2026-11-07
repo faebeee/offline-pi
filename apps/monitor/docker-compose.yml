@@ -1,0 +1,41 @@
+services:
+  pi-monitor:
+    build: .
+    image: pi-monitor
+    # Host networking and PID namespace so /proc/net/dev, /proc/1/mounts and
+    # the process count describe the Pi, not the container. With host
+    # networking there is no port mapping: the app listens on PORT directly.
+    network_mode: host
+    pid: host
+    environment:
+      PORT: ${PORT:-8080}
+      HOST: ${BIND_ADDRESS:-0.0.0.0}
+      SAMPLE_INTERVAL_MS: ${SAMPLE_INTERVAL_MS:-2000}
+      # host path of podman's storage (db.sql lives there); read via /hostfs
+      PODMAN_GRAPH_ROOT: ${PODMAN_GRAPH_ROOT:-}
+    volumes:
+      - ${DATA_DIR:-./data}:/app/data
+      # Host root, read-only: /sys (including the device tree, which podman
+      # masks in the container's own /sys), /etc/os-release, every mounted
+      # filesystem for the storage card, and podman's state DB and
+      # healthcheck logs for the containers card (no podman socket needed,
+      # so the dashboard can't control any container).
+      - /:/hostfs:ro,rslave
+    devices:
+      # Firmware mailbox for vcgencmd (tried first as /dev/vcio_gencmd).
+      # install.sh sets VCIO_DEVICE to /dev/vcio_gencmd (or /dev/vcio on
+      # older kernels) on a Pi and /dev/null elsewhere, where the app just
+      # shows fewer power readings.
+      - ${VCIO_DEVICE:-/dev/null}:/dev/vcio_gencmd
+    group_add:
+      # keep the host user's supplementary groups (video -> VCIO_DEVICE)
+      - keep-groups
+    restart: always
+    healthcheck:
+      # CMD-SHELL string rather than a CMD array: podman-compose re-quotes CMD
+      # arrays into a broken shell command.
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:' + (process.env.PORT || 8080) + '/api/status').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s

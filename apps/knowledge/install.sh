@@ -51,8 +51,8 @@ setup_env_file() {
   cp "$ENV_EXAMPLE" "$ENV_FILE"
 
   local port
-  read -r -p "Port for kiwix-serve [8081]: " port
-  port="${port:-8081}"
+  read -r -p "Port for kiwix-serve [8082]: " port
+  port="${port:-8082}"
 
   local bind
   read -r -p "Bind address (all/ipv4/ipv6/specific IP) [all]: " bind

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pi Monitor</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='2' y='2' width='12' height='12' rx='3' fill='%232a78d6'/%3E%3Cpath d='M4 10l2-3 2 2 2-4 2 3' stroke='white' stroke-width='1.5' fill='none'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="title">
+      <h1 id="hostname">Pi Monitor</h1>
+      <p id="model" class="muted">Connecting…</p>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Chart range">
+        <button type="button" data-range="live" aria-pressed="true">15 min</button>
+        <button type="button" data-range="day" aria-pressed="false">24 h</button>
+      </div>
+      <span id="conn" class="conn" data-state="connecting"><span class="dot"></span><span class="label">Connecting</span></span>
+    </div>
+  </header>
+
+  <section id="health" class="health" data-level="unknown" aria-live="polite">
+    <span class="health-icon" aria-hidden="true"></span>
+    <div>
+      <strong id="health-title">Waiting for data</strong>
+      <p id="health-detail" class="muted"></p>
+    </div>
+  </section>
+
+  <main class="grid">
+    <article class="card" id="card-temp">
+      <h2>Temperature</h2>
+      <div class="hero"><span id="temp-value" class="hero-num">–</span><span class="hero-unit">°C CPU</span></div>
+      <div class="meter" id="temp-meter"><span></span></div>
+      <dl class="kv" id="temp-list"></dl>
+      <div class="chart" id="chart-temp"></div>
+    </article>
+
+    <article class="card" id="card-power">
+      <h2>Power</h2>
+      <div class="hero"><span id="volt-value" class="hero-num">–</span><span class="hero-unit" id="volt-unit">V input</span></div>
+      <dl class="kv" id="power-list"></dl>
+      <div class="chart" id="chart-volt"></div>
+      <details id="rails-wrap" hidden>
+        <summary>PMIC rails</summary>
+        <table class="rails"><thead><tr><th>Rail</th><th>Volts</th><th>Amps</th><th>Watts</th></tr></thead><tbody id="rails"></tbody></table>
+      </details>
+    </article>
+
+    <article class="card" id="card-cpu">
+      <h2>CPU</h2>
+      <div class="hero"><span id="cpu-value" class="hero-num">–</span><span class="hero-unit">% used</span></div>
+      <div id="cores" class="cores"></div>
+      <dl class="kv" id="cpu-list"></dl>
+      <div class="chart" id="chart-cpu"></div>
+    </article>
+
+    <article class="card" id="card-mem">
+      <h2>Memory</h2>
+      <div class="hero"><span id="mem-value" class="hero-num">–</span><span class="hero-unit" id="mem-unit">% used</span></div>
+      <div class="meter" id="mem-meter"><span></span></div>
+      <dl class="kv" id="mem-list"></dl>
+      <div class="chart" id="chart-mem"></div>
+    </article>
+
+    <article class="card" id="card-disk">
+      <h2>Storage</h2>
+      <div id="disks" class="disks"></div>
+      <dl class="kv" id="disk-io"></dl>
+    </article>
+
+    <article class="card" id="card-net">
+      <h2>Network</h2>
+      <dl class="kv" id="net-list"></dl>
+      <div class="legend" id="net-legend">
+        <span><i style="background:var(--series-1)"></i>Download</span>
+        <span><i style="background:var(--series-2)"></i>Upload</span>
+      </div>
+      <div class="chart" id="chart-net"></div>
+    </article>
+
+    <article class="card wide" id="card-containers">
+      <div class="card-head">
+        <h2>Apps &amp; containers</h2>
+        <span id="containers-summary" class="muted small-inline"></span>
+      </div>
+      <p id="containers-error" class="muted" hidden></p>
+      <div class="table-wrap">
+        <table class="data" id="containers-table">
+          <thead><tr><th>App / container</th><th>State</th><th>Ports</th><th>Uptime</th><th class="num">CPU</th><th class="num">Memory</th><th>Image</th></tr></thead>
+          <tbody id="containers"></tbody>
+        </table>
+      </div>
+    </article>
+
+    <article class="card wide" id="card-conn">
+      <div class="card-head">
+        <h2>Connections</h2>
+        <label class="toggle"><input type="checkbox" id="show-loopback"> Show loopback</label>
+      </div>
+      <div class="stats" id="conn-stats"></div>
+      <div class="conn-cols">
+        <section>
+          <h3>Listening ports</h3>
+          <div class="table-wrap">
+            <table class="data">
+              <thead><tr><th class="num">Port</th><th>Address</th><th>Service</th></tr></thead>
+              <tbody id="listening"></tbody>
+            </table>
+          </div>
+        </section>
+        <section>
+          <h3>Active connections</h3>
+          <div class="table-wrap">
+            <table class="data">
+              <thead><tr><th>Direction</th><th>Remote</th><th class="num">Local port</th><th>Service</th></tr></thead>
+              <tbody id="established"></tbody>
+            </table>
+          </div>
+          <p id="established-more" class="muted small" hidden></p>
+        </section>
+      </div>
+    </article>
+
+    <article class="card" id="card-sys">
+      <h2>System</h2>
+      <dl class="kv" id="sys-list"></dl>
+    </article>
+
+    <article class="card" id="card-events">
+      <h2>Power events</h2>
+      <p class="muted small">Changes of the firmware's under-voltage and throttling flags, newest first.</p>
+      <ul id="events" class="events"></ul>
+    </article>
+  </main>
+
+  <div id="tooltip" class="tooltip" role="status" hidden></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

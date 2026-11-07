@@ -159,8 +159,8 @@ npm run -w @offline-maps/backend migration:revert    # undo the last one
 ## Running
 
 ```sh
-npm run dev                 # backend :8080 + Vite :5173, both reloading
-npm run build && npm start  # single server on :8080
+npm run dev                 # backend :8081 + Vite :5173, both reloading
+npm run build && npm start  # single server on :8081
 ```
 
 Backend dev runs `tsc --watch` next to `node --watch dist/main.js`, so a saved
@@ -170,7 +170,7 @@ Backend dev runs `tsc --watch` next to `node --watch dist/main.js`, so a saved
 
 ```sh
 ./install.sh   # write .env, build the image, bootstrap pmtiles/fonts/sprites
-./start.sh     # podman compose up -d --build; prints the local/LAN URL
+./start.sh     # podman compose up -d --build --force-recreate; prints the local/LAN URL
 ```
 
 `./install.sh` copies `.env.example` to `.env` on first run (skipped if `.env`
@@ -189,7 +189,7 @@ if the move fails partway.
 Equivalently, by hand:
 
 ```sh
-podman compose --env-file .env up -d --build   # production server on :8080
+podman compose --env-file .env up -d --build --force-recreate   # production server on :8081
 ```
 
 The image ships its own Linux `pmtiles` binary; `$DATA_DIR` and `$ASSETS_DIR`
@@ -201,8 +201,9 @@ runs setup for you; the same thing by hand is:
 podman compose run --rm offline-maps node apps/backend/dist/cli/main.js setup
 ```
 
-`/api` only answers `http://localhost:8080` and `http://127.0.0.1:8080`. When
-publishing on another port or hostname, set `PORT` and list the viewer's
+`/api` only answers the origin the page was served from, plus
+`http://localhost:8081` and `http://127.0.0.1:8081` (the server's own port).
+For unusual setups (reverse proxy, custom hostname) list the viewer's
 origin in `ALLOWED_ORIGINS` (comma-separated) in `.env`, then `./start.sh`
 again. On Linux, create `$DATA_DIR` and `$ASSETS_DIR` before the first start
 so they are owned by your user (uid 1000) rather than root (`install.sh` does
@@ -212,7 +213,7 @@ this for you).
 |---|---|---|
 | `DATA_DIR` | `./data` | where regions, the POI db and the registry are stored; point at an external SSD mount for large catalogs |
 | `ASSETS_DIR` | `./assets` | where vendored fonts/sprites are stored; can also point at an SSD mount |
-| `PORT` | `8080` | host port mapped to the container (container always listens on `8080` internally) |
+| `PORT` | `8081` | host port mapped to the container (the container also listens on `8081` internally) |
 | `HOST` | `127.0.0.1` (`0.0.0.0` in the container, fixed by the Dockerfile) | address the server binds to; only relevant running `npm start` directly outside Docker |
 | `ALLOWED_ORIGINS` | — | extra origins allowed to call `/api` |
 | `DATABASE_URL` | — | unset uses sqlite in `$DATA_DIR`; set to a `postgres://` url to use Postgres |
@@ -221,6 +222,19 @@ this for you).
 `DATA_DIR`, `ASSETS_DIR`, `PORT`, `ALLOWED_ORIGINS`, `DATABASE_URL` and
 `DB_LOGGING` are read from `.env` by `docker-compose.yml`; see `.env.example`
 for defaults and comments.
+
+## Uninstall
+
+```sh
+./uninstall.sh            # asks before deleting anything
+./uninstall.sh --purge    # also deletes DATA_DIR, ASSETS_DIR and .env
+```
+
+Always removes the containers and the `offline-maps` image. Regions, POIs and
+fonts in `DATA_DIR` and `ASSETS_DIR` are kept unless you confirm deleting each
+one (or pass `--purge`), and `.env` stays as long as any data does, so a later
+`./install.sh` picks it up again. Podman, `podman-restart.service` and
+lingering are left alone for the other apps.
 
 ## API
 
@@ -267,7 +281,7 @@ The `/pmtiles/` route serves proper `206 Partial Content` responses, so the
 archive can be opened directly by other tools over HTTP:
 
 ```sh
-pmtiles show http://localhost:8080/pmtiles/berlin.pmtiles
+pmtiles show http://localhost:8081/pmtiles/berlin.pmtiles
 ```
 
 QGIS can add the same URL as a vector tile layer.

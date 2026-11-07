@@ -7,24 +7,32 @@ Raspberry Pi), with no runtime dependency on the internet or a CDN once set up.
 
 | App | Default port | Description |
 |---|---|---|
-| [`apps/maps`](apps/maps/README.md) | `8080` | Self-hosted vector map tiles with a browser viewer: download a region once, then pan/zoom with no internet connection. Uses Podman Compose. |
-| [`apps/knowledge`](apps/knowledge/README.md) | `8081` | Offline Wikipedia/reference content via `kiwix-serve`, managed with install/catalog scripts. Uses Podman Compose. |
+| [`apps/monitor`](apps/monitor/README.md) | `8080` | Realtime Pi dashboard (NestJS + WebSockets): temperature, input voltage, throttling, PSU limits, CPU, memory, storage and network. Uses Podman Compose. |
+| [`apps/maps`](apps/maps/README.md) | `8081` | Self-hosted vector map tiles with a browser viewer: download a region once, then pan/zoom with no internet connection. Uses Podman Compose. |
+| [`apps/knowledge`](apps/knowledge/README.md) | `8082` | Offline Wikipedia/reference content via `kiwix-serve`, managed with install/catalog scripts. Uses Podman Compose. |
 
 See each app's own README for setup, architecture and usage details.
 
 ## Running an app
 
-Every app under `apps/*` exposes the same two entry points:
+Every app under `apps/*` exposes the same three entry points:
 
 ```sh
 cd apps/<app>
-./install.sh   # one-time setup: install deps, build the image, bootstrap
-./start.sh     # start (or restart) the app; safe to re-run after a reboot
+./install.sh     # one-time setup: install deps, build the image, bootstrap
+./start.sh       # start (or restart) the app; safe to re-run after a reboot
+./uninstall.sh   # remove containers and image; asks before deleting data
 ```
 
 `install.sh` is idempotent and ends by calling `start.sh`, so a fresh clone
 only ever needs `./install.sh`. Use `./start.sh` on its own afterwards (e.g.
 after a reboot, or once you've edited `.env`).
+
+`./uninstall.sh` stops and removes the app's containers and image. Data
+directories are kept unless you confirm deleting each one (or pass
+`--purge`), and `.env` stays as long as data does, so `./install.sh` picks it
+up again. `apps/hotspot-pi` is a host service rather than a container; it has
+`install-hotspot-fallback.sh` / `uninstall-hotspot-fallback.sh` instead.
 
 ## Port allocation
 
