@@ -1,5 +1,7 @@
 import fs from "node:fs/promises";
+import { createReadStream, createWriteStream } from "node:fs";
 import path from "node:path";
+import { pipeline } from "node:stream/promises";
 
 /**
  * Guards against path traversal: the resolved path must stay inside `root`.
@@ -22,6 +24,30 @@ export async function exists(p: string): Promise<boolean> {
 }
 
 /**
+ * Recursively copies `src` to `dest` by streaming file contents rather than
+ * using `fs.cp`/`fs.copyFile`. Those preserve the source file's permission
+ * bits via `fchmod` after copying, which fails with `EPERM` on filesystems
+ * that don't support per-file permissions (e.g. exFAT, common on external
+ * USB/SSD storage on a Raspberry Pi). Streaming avoids that call entirely.
+ */
+async function copyDirContents(src: string, dest: string): Promise<void> {
+  await fs.mkdir(dest, { recursive: true });
+  const entries = await fs.readdir(src, { withFileTypes: true });
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+    if (entry.isDirectory()) {
+      await copyDirContents(srcPath, destPath);
+    } else if (entry.isSymbolicLink()) {
+      const link = await fs.readlink(srcPath);
+      await fs.symlink(link, destPath);
+    } else {
+      await pipeline(createReadStream(srcPath), createWriteStream(destPath));
+    }
+  }
+}
+
+/**
  * Moves a file or directory, falling back to copy+remove when the source and
  * destination are on different filesystems/devices (e.g. separate Docker
  * volumes), where `fs.rename` fails with `EXDEV`.
@@ -31,7 +57,12 @@ export async function moveDir(src: string, dest: string): Promise<void> {
     await fs.rename(src, dest);
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code !== "EXDEV") throw err;
-    await fs.cp(src, dest, { recursive: true });
+    const stat = await fs.stat(src);
+    if (stat.isDirectory()) {
+      await copyDirContents(src, dest);
+    } else {
+      await pipeline(createReadStream(src), createWriteStream(dest));
+    }
     await fs.rm(src, { recursive: true, force: true });
   }
 }

@@ -2,7 +2,7 @@ services:
   kiwix-serve:
     image: ghcr.io/kiwix/kiwix-serve:latest
     container_name: offline-knowledge-kiwix
-    restart: unless-stopped
+    restart: always
     ports:
       - "${KIWIX_PORT:-8081}:8080"
     volumes:

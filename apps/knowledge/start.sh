@@ -17,6 +17,15 @@ fi
 # shellcheck disable=SC1090
 source "$ENV_FILE"
 
+if [[ ! -d "$CONTENT_DIR/zim" ]] || ! ls "$CONTENT_DIR/zim" >/dev/null 2>&1; then
+  log_error "Content dir '$CONTENT_DIR/zim' is not available (is the SSD mounted?)."
+  exit 1
+fi
+if ! compgen -G "$CONTENT_DIR/zim/*.zim" > /dev/null; then
+  log_error "No ZIM files in '$CONTENT_DIR/zim' yet; kiwix-serve needs at least one. Run ./manage.sh add."
+  exit 1
+fi
+
 log_info "Starting kiwix-serve..."
 compose --env-file "$ENV_FILE" up -d
 

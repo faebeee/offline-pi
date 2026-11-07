@@ -102,8 +102,22 @@ cd "$SCRIPT_DIR"
 - `docker-compose.yml`: image is either `build: .` or a pinned upstream image;
   every port/env value is `${VAR:-default}` so `.env` is the single source of
   truth; persistent state is a bind mount under `./data` (and `./assets` etc.
-  as needed); set `restart: unless-stopped`; add a `healthcheck` where the
+  as needed); set `restart: always` (not `unless-stopped`: rootless Podman
+  only brings containers back after a reboot via the user's
+  `podman-restart.service`, which starts `restart-policy=always` containers
+  only; `install.sh` enables that unit and checks lingering); add a `healthcheck` where the
   service exposes a cheap status endpoint.
+- Healthchecks: write `test:` as `["CMD-SHELL", "<command>"]`. podman-compose
+  re-quotes `CMD` arrays into a broken shell string, so the check always fails.
+- Images that run as a non-root user (e.g. `USER node`, uid 1000): under
+  rootless Podman that uid maps to an unprivileged host sub-uid and cannot
+  write to bind mounts owned by the host user. Set
+  `userns_mode: "keep-id:uid=1000,gid=1000"` on the service, plus a top-level
+  `x-podman: { in_pod: false }` (podman-compose can't combine a pod with
+  `--userns`). See `apps/maps/docker-compose.yml`.
+- External drives are often exFAT, which rejects chmod/chown with `EPERM`:
+  copy with `rsync -a --no-perms --no-owner --no-group` or `cp -r` (not
+  `cp -a`), and in app code avoid `fs.cp`/`fs.copyFile` onto such mounts.
 
 ## Persistent data & external storage
 

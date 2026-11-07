@@ -47,7 +47,7 @@ The installer will:
    `[Shelter & Repair]`, `[General Survival]`, `[General Reference]`).
 5. Check available disk space before downloading.
 6. Download selected ZIM files with resume + checksum verification.
-7. Start `kiwix-serve` via Podman Compose (`restart: unless-stopped`).
+7. Start `kiwix-serve` via Podman Compose (`restart: always`; `install.sh` enables `podman-restart.service` so it comes back after a reboot).
 
 Once done, access your content at `http://<pi-ip>:8081` from any device on
 your network.
