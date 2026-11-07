@@ -49,10 +49,11 @@ cd "$SCRIPT_DIR"
 
 - Idempotent: safe to re-run on an already-configured app.
 - Checks/offers to install dependencies (podman, compose backend, any
-  app-specific CLI like `aria2`/`xmlstarlet`/`gum`) via `apt`, with a manual
-  fallback (e.g. downloading a release binary) for anything not packaged
-  everywhere — see `ensure_gum` in `apps/knowledge/lib/deps.sh` for the
-  pattern.
+  host-side CLI the scripts need) via `apt`, with a manual fallback (e.g.
+  downloading a release binary) for anything not packaged everywhere —
+  see `ensure_podman` in `apps/knowledge/lib/deps.sh`. Prefer doing the
+  work inside the container (as `apps/knowledge` does for its downloads),
+  so the host needs nothing but Podman.
 - If no `.env` exists: copy `.env.example` to `.env`, interactively prompt for
   the handful of settings that matter (storage path, port, bind address),
   `sed` them into `.env`, then `source` it.
@@ -212,7 +213,7 @@ log_ok()    { printf '\033[1;32m✔\033[0m %s\n' "$*"; }
 
 If the app needs interactive selection/confirmation (e.g. picking items from
 a catalog), use `gum` (`gum filter`, `gum confirm`, `gum spin`) rather than
-rolling custom prompts — see `apps/knowledge/lib/ui.sh`. For anything beyond
+rolling custom prompts. For anything beyond
 trivial dependency checks or a couple of helpers, split logic into
 `lib/*.sh` (`deps.sh`, `ui.sh`, plus app-specific ones) and source them from
 `install.sh`/`start.sh`/`manage.sh`, rather than one long script.

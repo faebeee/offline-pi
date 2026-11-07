@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# start.sh - start (or restart) kiwix-serve from an existing installation.
+# start.sh - (re)build and (re)start the knowledge container from an existing
+# installation. Picks up edits to zims.txt: the container downloads any
+# missing entries in the background while already installed ones are served.
 # Run ./install.sh first if you haven't configured this box yet.
 set -euo pipefail
 
@@ -11,23 +13,21 @@ source "$SCRIPT_DIR/lib/deps.sh"
 
 ENV_FILE="$SCRIPT_DIR/.env"
 if [[ ! -f "$ENV_FILE" ]]; then
-  log_error "No .env found. Run ./install.sh first."
+  log_error "Run ./install.sh first."
   exit 1
 fi
 # shellcheck disable=SC1090
 source "$ENV_FILE"
 
-if [[ ! -d "$CONTENT_DIR/zim" ]] || ! ls "$CONTENT_DIR/zim" >/dev/null 2>&1; then
-  log_error "Content dir '$CONTENT_DIR/zim' is not available (is the SSD mounted?)."
-  exit 1
-fi
-if ! compgen -G "$CONTENT_DIR/zim/*.zim" > /dev/null; then
-  log_error "No ZIM files in '$CONTENT_DIR/zim' yet; kiwix-serve needs at least one. Run ./manage.sh add."
+if [[ ! -d "$CONTENT_DIR" ]] || ! ls "$CONTENT_DIR" >/dev/null 2>&1; then
+  log_error "Content dir '$CONTENT_DIR' is not available (is the SSD mounted?)."
   exit 1
 fi
 
 log_info "Starting kiwix-serve..."
-compose --env-file "$ENV_FILE" up -d
+# --force-recreate: podman-compose only replaces a running container when the
+# compose config changed, so a rebuilt image (new zims.txt) would be ignored.
+compose --env-file "$ENV_FILE" up -d --build --force-recreate
 
 LAN_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
 echo
@@ -37,4 +37,11 @@ if [[ -n "$LAN_IP" ]]; then
   echo "  LAN:     http://${LAN_IP}:${KIWIX_PORT}"
 fi
 echo
-echo "Use ./manage.sh to add more topics, check status, update, or remove content."
+if [[ "${AUTO_SYNC:-true}" == true ]]; then
+  echo "Missing ZIMs from zims.txt are now downloading inside the container and"
+  echo "appear in the library as each one completes. Follow progress with:"
+  echo "  ./manage.sh logs"
+else
+  echo "AUTO_SYNC=false: run ./manage.sh sync to download missing ZIMs."
+fi
+echo "See ./manage.sh for list/status/update/prune."
