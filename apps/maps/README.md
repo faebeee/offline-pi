@@ -170,7 +170,7 @@ Backend dev runs `tsc --watch` next to `node --watch dist/main.js`, so a saved
 
 ```sh
 ./install.sh   # write .env, build the image, bootstrap pmtiles/fonts/sprites
-./start.sh     # podman compose up -d --build; prints the local/LAN URL
+./start.sh     # podman compose up -d --build --force-recreate; prints the local/LAN URL
 ```
 
 `./install.sh` copies `.env.example` to `.env` on first run (skipped if `.env`
@@ -189,7 +189,7 @@ if the move fails partway.
 Equivalently, by hand:
 
 ```sh
-podman compose --env-file .env up -d --build   # production server on :8081
+podman compose --env-file .env up -d --build --force-recreate   # production server on :8081
 ```
 
 The image ships its own Linux `pmtiles` binary; `$DATA_DIR` and `$ASSETS_DIR`

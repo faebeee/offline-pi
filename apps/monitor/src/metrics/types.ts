@@ -64,6 +64,8 @@ export interface Snapshot {
   }[];
   wifi: { iface: string; signalDbm: number; quality: number } | null;
   vcgencmd: boolean;
+  containers: ContainersInfo;
+  connections: ConnectionsInfo | null;
 }
 
 export interface ThrottleFlags {
@@ -94,4 +96,57 @@ export interface PowerEvent {
   t: number;
   kind: 'under-voltage' | 'throttled' | 'freq-capped' | 'soft-temp-limit';
   active: boolean;
+}
+
+export interface ContainerInfo {
+  id: string;
+  name: string;
+  /** compose project, i.e. the offline-pi app directory */
+  app: string | null;
+  service: string | null;
+  image: string | null;
+  state: string;
+  health: string | null;
+  startedAt: number | null;
+  finishedAt: number | null;
+  exitCode: number | null;
+  restartPolicy: string | null;
+  hostNetwork: boolean;
+  ports: { hostPort: number; containerPort: number; protocol: string }[];
+  cpuPercent: number | null; // share of the whole machine
+  memoryBytes: number | null;
+  processes: number;
+}
+
+export interface ContainersInfo {
+  available: boolean;
+  error: string | null;
+  list: ContainerInfo[];
+}
+
+export interface ConnectionsInfo {
+  /** TCP sockets per state (ESTABLISHED, LISTEN, TIME_WAIT, ...) */
+  counts: Record<string, number>;
+  listening: {
+    address: string;
+    port: number;
+    process: string | null;
+    container: string | null;
+    service: string | null;
+    loopback: boolean;
+  }[];
+  established: {
+    direction: 'in' | 'out';
+    localAddress: string;
+    localPort: number;
+    remoteAddress: string;
+    remotePort: number;
+    process: string | null;
+    container: string | null;
+    service: string | null;
+    loopback: boolean;
+  }[];
+  totalEstablished: number;
+  /** distinct non-loopback peers */
+  remoteHosts: number;
 }

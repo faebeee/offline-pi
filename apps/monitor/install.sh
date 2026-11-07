@@ -68,6 +68,14 @@ else
   log_warn "No /dev/vcio* device (not a Raspberry Pi?): voltage and throttle readings will be unavailable."
 fi
 
+# Podman's storage root: the dashboard reads its state DB (read-only) to
+# list containers. Re-detected on every run.
+graph_root="$(podman info --format '{{.Store.GraphRoot}}' 2>/dev/null || true)"
+set_env PODMAN_GRAPH_ROOT "$graph_root"
+if [[ -n "$graph_root" && ! -f "$graph_root/db.sql" ]]; then
+  log_warn "No $graph_root/db.sql (Podman older than 4.8 or the boltdb backend?): the containers card will be empty."
+fi
+
 # shellcheck disable=SC1090
 source "$ENV_FILE"
 log_ok "DATA_DIR=$DATA_DIR, PORT=$PORT, VCIO_DEVICE=$VCIO_DEVICE"

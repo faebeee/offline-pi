@@ -28,7 +28,9 @@ if [[ ! -d "${DATA_DIR:-./data}" ]]; then
 fi
 
 log_info "Starting pi-monitor..."
-compose --env-file "$ENV_FILE" up -d --build
+# --force-recreate: podman-compose only replaces a running container when
+# the compose config changed, not when --build produced a new image.
+compose --env-file "$ENV_FILE" up -d --build --force-recreate
 
 PORT="${PORT:-8080}"
 LAN_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"

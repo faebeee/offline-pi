@@ -16,6 +16,8 @@ What it shows:
 | **Memory** | RAM used/available, swap |
 | **Storage** | Every mounted block device (SD card, SSD, boot partition) with free space, disk read/write throughput |
 | **Network** | Per-interface throughput, Wi-Fi signal, IP addresses |
+| **Apps & containers** | Every Podman container (running and stopped) with its offline-pi app (compose project), state, health check result, ports (linked), uptime, CPU and memory |
+| **Connections** | Ports open on the Pi and who listens on them, active TCP connections (direction, remote address, local port, app/process), counts per state; loopback hidden by default |
 | **System** | Hostname, model, OS, kernel, uptime, process count |
 | **Power events** | Log of when under-voltage/throttling started and ended |
 
@@ -65,7 +67,8 @@ Then open `http://<pi-ip>:8080`.
 | `DATA_DIR` | `./data` | Where `history.json` (24 h history + power events, < 1 MB) lives. Can point at an SSD mount, e.g. `/mnt/ssd/monitor/data`. |
 | `PORT` | `8080` | Dashboard port on the Pi (host networking, no port mapping). Other apps: `8081` maps, `8082` knowledge. |
 | `BIND_ADDRESS` | `0.0.0.0` | `0.0.0.0` for LAN access, `127.0.0.1` for this Pi only. |
-| `SAMPLE_INTERVAL_MS` | `2000` | How often the Pi is sampled and pushed to dashboards (min 500). |
+| `SAMPLE_INTERVAL_MS` | `2000` | How often the Pi is sampled and pushed to dashboards (min 500). Containers and connections refresh every 5 s. |
+| `PODMAN_GRAPH_ROOT` | from `podman info` | Host path of Podman's storage, whose `db.sql` lists the containers; set by `install.sh` on every run. Empty = search the default locations. |
 | `VCIO_DEVICE` | `/dev/vcio_gencmd` | Firmware mailbox for `vcgencmd`; set by `install.sh` on every run. |
 
 ## Podman usage
@@ -93,6 +96,14 @@ with:
   container's own `/sys`, which is why the host copy is used.
 - the firmware device mapped to `/dev/vcio_gencmd`, plus
   `group_add: keep-groups` so the container keeps your `video` group.
+
+The containers card reads Podman's own state database (`db.sql`, read-only,
+Podman 4.8+) and each container's `healthcheck.log` through `/hostfs`, and
+CPU/memory from the container's process tree in `/proc`. The Podman socket is
+deliberately **not** mounted, so the dashboard can see containers but never
+start, stop or exec into them. Connections come from `/proc/net/tcp{,6}`;
+sockets of root-owned daemons (e.g. sshd) can't be attributed to a process,
+so they are labelled by well-known port instead.
 
 The container runs as its root user, which under rootless Podman is your own
 unprivileged user on the host.

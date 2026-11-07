@@ -316,6 +316,9 @@
       ...sys.addresses.map((a) => [`IP (${a.iface})`, a.address]),
     ]);
 
+    renderContainers(s.containers);
+    renderConnections(s.connections);
+
     // system
     kv('sys-list', [
       ['Hostname', sys.hostname],
@@ -327,6 +330,105 @@
       ['Processes', sys.processes],
       ['Last update', fmtTime(s.ts)],
     ]);
+  }
+
+  // ------------------------------------------------- containers & sockets
+  const STATE_LEVEL = { running: 'good', paused: 'warning', stopping: 'warning', exited: 'critical', stopped: 'critical' };
+
+  function renderContainers(info) {
+    const body = $('containers');
+    const err = $('containers-error');
+    if (!info || !info.available) {
+      err.hidden = false;
+      err.textContent = info?.error || 'Container information unavailable.';
+      body.innerHTML = '';
+      $('containers-summary').textContent = '';
+      return;
+    }
+    err.hidden = true;
+    const running = info.list.filter((c) => c.state === 'running').length;
+    const unhealthy = info.list.filter((c) => c.health === 'unhealthy').length;
+    $('containers-summary').textContent =
+      `${running} running` + (info.list.length > running ? ` · ${info.list.length - running} stopped` : '') +
+      (unhealthy ? ` · ${unhealthy} unhealthy` : '');
+
+    if (!info.list.length) {
+      body.innerHTML = '<tr class="empty-row"><td colspan="7">No containers.</td></tr>';
+      return;
+    }
+    const host = location.hostname;
+    body.innerHTML = info.list.map((c) => {
+      const title = c.app ? `<b>${esc(c.app)}</b><span class="sub mono">${esc(c.name)}</span>` : `<b>${esc(c.name)}</b>`;
+      let stateText = c.state;
+      if (c.state !== 'running' && c.exitCode != null) stateText += ` (${c.exitCode})`;
+      const healthLevel = c.health === 'healthy' ? 'good' : c.health === 'unhealthy' ? 'critical' : 'warning';
+      const health = c.health ? `<span class="badge ${healthLevel}">${esc(c.health)}</span>` : '';
+      const level = c.state === 'running' && c.health === 'unhealthy' ? 'critical' : STATE_LEVEL[c.state] || '';
+      const ports = c.ports.length
+        ? c.ports.map((p) => p.protocol === 'tcp' && c.state === 'running'
+            ? `<a href="http://${esc(host)}:${p.hostPort}/" target="_blank" rel="noopener">${p.hostPort}</a>${p.containerPort !== p.hostPort ? `<span class="muted">→${p.containerPort}</span>` : ''}`
+            : `${p.hostPort}/${esc(p.protocol)}`).join(', ') + (c.hostNetwork ? ' <span class="muted">(host)</span>' : '')
+        : (c.hostNetwork ? '<span class="muted">host network</span>' : '–');
+      const since = c.state === 'running' ? c.startedAt : c.finishedAt;
+      const age = since ? fmtUptime(Math.max(0, (Date.now() - since) / 1000)) : '–';
+      return `<tr>
+        <td>${title}</td>
+        <td><span class="badge ${level}">${esc(stateText)}</span>${health ? `<span class="sub">${health}</span>` : ''}</td>
+        <td>${ports}</td>
+        <td>${c.state === 'running' ? age : `<span class="muted">${age} ago</span>`}</td>
+        <td class="num">${c.cpuPercent == null ? '–' : `${fmtNum(c.cpuPercent, 1)}%`}</td>
+        <td class="num">${c.memoryBytes == null ? '–' : fmtBytes(c.memoryBytes)}</td>
+        <td><span class="mono">${esc((c.image || '–').replace(/^localhost\//, ''))}</span></td>
+      </tr>`;
+    }).join('');
+  }
+
+  let showLoopback = false;
+  try { showLoopback = localStorage.getItem('pi-monitor-loopback') === '1'; } catch { /* ignore */ }
+  $('show-loopback').checked = showLoopback;
+  $('show-loopback').addEventListener('change', (e) => {
+    showLoopback = e.target.checked;
+    try { localStorage.setItem('pi-monitor-loopback', showLoopback ? '1' : '0'); } catch { /* ignore */ }
+    if (state.snap) renderConnections(state.snap.connections);
+  });
+
+  const MAX_ROWS = 60;
+  function renderConnections(c) {
+    if (!c) return;
+    const stat = (n, label) => `<div class="stat"><b>${n}</b><span>${esc(label)}</span></div>`;
+    $('conn-stats').innerHTML =
+      stat(c.totalEstablished, 'established') +
+      stat(c.remoteHosts, 'remote hosts') +
+      stat(new Set(c.listening.filter((l) => !l.loopback).map((l) => l.port)).size, 'ports open to LAN') +
+      stat(c.counts.TIME_WAIT || 0, 'time-wait');
+
+    // one row per port and service: IPv4 and IPv6 sockets are merged
+    const groups = new Map();
+    for (const l of c.listening) {
+      if (!showLoopback && l.loopback) continue;
+      const key = `${l.port}|${l.service}`;
+      const g = groups.get(key) ?? { ...l, addresses: [] };
+      g.addresses.push(l.address);
+      groups.set(key, g);
+    }
+    const listening = [...groups.values()];
+    $('listening').innerHTML = listening.length
+      ? listening.map((l) => `<tr><td class="num">${l.port}</td><td class="mono">${esc(l.addresses.join(', '))}</td><td>${esc(l.service || '–')}${l.container && l.process ? `<span class="sub">${esc(l.process)}</span>` : ''}</td></tr>`).join('')
+      : '<tr class="empty-row"><td colspan="3">None.</td></tr>';
+
+    const est = c.established.filter((e) => showLoopback || !e.loopback);
+    const shown = est.slice(0, MAX_ROWS);
+    $('established').innerHTML = shown.length
+      ? shown.map((e) => `<tr>
+          <td>${e.direction === 'in' ? '↓ in' : '↑ out'}</td>
+          <td class="mono">${esc(e.remoteAddress)}:${e.remotePort}</td>
+          <td class="num">${e.localPort}</td>
+          <td>${esc(e.service || '–')}${e.process && e.process !== e.service ? `<span class="sub">${esc(e.process)}</span>` : ''}</td>
+        </tr>`).join('')
+      : '<tr class="empty-row"><td colspan="4">No active connections.</td></tr>';
+    const hidden = est.length - shown.length + (c.totalEstablished - c.established.length);
+    $('established-more').hidden = hidden <= 0;
+    $('established-more').textContent = `+ ${hidden} more not shown`;
   }
 
   function renderHealth(s) {
@@ -346,6 +448,11 @@
       if (pct >= 90) issues.push([pct >= 95 ? 'critical' : 'warning', `${d.mount} is ${pct.toFixed(0)}% full.`]);
     }
     if (s.power.usbOverCurrent) issues.push(['warning', 'USB over-current was detected.']);
+    for (const c of s.containers?.list ?? []) {
+      const name = c.app || c.name;
+      if (c.state === 'running' && c.health === 'unhealthy') issues.push(['warning', `${name} is unhealthy.`]);
+      else if (c.state !== 'running' && c.restartPolicy === 'always') issues.push(['warning', `${name} is not running (${c.state}).`]);
+    }
     if (t && !t.now.underVoltage && t.sinceBoot.underVoltage) past.push('under-voltage');
     if (t && !t.now.throttled && t.sinceBoot.throttled) past.push('throttling');
     if (t && !t.now.freqCapped && t.sinceBoot.freqCapped) past.push('frequency capping');

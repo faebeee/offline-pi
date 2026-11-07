@@ -13,6 +13,7 @@ import {
   readNumber,
   readText,
 } from './host';
+import { RuntimeService } from './runtime.service';
 import { Snapshot, ThrottleFlags, ThrottleState } from './types';
 import { Vcgencmd } from './vcgencmd';
 
@@ -49,6 +50,8 @@ export class CollectorService implements OnModuleInit, OnModuleDestroy {
 
   readonly snapshots$ = new Subject<Snapshot>();
   latest: Snapshot | null = null;
+
+  constructor(private readonly runtime: RuntimeService) {}
 
   async onModuleInit() {
     this.staticInfo = {
@@ -163,6 +166,8 @@ export class CollectorService implements OnModuleInit, OnModuleDestroy {
       network,
       wifi,
       vcgencmd: this.vc.available,
+      containers: this.runtime.containers,
+      connections: this.runtime.connections,
     };
   }
 

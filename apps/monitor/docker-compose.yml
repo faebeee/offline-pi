@@ -11,11 +11,15 @@ services:
       PORT: ${PORT:-8080}
       HOST: ${BIND_ADDRESS:-0.0.0.0}
       SAMPLE_INTERVAL_MS: ${SAMPLE_INTERVAL_MS:-2000}
+      # host path of podman's storage (db.sql lives there); read via /hostfs
+      PODMAN_GRAPH_ROOT: ${PODMAN_GRAPH_ROOT:-}
     volumes:
       - ${DATA_DIR:-./data}:/app/data
       # Host root, read-only: /sys (including the device tree, which podman
-      # masks in the container's own /sys), /etc/os-release and every
-      # mounted filesystem for the storage card.
+      # masks in the container's own /sys), /etc/os-release, every mounted
+      # filesystem for the storage card, and podman's state DB and
+      # healthcheck logs for the containers card (no podman socket needed,
+      # so the dashboard can't control any container).
       - /:/hostfs:ro,rslave
     devices:
       # Firmware mailbox for vcgencmd (tried first as /dev/vcio_gencmd).

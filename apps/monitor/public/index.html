@@ -82,6 +82,49 @@
       <div class="chart" id="chart-net"></div>
     </article>
 
+    <article class="card wide" id="card-containers">
+      <div class="card-head">
+        <h2>Apps &amp; containers</h2>
+        <span id="containers-summary" class="muted small-inline"></span>
+      </div>
+      <p id="containers-error" class="muted" hidden></p>
+      <div class="table-wrap">
+        <table class="data" id="containers-table">
+          <thead><tr><th>App / container</th><th>State</th><th>Ports</th><th>Uptime</th><th class="num">CPU</th><th class="num">Memory</th><th>Image</th></tr></thead>
+          <tbody id="containers"></tbody>
+        </table>
+      </div>
+    </article>
+
+    <article class="card wide" id="card-conn">
+      <div class="card-head">
+        <h2>Connections</h2>
+        <label class="toggle"><input type="checkbox" id="show-loopback"> Show loopback</label>
+      </div>
+      <div class="stats" id="conn-stats"></div>
+      <div class="conn-cols">
+        <section>
+          <h3>Listening ports</h3>
+          <div class="table-wrap">
+            <table class="data">
+              <thead><tr><th class="num">Port</th><th>Address</th><th>Service</th></tr></thead>
+              <tbody id="listening"></tbody>
+            </table>
+          </div>
+        </section>
+        <section>
+          <h3>Active connections</h3>
+          <div class="table-wrap">
+            <table class="data">
+              <thead><tr><th>Direction</th><th>Remote</th><th class="num">Local port</th><th>Service</th></tr></thead>
+              <tbody id="established"></tbody>
+            </table>
+          </div>
+          <p id="established-more" class="muted small" hidden></p>
+        </section>
+      </div>
+    </article>
+
     <article class="card" id="card-sys">
       <h2>System</h2>
       <dl class="kv" id="sys-list"></dl>

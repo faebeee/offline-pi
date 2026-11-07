@@ -33,4 +33,5 @@ COPY --from=vcgencmd /usr/local/bin/vcgencmd /usr/local/bin/vcgencmd
 # keep-groups) for the firmware device and lets it write DATA_DIR without uid mapping.
 ENV NODE_ENV=production HOST=0.0.0.0 PORT=8080 DATA_DIR=/app/data HOST_ROOT=/hostfs
 EXPOSE 8080
-CMD ["node", "--enable-source-maps", "dist/main.js"]
+# node:sqlite (reads podman's container DB) is still flagged experimental
+CMD ["node", "--enable-source-maps", "--disable-warning=ExperimentalWarning", "dist/main.js"]

@@ -134,6 +134,10 @@ for entry in "${DATA_PATHS[@]}"; do
   var="${entry%%=*}"
   path="${entry#*=}"
   if [[ ! -d "$path" ]]; then
+    # Missing usually means an unplugged/unmounted drive, not "no data":
+    # keep .env so the data is found again once the drive is back.
+    log_warn "$var '$path' not found (drive not mounted?); leaving it and .env alone."
+    all_deleted=false
     continue
   fi
   path="$(cd "$path" && pwd)"

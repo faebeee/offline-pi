@@ -67,7 +67,10 @@ cd "$SCRIPT_DIR"
 
 - Requires an existing `.env` (fail with `log_error "Run ./install.sh
   first."` and exit 1 if missing — never prompts).
-- `compose up -d [--build]`.
+- `compose up -d [--build --force-recreate]`. With a locally built image,
+  `--force-recreate` is required: podman-compose only replaces a running
+  container when the compose config changed, so after a `git pull` + build
+  the old container would keep running.
 - Prints local + LAN URLs:
   ```bash
   LAN_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
@@ -97,6 +100,9 @@ apps, so fix bugs in all copies.
   path containing the app checkout (e.g. `DATA_DIR=.`).
 - `.env` is removed only when all data was deleted; otherwise it is kept
   (and the script says so) so a later `./install.sh` finds the data again.
+  A data directory that doesn't exist counts as **kept**, not deleted: it
+  usually means the SSD isn't mounted, and dropping `.env` then would lose
+  the only record of where the data lives.
 - Does **not** touch shared host state: Podman/compose packages,
   `podman-restart.service`, lingering, other apps' images, or the source
   checkout. It hints at `podman image prune` for leftover build layers
