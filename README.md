@@ -9,7 +9,7 @@ Raspberry Pi), with no runtime dependency on the internet or a CDN once set up.
 |---|---|---|
 | [`apps/monitor`](apps/monitor/README.md) | `8080` | Realtime Pi dashboard (NestJS + WebSockets): temperature, input voltage, throttling, PSU limits, CPU, memory, storage and network. Uses Podman Compose. |
 | [`apps/maps`](apps/maps/README.md) | `8081` | Self-hosted vector map tiles with a browser viewer: download a region once, then pan/zoom with no internet connection. Uses Podman Compose. |
-| [`apps/knowledge`](apps/knowledge/README.md) | `8082` | Offline Wikipedia/reference content via `kiwix-serve`, managed with install/catalog scripts. Uses Podman Compose. |
+| [`apps/knowledge`](apps/knowledge/README.md) | `8082` | Offline emergency-knowledge library via `kiwix-serve`; the container downloads the ZIM set from `zims.txt` itself. Uses Podman Compose. |
 
 See each app's own README for setup, architecture and usage details.
 

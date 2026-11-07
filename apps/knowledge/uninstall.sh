@@ -9,7 +9,7 @@ cd "$SCRIPT_DIR"
 # ------------------------------------------------------------ app config --
 APP_NAME="offline-knowledge (kiwix-serve)"
 # Images to remove (locally built and/or pulled upstream ones).
-IMAGES=(ghcr.io/kiwix/kiwix-serve:latest)
+IMAGES=(localhost/offline-knowledge:latest ghcr.io/kiwix/kiwix-serve:3.8.2 ghcr.io/kiwix/kiwix-serve:latest)
 # Persistent data directories as VAR=default (same vars as .env).
 DATA_DIR_VARS=(CONTENT_DIR=./data)
 

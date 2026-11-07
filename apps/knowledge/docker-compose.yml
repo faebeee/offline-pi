@@ -1,10 +1,31 @@
 services:
   kiwix-serve:
-    image: ghcr.io/kiwix/kiwix-serve:latest
+    build: .
+    image: offline-knowledge
     container_name: offline-knowledge-kiwix
+    # The image runs as `user` (uid 1001). Under rootless Podman that uid would
+    # map to an unprivileged sub-uid on the host and couldn't write the ZIMs
+    # into CONTENT_DIR; keep-id maps the host user onto it.
+    userns_mode: "keep-id:uid=1001,gid=1001"
     restart: always
     ports:
       - "${KIWIX_PORT:-8082}:8080"
+    environment:
+      BIND_ADDRESS: ${BIND_ADDRESS:-all}
+      # false: don't download missing ZIMs on start (run ./manage.sh sync instead)
+      AUTO_SYNC: ${AUTO_SYNC:-true}
     volumes:
       - ${CONTENT_DIR:-./data}:/data
-    command: ["-k", "-i", "${BIND_ADDRESS:-all}", "/data/zim/*.zim"]
+    healthcheck:
+      # CMD-SHELL string rather than a CMD array: podman-compose re-quotes CMD
+      # arrays into a broken shell command.
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://localhost:8080/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+# userns_mode (keep-id) cannot be combined with a pod, so podman-compose must
+# run the service without one.
+x-podman:
+  in_pod: false
