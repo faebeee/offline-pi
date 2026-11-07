@@ -50,18 +50,6 @@ setup_env_file() {
   log_info "No .env found, let's set one up."
   cp "$ENV_EXAMPLE" "$ENV_FILE"
 
-  local content_dir
-  read -r -p "Where should ZIM files & content be stored? [./data]: " content_dir
-  content_dir="${content_dir:-./data}"
-  # Expand to absolute path
-  content_dir="$(mkdir -p "$content_dir" && cd "$content_dir" && pwd)"
-
-  if [[ ! -w "$content_dir" ]]; then
-    log_error "'$content_dir' is not writable. Fix permissions and re-run."
-    exit 1
-  fi
-  mkdir -p "$content_dir/zim"
-
   local port
   read -r -p "Port for kiwix-serve [8081]: " port
   port="${port:-8081}"
@@ -70,7 +58,6 @@ setup_env_file() {
   read -r -p "Bind address (all/ipv4/ipv6/specific IP) [all]: " bind
   bind="${bind:-all}"
 
-  sed -i "s#^CONTENT_DIR=.*#CONTENT_DIR=${content_dir}#" "$ENV_FILE"
   sed -i "s#^KIWIX_PORT=.*#KIWIX_PORT=${port}#" "$ENV_FILE"
   sed -i "s#^BIND_ADDRESS=.*#BIND_ADDRESS=${bind}#" "$ENV_FILE"
 
@@ -79,7 +66,53 @@ setup_env_file() {
   log_ok "Wrote $ENV_FILE"
 }
 
+# setup_content_dir - CONTENT_DIR is re-prompted on every run (defaulting to
+# the current value) so re-running install.sh is the supported way to move
+# content to e.g. a newly mounted SSD. If the answer differs from the old
+# value and the old dir has content, it is copied over (rsync, falling back to
+# cp -a) before the old copy is removed and .env is updated. On failure both
+# copies are left in place and .env is untouched.
+setup_content_dir() {
+  local old="${CONTENT_DIR:-./data}" new
+  read -r -p "Where should ZIM files & content be stored? [$old]: " new
+  new="${new:-$old}"
+  if ! mkdir -p "$new" 2>/dev/null || ! new="$(cd "$new" && pwd)" || [[ ! -w "$new" ]]; then
+    log_error "'$new' is not available or not writable (is the SSD mounted?). Fix it and re-run."
+    exit 1
+  fi
+
+  local old_abs=""
+  [[ -d "$old" ]] && old_abs="$(cd "$old" && pwd)"
+
+  if [[ -n "$old_abs" && "$old_abs" != "$new" && -n "$(ls -A "$old_abs" 2>/dev/null)" ]]; then
+    log_warn "Content location changed: $old_abs -> $new"
+    if ui_confirm "Move existing content from '$old_abs' to '$new' now?"; then
+      log_info "Copying content to '$new'..."
+      local ok=true
+      if has_cmd rsync; then
+        rsync -a --no-perms --no-owner --no-group "$old_abs"/ "$new"/ || ok=false
+      else
+        cp -r "$old_abs"/. "$new"/ || ok=false
+      fi
+      if [[ "$ok" != true ]]; then
+        log_error "Copy failed. Both '$old_abs' and '$new' were left as they are and .env is unchanged; fix the issue and re-run ./install.sh."
+        exit 1
+      fi
+      rm -rf "$old_abs"
+      log_ok "Content moved to '$new'"
+    else
+      log_warn "Not moving content; it stays in '$old_abs'."
+    fi
+  fi
+
+  sed -i "s#^CONTENT_DIR=.*#CONTENT_DIR=${new}#" "$ENV_FILE"
+  # shellcheck disable=SC1090
+  source "$ENV_FILE"
+  log_ok "CONTENT_DIR=$CONTENT_DIR"
+}
+
 setup_env_file
+setup_content_dir
 mkdir -p "$CONTENT_DIR/zim"
 
 # ---------------------------------------------------------------------------
@@ -121,7 +154,12 @@ read -r -p "Filter by language code (e.g. eng, fra) or leave blank for all: " la
 log_info "Opening topic picker..."
 selected_tsv="$CACHE_DIR/selected.tsv"
 if ! ui_select_topics "$picker_tsv" "$lang_filter" > "$selected_tsv"; then
-  log_warn "No topics selected. Exiting."
+  if compgen -G "$CONTENT_DIR/zim/*.zim" > /dev/null; then
+    log_warn "No new topics selected; starting with the already installed ones."
+    ensure_autostart
+    exec "$SCRIPT_DIR/start.sh"
+  fi
+  log_warn "No topics selected and none installed yet. kiwix-serve needs at least one ZIM; re-run ./install.sh to pick some."
   exit 0
 fi
 
@@ -156,6 +194,8 @@ while IFS=$'\t' read -r name title lang category size url updated; do
 done < "$selected_tsv"
 
 log_ok "All downloads complete."
+
+ensure_autostart
 
 # ---------------------------------------------------------------------------
 # Step 7: start kiwix-serve

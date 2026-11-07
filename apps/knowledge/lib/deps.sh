@@ -124,6 +124,27 @@ ensure_all_deps() {
   ensure_gum
 }
 
+# ensure_autostart - rootless Podman only restarts containers after a reboot
+# through the user's podman-restart.service (restart-policy=always only), and
+# only if the user lingers (has a systemd user manager without logging in).
+ensure_autostart() {
+  if ! command -v systemctl >/dev/null 2>&1; then
+    return
+  fi
+  if systemctl --user enable podman-restart.service >/dev/null 2>&1; then
+    log_ok "podman-restart.service enabled (containers come back after reboot)"
+  else
+    log_warn "Could not enable podman-restart.service; containers won't auto-start after a reboot."
+  fi
+  if [[ "$(loginctl show-user "$USER" -p Linger --value 2>/dev/null)" != "yes" ]]; then
+    if loginctl enable-linger "$USER" 2>/dev/null || sudo loginctl enable-linger "$USER"; then
+      log_ok "Enabled lingering for $USER"
+    else
+      log_warn "Run 'sudo loginctl enable-linger $USER' so containers start at boot without a login."
+    fi
+  fi
+}
+
 # compose - run the available podman compose backend with the given args.
 # Prefers the built-in `podman compose` subcommand, falls back to the
 # standalone `podman-compose` binary.

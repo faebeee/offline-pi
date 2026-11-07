@@ -28,6 +28,27 @@ compose() {
   fi
 }
 
+# ensure_autostart - rootless Podman only restarts containers after a reboot
+# through the user's podman-restart.service (restart-policy=always only), and
+# only if the user lingers (has a systemd user manager without logging in).
+ensure_autostart() {
+  if ! command -v systemctl >/dev/null 2>&1; then
+    return
+  fi
+  if systemctl --user enable podman-restart.service >/dev/null 2>&1; then
+    log_ok "podman-restart.service enabled (containers come back after reboot)"
+  else
+    log_warn "Could not enable podman-restart.service; containers won't auto-start after a reboot."
+  fi
+  if [[ "$(loginctl show-user "$USER" -p Linger --value 2>/dev/null)" != "yes" ]]; then
+    if loginctl enable-linger "$USER" 2>/dev/null || sudo loginctl enable-linger "$USER"; then
+      log_ok "Enabled lingering for $USER"
+    else
+      log_warn "Run 'sudo loginctl enable-linger $USER' so containers start at boot without a login."
+    fi
+  fi
+}
+
 if ! command -v podman >/dev/null 2>&1; then
   log_error "podman is required. Install it (e.g. 'sudo apt install podman') and re-run."
   exit 1
@@ -50,6 +71,9 @@ else
   # shellcheck disable=SC1090
   source "$ENV_FILE"
 fi
+
+# rsync/cp flags avoid preserving permissions/ownership: exFAT (common on
+# external SSDs) rejects chmod/chown with EPERM.
 
 # resync_dir - if $1 (old path, may be unset/empty) differs from $2 (new
 # path) and the old path has content, move it to the new path (copy then
@@ -82,13 +106,13 @@ resync_dir() {
 
   log_info "Moving $label from '$old' to '$new'..."
   if command -v rsync >/dev/null 2>&1; then
-    if ! rsync -a --remove-source-files "$old"/ "$new"/; then
+    if ! rsync -a --no-perms --no-owner --no-group --remove-source-files "$old"/ "$new"/; then
       log_error "Failed to move $label to '$new'. Nothing was changed in .env; fix the issue and re-run."
       exit 1
     fi
     find "$old" -depth -type d -empty -delete 2>/dev/null || true
   else
-    if ! cp -a "$old"/. "$new"/; then
+    if ! cp -r "$old"/. "$new"/; then
       log_error "Failed to copy $label to '$new'. Nothing was changed in .env; fix the issue and re-run."
       exit 1
     fi
@@ -132,6 +156,8 @@ compose build
 
 log_info "Running first-run setup (pmtiles CLI, fonts, sprites)..."
 compose run --rm offline-maps node apps/backend/dist/cli/main.js setup
+
+ensure_autostart
 
 log_ok "Install complete."
 exec "$SCRIPT_DIR/start.sh"
