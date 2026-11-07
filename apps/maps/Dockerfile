@@ -50,6 +50,6 @@ COPY --from=pmtiles /usr/local/bin/pmtiles bin/pmtiles
 RUN mkdir -p data/regions assets .tmp && chown -R node:node data assets .tmp bin
 USER node
 
-ENV NODE_ENV=production HOST=0.0.0.0 PORT=8080
-EXPOSE 8080
+ENV NODE_ENV=production HOST=0.0.0.0 PORT=8081
+EXPOSE 8081
 CMD ["node", "--enable-source-maps", "apps/backend/dist/main.js"]

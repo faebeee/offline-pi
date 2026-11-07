@@ -7,9 +7,9 @@ services:
     # the bind-mounted DATA_DIR/ASSETS_DIR; keep-id maps the host user onto it.
     userns_mode: "keep-id:uid=1000,gid=1000"
     ports:
-      - "${PORT:-8080}:8080"
+      - "${PORT:-8081}:8081"
     environment:
-      # extra origins allowed to call /api, e.g. http://maps.local:8080
+      # extra origins allowed to call /api, e.g. http://maps.local:8081
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
       # unset -> sqlite at $DATA_DIR/offline-maps.db; set to move POIs to Postgres,
       # e.g. postgres://maps:secret@db:5432/maps
@@ -23,7 +23,7 @@ services:
     healthcheck:
       # CMD-SHELL string rather than a CMD array: podman-compose re-quotes CMD
       # arrays into a broken shell command ("Syntax error: ( unexpected").
-      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:8080/api/status').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))\""]
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:8081/api/status').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))\""]
       interval: 30s
       timeout: 5s
       retries: 3
