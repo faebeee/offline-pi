@@ -1,0 +1,4 @@
+meshtastic==2.7.11
+fastapi==0.162.2
+uvicorn==0.54.0
+websockets==17.4

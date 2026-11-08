@@ -2,15 +2,28 @@
 
 ## What it is
 
-A web UI on the Pi for a Meshtastic LoRa node plugged in by USB. Anyone on
-the hotspot can read the mesh's messages, see which nodes are around (and
-where), and send messages, without owning a radio or installing an app.
-The message history is kept on the Pi.
+A web UI on the Pi for a Meshtastic LoRa node plugged in by USB: open
+`http://<pi>:8084` in a browser (on the hotspot or home LAN) to read the
+mesh's messages, see which nodes are around (and where), and send
+messages from the Pi's node. The message history is kept on the Pi.
+
+Scope:
+
+- The Pi's node is only reachable through this web UI. The app does **not**
+  expose the Meshtastic TCP API (port 4403) or any other radio port, and
+  needs no port forwarding or router config: it is a plain web app on one
+  port, like the other apps.
+- Every other person/device has its **own** Meshtastic node (companion
+  radio + phone app). They talk to the Pi over LoRa, not over the Pi's
+  network. So the web UI speaks as one identity (the Pi's node), with no
+  per-visitor name prefixes.
 
 ## Hardware (decide in M0)
 
-- Any Meshtastic node with USB serial, e.g. Heltec V3, LilyGO T-Beam
-  (has GPS), RAK WisBlock 4631 (lowest power). Buy at least **two** so you
+- Any Meshtastic node with USB serial, e.g. RAK WisBlock 4631 (lowest
+  power), Seeed XIAO nRF52840 kit, Seeed Wio Tracker L1 Pro, Heltec V3,
+  LilyGO T-Beam. Prefer nRF52 boards (low power). Turn GPS off and set a
+  fixed position, since the Pi doesn't move. Buy at least **two** so you
   can test without a mesh nearby.
 - Region **EU_868** (Switzerland). Antenna for 868 MHz, mounted high.
 - Connected via USB to a powered hub (see power note in
@@ -44,12 +57,12 @@ The message history is kept on the Pi.
 - **Frontend:** static vanilla HTML/JS/CSS served by FastAPI (same style
   as `apps/monitor/public`), mobile-first: channel tabs, message list,
   composer, node list with "last heard" and battery.
-- **Sending from the web:** every web message goes out from the gateway's
-  node, so prefix it with the sender's chosen name (`[Anna] ...`, name
-  stored in `localStorage`). Enforce the payload limit (about 200 bytes,
-  count UTF-8 bytes, not characters) and a per-client rate limit, because
-  airtime is shared and duty-cycle limited. Optional `SEND_PIN` so not
-  everyone on the hotspot can transmit.
+- **Sending from the web:** messages go out from the Pi's node as-is
+  (broadcast on a channel, or a direct message to a node from the node
+  list). Enforce the payload limit (about 200 bytes, count UTF-8 bytes,
+  not characters) and a rate limit, because airtime is shared and
+  duty-cycle limited. Optional `SEND_PIN` so not everyone who can reach
+  the web UI can transmit.
 - **Channels:** keep the public default channel for strangers, and add a
   private channel (own PSK) for family/neighbours. Configured on the node
   via `manage.sh`, not in the app.
@@ -67,7 +80,27 @@ The message history is kept on the Pi.
 | `SEND_PIN` | | Empty: anyone on the network can send |
 | `SEND_RATE_LIMIT` | `5/min` | Per client IP |
 
-## Sessions
+## Implementation status (2026-11-08)
+
+M1 to M4 are implemented in `apps/mesh` and tested on the Mac against a
+fake radio (`tests/`, 10 tests) and in the container on Linux arm64, but
+**not yet on the Pi with a real node**. Do M0 next, then tick each session
+once its "Done when" was checked on the Pi. Deviations from the plan above:
+
+- The container runs as its root user (like `apps/monitor`) instead of
+  uid 1000 with `keep-id`: under rootless Podman that is the host user,
+  `keep-groups` passes `dialout` through, and `DATA_DIR` is writable
+  without uid mapping. Verify on the Pi in M0.
+- `manage.sh` runs the CLI with `podman run --device ...` from the app image
+  (not `compose run`), with a trap that starts the app again on any exit.
+- Adding a portal tile is still open: `apps/portal` doesn't exist yet.
+- Untested assumptions to check in M0: status mapping of routing acks (an
+  ack from our own node = "sent to mesh", from the destination =
+  "delivered"); replugging the node keeps the same device node inside the
+  container; `group_add: keep-groups` works with podman-compose on the Pi
+  (it does for `apps/monitor`; it does not work through the Mac's remote
+  Podman connection).
+
 
 ### M0: Hardware and spike
 **Goal:** prove the radio and library work on the Pi before building an app.
@@ -108,14 +141,14 @@ show up in the API.
 
 ### M3: Web UI and sending
 - [ ] Message view per channel and direct messages, live updates.
-- [ ] Composer with name prefix, byte counter, send state
+- [ ] Composer with byte counter, send state
       (queued / sent / acked where available).
 - [ ] `POST /api/messages` with byte limit, rate limit, optional PIN.
 - [ ] Node list: name, last heard, hops, SNR, battery, distance if both
       sides have a position.
 
-**Done when:** a phone on the hotspot can send to node B and read its
-replies, with nothing installed on the phone.
+**Done when:** a browser on the hotspot can send to node B (on a channel
+and as a DM) and read its replies, with nothing installed on that device.
 
 ### M4: Management, maps, portal, docs
 - [ ] `manage.sh`: `status`, `logs`, `node-info`, `set-region`,

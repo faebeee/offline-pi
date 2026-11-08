@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Mesh</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='1' y='1' width='14' height='14' rx='3' fill='%232a78d6'/%3E%3Ccircle cx='5' cy='5' r='1.6' fill='white'/%3E%3Ccircle cx='11' cy='6' r='1.6' fill='white'/%3E%3Ccircle cx='7' cy='11' r='1.6' fill='white'/%3E%3Cpath d='M5 5L11 6L7 11Z' stroke='white' stroke-width='1' fill='none'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="title">
+      <h1 id="node-name">Mesh</h1>
+      <p id="node-meta" class="muted">Connecting…</p>
+    </div>
+    <span id="conn" class="conn" data-state="connecting" role="status"><span class="dot"></span><span class="label">Connecting</span></span>
+  </header>
+
+  <div id="banner" class="banner" hidden></div>
+
+  <nav class="tabs" role="tablist">
+    <button type="button" role="tab" data-view="chats" aria-selected="true">Messages</button>
+    <button type="button" role="tab" data-view="nodes" aria-selected="false">Nodes <span id="node-count" class="count"></span></button>
+  </nav>
+
+  <main id="view-chats" class="chats" data-pane="list">
+    <aside class="conv-list" aria-label="Conversations">
+      <ul id="conv-list"></ul>
+    </aside>
+    <section class="thread" aria-label="Messages">
+      <header class="thread-head">
+        <button type="button" id="back" class="icon-btn back" aria-label="Back to conversations">‹</button>
+        <div>
+          <h2 id="thread-title">Pick a conversation</h2>
+          <p id="thread-sub" class="muted"></p>
+        </div>
+      </header>
+      <div id="messages" class="messages" aria-live="polite">
+        <button type="button" id="older" class="older" hidden>Load older messages</button>
+        <ol id="message-list"></ol>
+        <p id="empty" class="empty muted" hidden>No messages yet.</p>
+      </div>
+      <form id="composer" class="composer" autocomplete="off">
+        <textarea id="text" rows="1" placeholder="Message" aria-label="Message" disabled></textarea>
+        <div class="composer-side">
+          <span id="bytes" class="bytes muted"></span>
+          <button type="submit" id="send" disabled>Send</button>
+        </div>
+      </form>
+      <p id="send-error" class="send-error" role="alert" hidden></p>
+    </section>
+  </main>
+
+  <main id="view-nodes" class="nodes" hidden>
+    <ul id="node-list" class="node-list"></ul>
+    <p id="nodes-empty" class="empty muted" hidden>No nodes heard yet.</p>
+  </main>
+
+  <dialog id="pin-dialog">
+    <form method="dialog" id="pin-form">
+      <h2>PIN required</h2>
+      <p class="muted">Sending from this Pi is protected by a PIN.</p>
+      <input id="pin-input" type="password" inputmode="numeric" autocomplete="off" aria-label="PIN" required>
+      <div class="dialog-actions">
+        <button type="button" value="cancel" id="pin-cancel" class="secondary">Cancel</button>
+        <button type="submit" value="ok">Send</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>

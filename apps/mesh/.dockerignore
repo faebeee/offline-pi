@@ -1,0 +1,11 @@
+.git
+data
+.env
+.env.*
+*.log
+.DS_Store
+__pycache__
+.pytest_cache
+tests
+lib
+*.sh
