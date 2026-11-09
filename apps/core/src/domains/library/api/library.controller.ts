@@ -1,7 +1,8 @@
 import { BadRequestException, Controller, DefaultValuePipe, Get, ParseIntPipe, Query } from '@nestjs/common';
 import { ApiQuery, ApiTags } from '@nestjs/swagger';
-import { BooksResponse, SearchResponse } from '../domain/library.dto';
+import { BooksResponse, LibrarySync, SearchResponse } from '../domain/library.dto';
 import { KiwixClient } from '../infrastructure/kiwix.client';
+import { SyncStatusReader } from '../infrastructure/sync-status.reader';
 
 /**
  * Domain "library": offline Wikipedia, medical and survival guides (the
@@ -11,12 +12,21 @@ import { KiwixClient } from '../infrastructure/kiwix.client';
 @ApiTags('library')
 @Controller('api/library')
 export class LibraryController {
-  constructor(private readonly kiwix: KiwixClient) {}
+  constructor(
+    private readonly kiwix: KiwixClient,
+    private readonly syncStatus: SyncStatusReader,
+  ) {}
 
   /** Every installed book, by title. */
   @Get('books')
   async books(): Promise<BooksResponse> {
     return { books: await this.kiwix.books() };
+  }
+
+  /** Whether books from zims.txt are being downloaded in the background, and how far. */
+  @Get('sync')
+  sync(): Promise<LibrarySync> {
+    return this.syncStatus.read();
   }
 
   /**

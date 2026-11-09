@@ -784,6 +784,28 @@
         ]
       }
     },
+    "/api/library/sync": {
+      "get": {
+        "operationId": "librarySync",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibrarySync"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Whether books from zims.txt are being downloaded in the background, and how far.",
+        "tags": [
+          "library"
+        ]
+      }
+    },
     "/api/library/search": {
       "get": {
         "operationId": "librarySearch",
@@ -1993,10 +2015,10 @@
           "state": {
             "enum": [
               "running",
+              "failed",
               "estimating",
               "awaiting-confirmation",
               "done",
-              "failed",
               "cancelled"
             ],
             "type": "string"
@@ -2856,6 +2878,95 @@
         },
         "required": [
           "books"
+        ]
+      },
+      "LibrarySync": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "description": "running = downloading or checking now; unknown = no status yet (never synced, or not readable)",
+            "enum": [
+              "running",
+              "idle",
+              "unknown"
+            ]
+          },
+          "phase": {
+            "type": "string",
+            "nullable": true,
+            "description": "while running: checking what's missing, fetching the Kiwix catalog, downloading a book",
+            "enum": [
+              "checking",
+              "catalog",
+              "downloading"
+            ]
+          },
+          "file": {
+            "type": "string",
+            "nullable": true,
+            "description": "ZIM file being downloaded"
+          },
+          "size": {
+            "type": "number",
+            "nullable": true,
+            "description": "its size in bytes"
+          },
+          "downloadedBytes": {
+            "type": "number",
+            "nullable": true,
+            "description": "bytes on disk so far (approximate: from the partial file), null when unknown"
+          },
+          "index": {
+            "type": "number",
+            "description": "position of the current book in zims.txt (1-based), 0 when none"
+          },
+          "count": {
+            "type": "number",
+            "description": "books in zims.txt"
+          },
+          "failed": {
+            "type": "number",
+            "description": "books that failed in this run"
+          },
+          "result": {
+            "type": "string",
+            "nullable": true,
+            "description": "last finished run: ok, problems or interrupted",
+            "enum": [
+              "ok",
+              "problems",
+              "interrupted"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "startedAt": {
+            "type": "number",
+            "nullable": true,
+            "description": "unix seconds"
+          },
+          "updatedAt": {
+            "type": "number",
+            "nullable": true,
+            "description": "unix seconds, last status change"
+          }
+        },
+        "required": [
+          "state",
+          "phase",
+          "file",
+          "size",
+          "downloadedBytes",
+          "index",
+          "count",
+          "failed",
+          "result",
+          "message",
+          "startedAt",
+          "updatedAt"
         ]
       },
       "SearchHit": {

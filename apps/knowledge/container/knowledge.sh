@@ -11,7 +11,7 @@
 # Layout under /data (= CONTENT_DIR on the host):
 #   zim/          complete, verified ZIM files
 #   .partial/     in-progress downloads (aria2c, resumable)
-#   .cache/       Kiwix catalog cache, lock file
+#   .cache/       Kiwix catalog cache, lock file, sync.json (sync status)
 #   library.xml   what kiwix-serve serves; watched with --monitorLibrary
 set -euo pipefail
 
@@ -21,6 +21,9 @@ ZIM_DIR="$DATA/zim"
 PARTIAL_DIR="$DATA/.partial"
 CACHE_DIR="$DATA/.cache"
 LIBRARY="$DATA/library.xml"
+# what the sync is doing, for core's library domain (GET /api/library/sync),
+# which reads it through its read-only host mount
+STATUS_FILE="$CACHE_DIR/sync.json"
 CATALOG_URL="${CATALOG_URL:-https://library.kiwix.org/catalog/v2/entries?count=100000}"
 CATALOG_TTL="${CATALOG_TTL:-86400}"
 PORT="${PORT:-8080}"
@@ -58,6 +61,43 @@ latest_local() {
     [[ -z "$best" || "${f##*/}" > "${best##*/}" ]] && best="$f"
   done
   printf '%s' "$best"
+}
+
+# ---------------------------------------------------------- sync status --
+
+SYNC_STARTED=0
+SYNC_ACTIVE=false
+
+json_str() {
+  local v="${1//\\/\\\\}"
+  v="${v//\"/\\\"}"
+  printf '"%s"' "$v"
+}
+
+# write_status STATE PHASE [FILE SIZE INDEX COUNT FAILED RESULT MESSAGE]
+#   STATE  running | idle
+#   PHASE  checking | catalog | downloading | "" (idle)
+#   RESULT ok | problems | interrupted | "" (running)
+# Written atomically (tmp + mv), so a reader never sees half a file.
+write_status() {
+  local state="$1" phase="$2" file="${3:-}" size="${4:-0}" index="${5:-0}" count="${6:-0}"
+  local failed="${7:-0}" result="${8:-}" message="${9:-}" now
+  now="$(date +%s)"
+  mkdir -p "$CACHE_DIR"
+  {
+    printf '{"state":%s,"phase":%s,' "$(json_str "$state")" "$(json_str "$phase")"
+    printf '"file":%s,"size":%s,"index":%s,"count":%s,"failed":%s,' \
+      "$(json_str "$file")" "${size:-0}" "${index:-0}" "${count:-0}" "${failed:-0}"
+    printf '"result":%s,"message":%s,' "$(json_str "$result")" "$(json_str "$message")"
+    printf '"startedAt":%s,"updatedAt":%s}\n' "$SYNC_STARTED" "$now"
+  } > "$STATUS_FILE.tmp" && mv -f "$STATUS_FILE.tmp" "$STATUS_FILE"
+}
+
+# a sync that dies half-way (error, container stop) says so
+sync_exit() {
+  if [[ "$SYNC_ACTIVE" == true ]]; then
+    write_status idle "" "" 0 0 0 0 interrupted "The sync stopped before it finished; it resumes on the next start."
+  fi
 }
 
 # take_lock - one sync/prune at a time (the startup sync and a manual
@@ -162,11 +202,18 @@ cmd_sync() {
   [[ "${1:-}" == "--update" ]] && update=true
   take_lock
   mkdir -p "$ZIM_DIR"
+  SYNC_STARTED="$(date +%s)"
+  SYNC_ACTIVE=true
+  trap sync_exit EXIT
+  trap 'exit 143' TERM INT
+  write_status running checking
 
   local -a keys
   mapfile -t keys < <(wanted_keys)
   if (( ${#keys[@]} == 0 )); then
     log_warn "No entries in zims.txt; nothing to download."
+    SYNC_ACTIVE=false
+    write_status idle "" "" 0 0 0 0 ok "zims.txt lists no books."
     return 0
   fi
 
@@ -177,14 +224,22 @@ cmd_sync() {
   done
   if (( missing == 0 )) && [[ "$update" != true ]]; then
     log_ok "All ${#keys[@]} ZIM(s) from zims.txt are installed."
+    SYNC_ACTIVE=false
+    write_status idle "" "" 0 0 "${#keys[@]}" 0 ok "All ${#keys[@]} books are installed."
     return 0
   fi
 
+  write_status running catalog "" 0 0 "${#keys[@]}"
   local catalog
-  catalog="$(catalog_tsv)" || return 0
+  if ! catalog="$(catalog_tsv)"; then
+    SYNC_ACTIVE=false
+    write_status idle "" "" 0 0 "${#keys[@]}" "$missing" problems "The Kiwix catalog could not be fetched (no internet?)."
+    return 0
+  fi
 
-  local failed=0 row fname size url have
+  local failed=0 row fname size url have index=0
   for key in "${keys[@]}"; do
+    index=$(( index + 1 ))
     have="$(latest_local "$key")"
     if [[ -n "$have" && "$update" != true ]]; then
       continue
@@ -200,6 +255,7 @@ cmd_sync() {
       log_ok "Up to date: ${have##*/}"
       continue
     fi
+    write_status running downloading "$fname" "$size" "$index" "${#keys[@]}" "$failed"
     if download "$url" "$fname" "$size"; then
       build_library
     else
@@ -207,10 +263,13 @@ cmd_sync() {
     fi
   done
 
+  SYNC_ACTIVE=false
   if (( failed > 0 )); then
     log_warn "Sync finished with $failed problem(s)."
+    write_status idle "" "" 0 0 "${#keys[@]}" "$failed" problems "Sync finished with $failed problem(s); see ./manage.sh logs knowledge."
   else
     log_ok "Sync complete."
+    write_status idle "" "" 0 0 "${#keys[@]}" 0 ok "All books are up to date."
   fi
 }
 
@@ -279,6 +338,10 @@ cmd_list() {
 cmd_serve() {
   mkdir -p "$ZIM_DIR" "$PARTIAL_DIR" "$CACHE_DIR"
   build_library
+  # a sync cut off by a crash or power loss still says "running"
+  if [[ -f "$STATUS_FILE" ]] && grep -q '"state":"running"' "$STATUS_FILE"; then
+    write_status idle "" "" 0 0 0 0 interrupted "The last sync stopped before it finished."
+  fi
   if [[ "${AUTO_SYNC:-true}" == true ]]; then
     # Background: content shows up in kiwix-serve as each download finishes.
     ( cmd_sync || log_error "Startup sync failed; run './manage.sh knowledge sync' to retry." ) &

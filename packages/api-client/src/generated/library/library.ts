@@ -23,6 +23,7 @@ import type {
 import type {
   BooksResponse,
   LibrarySearchParams,
+  LibrarySync,
   SearchResponse
 } from '../model';
 
@@ -138,6 +139,106 @@ export function useLibraryBooks<TData = Awaited<ReturnType<typeof libraryBooks>>
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getLibraryBooksQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getLibrarySyncUrl = () => {
+
+
+
+
+  return `/api/library/sync`
+}
+
+/**
+ * @summary Whether books from zims.txt are being downloaded in the background, and how far.
+ */
+export const librarySync = async ( options?: Parameters<typeof apiFetch>[1]): Promise<LibrarySync> => {
+
+  return apiFetch<LibrarySync>(getLibrarySyncUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getLibrarySyncQueryKey = () => {
+    return [
+    `/api/library/sync`
+    ] as const;
+    }
+
+
+export const getLibrarySyncQueryOptions = <TData = Awaited<ReturnType<typeof librarySync>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof librarySync>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getLibrarySyncQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof librarySync>>> = ({ signal }) => librarySync({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof librarySync>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type LibrarySyncQueryResult = NonNullable<Awaited<ReturnType<typeof librarySync>>>
+export type LibrarySyncQueryError = ErrorType<unknown>
+
+
+/** @summary Whether books from zims.txt are being downloaded in the background, and how far. */
+export function useLibrarySync<TData = Awaited<ReturnType<typeof librarySync>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof librarySync>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof librarySync>>,
+          TError,
+          Awaited<ReturnType<typeof librarySync>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Whether books from zims.txt are being downloaded in the background, and how far. */
+export function useLibrarySync<TData = Awaited<ReturnType<typeof librarySync>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof librarySync>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof librarySync>>,
+          TError,
+          Awaited<ReturnType<typeof librarySync>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Whether books from zims.txt are being downloaded in the background, and how far. */
+export function useLibrarySync<TData = Awaited<ReturnType<typeof librarySync>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof librarySync>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Whether books from zims.txt are being downloaded in the background, and how far. */
+export function useLibrarySync<TData = Awaited<ReturnType<typeof librarySync>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof librarySync>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getLibrarySyncQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

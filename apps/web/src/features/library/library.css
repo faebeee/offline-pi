@@ -104,3 +104,27 @@
   border: 0;
   background: var(--bg);
 }
+
+/* background sync (zims.txt downloads) */
+.lib-sync {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.lib-sync-head,
+.lib-section-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.lib-sync-file {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lib-sync .help {
+  margin: 0;
+}

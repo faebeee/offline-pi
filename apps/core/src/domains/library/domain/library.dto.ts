@@ -46,3 +46,30 @@ export class SearchResponse {
   start!: number;
   hits!: SearchHit[];
 }
+
+/** What the knowledge container's background sync (zims.txt downloads) is doing. */
+export class LibrarySync {
+  /** running = downloading or checking now; unknown = no status yet (never synced, or not readable) */
+  state!: 'running' | 'idle' | 'unknown';
+  /** while running: checking what's missing, fetching the Kiwix catalog, downloading a book */
+  phase!: 'checking' | 'catalog' | 'downloading' | null;
+  /** ZIM file being downloaded */
+  file!: string | null;
+  /** its size in bytes */
+  size!: number | null;
+  /** bytes on disk so far (approximate: from the partial file), null when unknown */
+  downloadedBytes!: number | null;
+  /** position of the current book in zims.txt (1-based), 0 when none */
+  index!: number;
+  /** books in zims.txt */
+  count!: number;
+  /** books that failed in this run */
+  failed!: number;
+  /** last finished run: ok, problems or interrupted */
+  result!: 'ok' | 'problems' | 'interrupted' | null;
+  message!: string | null;
+  /** unix seconds */
+  startedAt!: number | null;
+  /** unix seconds, last status change */
+  updatedAt!: number | null;
+}

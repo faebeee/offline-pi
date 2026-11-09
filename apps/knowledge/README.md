@@ -44,6 +44,17 @@ reload, and `/api/library/search` uses kiwix's `search?format=xml`. Articles
 open in an in-app reader (`/library/read?url=...`), an iframe of Kiwix's
 viewer.
 
+The screen also shows the **background sync**: while books from `zims.txt`
+download it shows which book (n of m), how far it is and a `SYNC n/m` strip
+item, and the book list refreshes as each one completes; afterwards a badge
+says "Up to date", or a banner explains problems or an interrupted sync.
+`knowledge.sh` writes the state to `.cache/sync.json` in the content dir at
+every step (atomically; an interrupted run is recorded as such, also after a
+crash), and core's `/api/library/sync` reads it through its read-only host
+mount (kiwix-serve has nowhere to serve it). Download progress comes from the
+blocks the partial file uses (aria2c writes it sparse), so it is approximate;
+on filesystems without sparse files (exFAT) the screen shows no progress bar.
+
 kiwix-serve runs with `--urlRootLocation /svc/library` (`URL_ROOT` in
 `compose.yml`), so its viewer and search pages live under `/svc/library/`,
 core's passthrough, which forwards the path without stripping it. Kiwix's

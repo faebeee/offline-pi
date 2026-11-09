@@ -11,9 +11,9 @@ export type JobState = typeof JobState[keyof typeof JobState];
 
 export const JobState = {
   running: 'running',
+  failed: 'failed',
   estimating: 'estimating',
   'awaiting-confirmation': 'awaiting-confirmation',
   done: 'done',
-  failed: 'failed',
   cancelled: 'cancelled',
 } as const;

@@ -7,7 +7,7 @@ import { join } from 'node:path';
  * development and /app/apps in the image, which holds every manifest (see
  * the Dockerfile).
  */
-const APPS_DIR = process.env.APPS_DIR ?? join(__dirname, '..', '..', '..', '..');
+export const APPS_DIR = process.env.APPS_DIR ?? join(__dirname, '..', '..', '..', '..');
 
 /** One entry of a module.json manifest, as documented in the root AGENTS.md. */
 export interface Module {

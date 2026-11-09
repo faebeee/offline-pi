@@ -3,9 +3,10 @@ import { bytes } from "@offline-pi/ui/outpost.js";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { useStripLink } from "../../app/strip";
-import { Banner, Icon } from "../../ui/outpost";
+import { Badge, Banner, Icon } from "../../ui/outpost";
 import { KIWIX_ROOT, monogramFor, searchScopes, useBooks } from "./books";
 import { SearchResults } from "./SearchResults";
+import { SyncStatus, syncBadge, useSync } from "./SyncStatus";
 import "./library.css";
 
 export type LibrarySearch = { q?: string; scope?: string; start?: number };
@@ -39,6 +40,7 @@ export function LibraryContext() {
 export function Library({ search }: { search: LibrarySearch }) {
   const { data, error, refetch, isFetching } = useBooks();
   const books = data?.books;
+  const sync = useSync();
 
   const n = books?.length ?? 0;
   const short = error ? (error.status ? `HTTP ${error.status}` : "NO LINK") : "";
@@ -68,12 +70,14 @@ export function Library({ search }: { search: LibrarySearch }) {
         </Banner>
       )}
 
+      <SyncStatus sync={sync} />
+
       <SearchForm books={books} search={search} />
 
       {search.q ? (
         <SearchResults books={books} search={search} />
       ) : (
-        books && <BookList books={books} />
+        books && <BookList books={books} syncing={sync?.state === "running"} badge={syncBadge(sync)} />
       )}
 
       <div className="lib-foot body-sm fg3">
@@ -167,14 +171,29 @@ function SearchForm({ books, search }: { books: Book[] | undefined; search: Libr
   );
 }
 
-function BookList({ books }: { books: Book[] }) {
+function BookList({
+  books,
+  syncing,
+  badge,
+}: {
+  books: Book[];
+  syncing: boolean;
+  badge: ReturnType<typeof syncBadge>;
+}) {
   return (
     <section className="lib-section" aria-labelledby="lib-books-title">
       <div className="lib-section-head">
         <h2 className="h2" id="lib-books-title">
           Books
         </h2>
-        <span className="label">{books.length} installed</span>
+        <span className="lib-section-meta">
+          {badge && (
+            <Badge state={badge.tone} className="badge-sm">
+              {badge.label}
+            </Badge>
+          )}
+          <span className="label">{books.length} installed</span>
+        </span>
       </div>
       {books.length ? (
         <ul className="list lib-list" aria-live="polite">
@@ -206,7 +225,7 @@ function BookList({ books }: { books: Book[] }) {
       ) : (
         <div className="empty">
           <Icon name="library" />
-          <h3 className="empty-title">No books yet</h3>
+          <h3 className="empty-title">{syncing ? "Downloading the first books" : "No books yet"}</h3>
           <p>
             Books from <code>zims.txt</code> download on container start when <code>AUTO_SYNC=true</code> and appear here as
             each one finishes. Otherwise run <code>./manage.sh knowledge sync</code> on the host. Follow progress with{" "}
