@@ -1,0 +1,16 @@
+{
+  "id": "maps",
+  "num": 1,
+  "label": "Maps",
+  "icon": "map",
+  "description": "Offline vector maps: download regions once, then pan, zoom and search without internet.",
+  "service": "maps",
+  "path": "/maps/",
+  "portEnv": "MAPS_PORT",
+  "stripPrefix": true,
+  "health": "/api/status",
+  "dirs": ["MAPS_DATA_DIR", "MAPS_ASSETS_DIR"],
+  "optional": true,
+  "requires": [],
+  "dependsOn": []
+}

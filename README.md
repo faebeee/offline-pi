@@ -1,50 +1,115 @@
 # offline-pi
 
-A collection of self-hosted apps meant to run fully offline (e.g. on a
-Raspberry Pi), with no runtime dependency on the internet or a CDN once set up.
+One self-hosted app for a Raspberry Pi that keeps working without internet:
+offline maps, an emergency-knowledge library, Meshtastic messaging and a live
+map of the mesh, plus a dashboard for the Pi itself. Everything is reached on
+one port, in one UI, and runs fully offline once set up (no CDN, no runtime
+downloads).
 
-## Apps
+## Modules
 
-| App | Default port | Description |
-|---|---|---|
-| [`apps/monitor`](apps/monitor/README.md) | `8080` | Realtime Pi dashboard (NestJS + WebSockets): temperature, input voltage, throttling, PSU limits, CPU, memory, storage and network; can optionally start/stop the other apps. Uses Podman Compose. |
-| [`apps/maps`](apps/maps/README.md) | `8081` | Self-hosted vector map tiles with a browser viewer: download a region once, then pan/zoom with no internet connection. Uses Podman Compose. |
-| [`apps/knowledge`](apps/knowledge/README.md) | `8082` | Offline emergency-knowledge library via `kiwix-serve`; the container downloads the ZIM set from `zims.txt` itself. Uses Podman Compose. |
-| [`apps/mesh`](apps/mesh/README.md) | `8084` | Web UI for a USB Meshtastic LoRa node: send/receive channel and direct messages, node list, history kept on the Pi. Uses Podman Compose. |
-| [`apps/mesh-map`](apps/mesh-map/README.md) | `8086` | Offline map of the Meshtastic nodes heard by `apps/mesh`, updated live; reuses `apps/maps`' downloaded regions read-only. Uses Podman Compose. |
+Core always runs; the other modules are chosen at install and switched on
+and off on the dashboard.
 
-See each app's own README for setup, architecture and usage details.
+| Module | Path | Internal port | Description |
+|---|---|---|---|
+| Home | `/` | | Every installed module as a tile, with on/off switches. |
+| [System](services/core/README.md) (core) | `/system/` | `8080` (public) | Realtime Pi dashboard: temperature, input voltage, throttling, PSU limits, CPU, memory, storage, network, containers and connections. Core also serves the other modules (gateway) and starts/stops them. |
+| [Maps](services/maps/README.md) | `/maps/` | `8081` | Self-hosted vector maps: download a region once, then pan, zoom and search with no internet connection. |
+| [Mesh map](services/mesh-map/README.md) | `/mesh-map/` | `8086` | Live map of the Meshtastic nodes heard by Mesh, on the regions downloaded in Maps (read-only). |
+| [Mesh](services/mesh/README.md) | `/mesh/` | `8084` | Web UI for a USB Meshtastic LoRa node: channel and direct messages, node list, history kept on the Pi. |
+| [Library](services/knowledge/README.md) | `/library/` | `8082` | Offline Wikipedia, medical and survival guides via `kiwix-serve`; the container downloads the ZIM set from `zims.txt` itself. |
 
-All web UIs share one look and feel, the Outpost design system:
-[`DESIGN.md`](DESIGN.md) is the spec and [`ui/`](ui/README.md) the shared
-package (tokens, fonts, icons, components) every app builds from. Each app's
-`install.sh`/`start.sh` copies it in before building.
+Modules listen on `127.0.0.1` only; the LAN sees just `PORT` (8080), where
+core serves `/`, `/system/` and proxies every module under its path.
 
-## Running an app
+[`host/hotspot-pi`](host/hotspot-pi) is a host-level extra (no container):
+join a known Wi-Fi at boot or open a hotspot so phones can reach the Pi.
 
-Every app under `apps/*` exposes the same three entry points:
+## Quick start
+
+Requirements: a Raspberry Pi (or any Linux box) with Podman and a compose
+backend (`install.sh` offers to install both via apt). A USB Meshtastic node
+for Mesh; an SSD recommended for maps and library data.
 
 ```sh
-cd apps/<app>
-./install.sh     # one-time setup: install deps, build the image, bootstrap
-./start.sh       # start (or restart) the app; safe to re-run after a reboot
-./uninstall.sh   # remove containers and image; asks before deleting data
+git clone https://github.com/faebeee/offline-pi.git
+cd offline-pi
+./install.sh
 ```
 
-`install.sh` is idempotent and ends by calling `start.sh`, so a fresh clone
-only ever needs `./install.sh`. Use `./start.sh` on its own afterwards (e.g.
-after a reboot, or once you've edited `.env`).
+Then open `http://<pi>:8080/`.
 
-`./uninstall.sh` stops and removes the app's containers and image. Data
-directories are kept unless you confirm deleting each one (or pass
-`--purge`), and `.env` stays as long as data does, so `./install.sh` picks it
-up again. `apps/hotspot-pi` is a host service rather than a container; it has
-`install-hotspot-fallback.sh` / `uninstall-hotspot-fallback.sh` instead.
+`install.sh` asks for the port and bind address (first run), which modules to
+install, where each module keeps its data, and module specifics (e.g. the
+Meshtastic USB device). It builds the images and ends by running `start.sh`.
 
-## Port allocation
+Re-run `./install.sh` any time to add or remove modules, reconfigure one, or
+move data to another disk: every data directory is asked again, defaulting to
+the current location, and existing data is moved to the new one.
 
-Each app is a separate Podman Compose stack, so they're all meant to run side
-by side on the same host (Pi). Default host ports are assigned per app and
-kept out of each other's way — when adding a new app or changing a port, pick
-one that isn't already listed above and isn't a well-known port already used
-elsewhere on the host.
+### Upgrading from the per-app layout
+
+Older versions had one stack per app under `apps/<name>/`. After
+`git pull`, run `./install.sh` once: it reads each `apps/<name>/.env`, takes
+over the settings and data locations (nothing is downloaded again), removes
+the old containers and images, and renames the old files to `.env.migrated`.
+The storage questions then offer to move the data out of `apps/`.
+
+## Day to day
+
+```sh
+./start.sh                      # rebuild + restart everything (after git pull or editing .env)
+./manage.sh status              # every module: installed, running
+./manage.sh start maps          # same as the switch on the home page
+./manage.sh stop knowledge
+./manage.sh logs [module]       # follow logs (default: core)
+./manage.sh knowledge list      # module commands, see ./manage.sh help
+./manage.sh mesh set-region EU_868
+```
+
+Switching a module off on the dashboard stops its container; it stays off
+after a reboot until it is switched on again. A crashed module is restarted
+by Podman.
+
+## Configuration (`.env`)
+
+`install.sh` writes `.env` from [`.env.example`](.env.example), which
+documents every variable. The main ones:
+
+| Variable | Default | Description |
+|---|---|---|
+| `PORT` | `8080` | The one port on the LAN: dashboard and all modules. |
+| `BIND_ADDRESS` | `0.0.0.0` | `0.0.0.0` for LAN/hotspot, `127.0.0.1` for this Pi only. |
+| `MODULES` | `maps,knowledge,mesh-map` | Installed modules (set by `install.sh`). |
+| `CONTROL_PIN` | empty | PIN asked before starting/stopping modules on the dashboard. |
+| `CORE_DATA_DIR` | `./data/core` | Dashboard history, power events, module on/off state. |
+| `MAPS_DATA_DIR` | `./data/maps` | Map regions (GBs) and POIs. Point at the SSD. |
+| `MAPS_ASSETS_DIR` | `./data/maps-assets` | Map fonts and sprites (~100 MB). |
+| `KNOWLEDGE_CONTENT_DIR` | `./data/knowledge` | ZIM files (tens of GB). Point at the SSD. |
+| `MESH_DATA_DIR` | `./data/mesh` | Message history. |
+| `MESH_CONNECTION` / `MESH_DEVICE` / `MESH_HOST` | | How Mesh reaches the node (set by `install.sh`). |
+| `*_PORT` | `8081`... | Internal (loopback) port of each module. |
+
+Edit `.env` and run `./start.sh` to apply a change; storage paths are changed
+with `./install.sh` so the data moves along.
+
+## Uninstall
+
+```sh
+./uninstall.sh            # asks before deleting anything
+./uninstall.sh --purge    # also deletes every data directory and .env
+```
+
+Always removes the containers and images. Each data directory is kept unless
+you confirm deleting it (or pass `--purge`), and `.env` stays as long as any
+data does, so `./install.sh` picks it up again. Podman, `podman-restart.service`,
+lingering and `podman.socket` are left alone.
+
+## Design and development
+
+All UIs share the Outpost design system: [`DESIGN.md`](DESIGN.md) is the spec
+and [`ui/`](ui/README.md) the package every module builds from.
+[`AGENTS.md`](AGENTS.md) describes the architecture and how to add a module
+(a `services/<name>/` directory with a `module.json` manifest, a compose
+service and optional install hooks; core picks up the rest).

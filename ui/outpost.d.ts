@@ -3,7 +3,8 @@
 export type Theme = "dark" | "light";
 export type LinkState = "ok" | "cau" | "crit";
 export type StatusState = "info" | "ok" | "cau" | "crit" | "off";
-export type ModuleId = "maps" | "mesh-map" | "mesh" | "library" | "system";
+// built-in ids; modules added through a manifest are plain strings
+export type ModuleId = "home" | "maps" | "mesh-map" | "mesh" | "knowledge" | "system" | (string & {});
 
 export type StripItem = { label: string; value: string };
 export type Strip = {
@@ -12,7 +13,9 @@ export type Strip = {
 };
 
 export const STATUS: Record<StatusState, { icon: string; cls: string }>;
-export const MODULES: { id: ModuleId; num: number; label: string; icon: string; port: number }[];
+export type ModuleEntry = { id: ModuleId; num: number; label: string; icon: string; path: string; running?: boolean };
+export const MODULES: ModuleEntry[];
+export function loadModules(): Promise<boolean>;
 
 export function icon(name: string, className?: string): SVGSVGElement;
 export function iconHtml(name: string, className?: string): string;
@@ -31,7 +34,7 @@ export function moduleLabel(id: ModuleId): string;
 export function moduleUrl(id: ModuleId, path?: string): string | null;
 export function renderNav(nav: HTMLElement, current: ModuleId): HTMLElement;
 export function statusStrip(el: HTMLElement): Strip;
-export function frame(current: ModuleId, root?: ParentNode): { strip: Strip | null };
+export function frame(current: ModuleId, root?: ParentNode): { strip: Strip | null; modules: Promise<boolean> };
 
 export function utcTime(d: Date | number | string): string;
 export function utcClock(d: Date | number | string): string;

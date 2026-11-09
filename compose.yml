@@ -1,0 +1,162 @@
+# offline-pi: one Podman Compose project ("offline-pi", see lib/common.sh).
+#
+# core is the only service reachable from the LAN: it serves the dashboard on
+# PORT and reverse-proxies every module under its path (/maps/, /library/,
+# /mesh/, /mesh-map/). Modules bind MODULES_BIND_ADDRESS (127.0.0.1) on their
+# own internal port.
+#
+# Only core has restart: always (podman-restart.service brings it back after
+# a reboot). Modules use on-failure: podman restarts them after a crash, but
+# not after a stop from the dashboard. Core starts the modules switched on in
+# the dashboard (CORE_DATA_DIR/modules.json) when it starts, so they come back
+# after a reboot too. start.sh only creates containers for the modules listed
+# in MODULES (.env).
+#
+# Rules for every service (AGENTS.md): host networking, ${VAR:-default}
+# everywhere, relocatable *_DIR bind mounts, CMD-SHELL healthchecks.
+
+services:
+  # ------------------------------------------------------------------ core --
+  core:
+    build: ./services/core
+    image: offline-pi-core
+    container_name: offline-pi-core
+    # Host networking and PID namespace so /proc/net/dev, /proc/1/mounts and
+    # the process count describe the Pi, not the container.
+    network_mode: host
+    pid: host
+    # the module manifests reference module settings (ports, requires), so
+    # core sees the whole .env
+    env_file: .env
+    environment:
+      PORT: ${PORT:-8080}
+      HOST: ${BIND_ADDRESS:-0.0.0.0}
+      SAMPLE_INTERVAL_MS: ${SAMPLE_INTERVAL_MS:-2000}
+      PODMAN_GRAPH_ROOT: ${PODMAN_GRAPH_ROOT:-}
+      PODMAN_SOCKET: ${PODMAN_SOCKET:-}
+      CONTROL_PIN: ${CONTROL_PIN:-}
+      MODULES: ${MODULES:-}
+    volumes:
+      - ${CORE_DATA_DIR:-./data/core}:/app/data
+      # Host root, read-only: /sys, /etc/os-release, every mounted filesystem
+      # (storage card), podman's state DB and healthcheck logs (containers
+      # card), and podman.socket (module start/stop; connecting to a unix
+      # socket works on a read-only mount).
+      - /:/hostfs:ro,rslave
+    devices:
+      # Firmware mailbox for vcgencmd; /dev/null when not on a Pi.
+      - ${VCIO_DEVICE:-/dev/null}:/dev/vcio_gencmd
+    group_add:
+      - keep-groups
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:' + (process.env.PORT || 8080) + '/api/status').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  # ------------------------------------------------------------------ maps --
+  maps:
+    build: ./services/maps
+    image: offline-pi-maps
+    container_name: offline-pi-maps
+    # runs as node (uid 1000); keep-id maps the host user onto it so the bind
+    # mounts stay writable (needs x-podman.in_pod: false below)
+    userns_mode: "keep-id:uid=1000,gid=1000"
+    network_mode: host
+    environment:
+      PORT: ${MAPS_PORT:-8081}
+      HOST: ${MODULES_BIND_ADDRESS:-127.0.0.1}
+      ALLOWED_ORIGINS: ${MAPS_ALLOWED_ORIGINS:-}
+      DATABASE_URL: ${MAPS_DATABASE_URL:-}
+      DB_LOGGING: ${MAPS_DB_LOGGING:-false}
+    volumes:
+      - ${MAPS_DATA_DIR:-./data/maps}:/app/data
+      - ${MAPS_ASSETS_DIR:-./data/maps-assets}:/app/assets
+    restart: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:' + (process.env.PORT || 8081) + '/api/status').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ------------------------------------------------------------- knowledge --
+  knowledge:
+    build: ./services/knowledge
+    image: offline-pi-knowledge
+    container_name: offline-pi-knowledge
+    # runs as user (uid 1001), see maps
+    userns_mode: "keep-id:uid=1001,gid=1001"
+    network_mode: host
+    environment:
+      PORT: ${KNOWLEDGE_PORT:-8082}
+      BIND_ADDRESS: ${MODULES_BIND_ADDRESS:-127.0.0.1}
+      # served by core under /library/ (kiwix-serve --urlRootLocation)
+      URL_ROOT: /library
+      AUTO_SYNC: ${KNOWLEDGE_AUTO_SYNC:-true}
+    volumes:
+      - ${KNOWLEDGE_CONTENT_DIR:-./data/knowledge}:/data
+    restart: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://127.0.0.1:$${PORT:-8082}$${URL_ROOT}/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  # ------------------------------------------------------------------ mesh --
+  mesh:
+    build: ./services/mesh
+    image: offline-pi-mesh
+    container_name: offline-pi-mesh
+    network_mode: host
+    environment:
+      PORT: ${MESH_PORT:-8084}
+      HOST: ${MODULES_BIND_ADDRESS:-127.0.0.1}
+      MESH_CONNECTION: ${MESH_CONNECTION:-serial}
+      MESH_HOST: ${MESH_HOST:-}
+      SEND_PIN: ${MESH_SEND_PIN:-}
+      SEND_RATE_LIMIT: ${MESH_SEND_RATE_LIMIT:-5/min}
+    volumes:
+      - ${MESH_DATA_DIR:-./data/mesh}:/app/data
+    devices:
+      # The USB node (install.sh writes its stable /dev/serial/by-id/ path).
+      # Podman resolves it when the container is created, so the node must be
+      # plugged in when start.sh runs; /dev/null for MESH_CONNECTION=tcp.
+      - ${MESH_DEVICE:-/dev/null}:/dev/meshtastic
+    group_add:
+      - keep-groups
+    restart: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:' + os.environ.get('PORT', '8084') + '/api/status', timeout=4)\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  # -------------------------------------------------------------- mesh-map --
+  mesh-map:
+    build: ./services/mesh-map
+    image: offline-pi-mesh-map
+    container_name: offline-pi-mesh-map
+    network_mode: host
+    environment:
+      PORT: ${MESH_MAP_PORT:-8086}
+      HOST: ${MODULES_BIND_ADDRESS:-127.0.0.1}
+    volumes:
+      # the maps module's data, read-only: region archives, fonts, sprites
+      - ${MAPS_DATA_DIR:-./data/maps}:/maps/data:ro
+      - ${MAPS_ASSETS_DIR:-./data/maps-assets}:/maps/assets:ro
+    restart: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:' + (process.env.PORT || 8086) + '/healthz').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+# userns_mode keep-id cannot be combined with a pod.
+x-podman:
+  in_pod: false

@@ -1,0 +1,11 @@
+{
+  "id": "system",
+  "num": 5,
+  "label": "System",
+  "icon": "system",
+  "description": "Pi health, power, storage, network and the module controls.",
+  "service": "core",
+  "path": "/system/",
+  "dirs": ["CORE_DATA_DIR"],
+  "optional": false
+}

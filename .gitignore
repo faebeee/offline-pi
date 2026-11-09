@@ -1,0 +1,10 @@
+# local configuration and data (see .env.example)
+.env
+!.env.example
+data/
+*.log
+.DS_Store
+
+# leftovers of the old per-app layout (apps/<name>/.env.migrated, data);
+# install.sh adopts them, see lib/migrate.sh
+apps/

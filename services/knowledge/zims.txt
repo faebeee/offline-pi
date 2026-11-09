@@ -1,0 +1,45 @@
+# zims.txt - the ZIM files this box downloads and serves.
+#
+# One entry per line: the ZIM file name WITHOUT the date suffix and ".zim",
+# exactly as listed on https://download.kiwix.org/zim/ (or the "download"
+# link on https://library.kiwix.org/). Examples:
+#   wikipedia_en_medicine_maxi_2026-10.zim  ->  wikipedia_en_medicine_maxi
+#   ifixit_en_all_2025-12.zim               ->  ifixit_en_all
+# Many topics come in flavours: _maxi (with images), _nopic, _mini (intro
+# only). Pick exactly the flavour you want.
+#
+# This file is baked into the container image. The container downloads
+# every entry that isn't on disk yet each time it starts (resumable,
+# checksum-verified) and serves them as soon as they're complete. After
+# editing, apply it with `./start.sh` (rebuilds + restarts) or
+# `./manage.sh knowledge sync`. Removing a line does not delete the file; use
+# `./manage.sh knowledge prune` for that.
+#
+# Sizes are approximate (catalog of 2026-11).
+
+# --- Medical / First Aid --------------------------------------------------
+wikipedia_en_medicine_maxi              # WikiMed, with images   ~1.8 GB
+irp.fas.org_en_military-medicine        # Military field medicine ~60 MB
+nhs.uk_en_medicines                     # NHS Medicines A-Z       ~15 MB
+medlineplus.gov_en_all                  # MedlinePlus             ~1.9 GB
+wwwnc.cdc.gov_en_all                    # CDC Travelers' Health   ~170 MB
+
+# --- Food & Water ---------------------------------------------------------
+foss.cooking_en_all                     #                         ~30 MB
+publicdomainrecipes.com_en_all          #                         ~16 MB
+based.cooking_en_all                    #                         ~15 MB
+
+# --- Shelter / Repair / Off-grid ------------------------------------------
+ifixit_en_all                           # iFixit repair guides    ~3.4 GB
+solar.lowtechmagazine.com_mul_all       # Low-Tech Magazine       ~670 MB
+100r.co_en_all                          # Hundred Rabbits         ~170 MB
+cd3wdproject.org_en_all                 # CD3WD                   ~550 MB
+
+# --- General survival -----------------------------------------------------
+trueprepper.com_en_all                  #                         ~1.4 GB
+ready.gov_en_all                        #                         ~2.0 GB
+rabbitwaves.ca_en_all                   #                         ~70 MB
+survivorlibrary.com_en_all            # ~210 GB (!), enable only with room
+
+# --- General reference ----------------------------------------------------
+wikipedia_en-simple_all_nopic           # Simple English Wikipedia ~1 GB

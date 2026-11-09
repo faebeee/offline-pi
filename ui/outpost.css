@@ -424,6 +424,11 @@ a {
   box-shadow: inset 0 2px 0 var(--acc);
 }
 
+/* module installed but stopped: still a link (to its START on the home page) */
+.nav-item.is-off {
+  color: var(--fg3);
+}
+
 /* tablets and desktop: the bottom nav becomes a left rail */
 @media (min-width: 900px) {
   .frame-body {

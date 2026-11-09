@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en" class="t-dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>offline-pi</title>
+  <link rel="icon" href="data:,">
+  <script src="/ui/theme-boot.js"></script>
+  <link rel="stylesheet" href="/ui/outpost.css">
+  <link rel="stylesheet" href="/home.css">
+</head>
+<body>
+  <div class="frame">
+    <div data-strip></div>
+
+    <header class="header">
+      <div class="header-title">
+        <span class="label" data-module-label>Home</span>
+        <h1 class="h1" id="title">offline-pi</h1>
+      </div>
+      <div class="header-actions">
+        <button data-theme-toggle></button>
+      </div>
+    </header>
+
+    <div class="frame-body">
+      <main class="content grid-bg">
+        <div id="notice" aria-live="polite"></div>
+
+        <section aria-labelledby="hub-title">
+          <h2 class="sr-only" id="hub-title">Modules</h2>
+          <div class="hub" id="hub"></div>
+        </section>
+
+        <article class="card" id="card-control">
+          <div class="card-head">
+            <h2 class="h2">Modules on this Pi</h2>
+            <span id="control-summary" class="label"></span>
+          </div>
+          <div id="control-error" class="banner banner-crit" role="alert" hidden></div>
+          <div class="stack" id="switches"></div>
+          <p class="body-sm fg2 help">Stopped modules stay stopped after a restart until you switch them on again.
+            Add or remove modules with <span class="mono">./install.sh</span> on the Pi.</p>
+        </article>
+      </main>
+      <nav data-nav></nav>
+    </div>
+  </div>
+  <script type="module" src="/home.js"></script>
+</body>
+</html>

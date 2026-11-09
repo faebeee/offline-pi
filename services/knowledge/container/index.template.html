@@ -1,0 +1,124 @@
+<!doctype html>
+<!-- Outpost "Library" landing page, served by kiwix-serve as its welcome page
+     (--customIndex). kiwix-serve serves only this one file for its root, so
+     container/build-index.sh inlines the Outpost UI package (CSS + fonts,
+     icon sprite, outpost.js) at image build time. Lines that are exactly a
+     @@INLINE ...@@ marker are replaced by that build step. -->
+<html lang="en" class="t-dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Library</title>
+<script>
+@@INLINE_THEME_BOOT@@
+</script>
+<style>
+@@INLINE_CSS@@
+</style>
+<style>
+  /* page layout, tokens only */
+  .lib-search { display: flex; flex-direction: column; gap: var(--space-3); }
+  .lib-search-row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: flex-end; }
+  .lib-search-row .field { flex: 1 1 220px; min-width: 0; }
+  .lib-search-row .btn { flex: 0 0 auto; }
+  .lib-section { display: flex; flex-direction: column; gap: var(--space-3); }
+  .lib-section-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
+  .lib-section-head .h2 { margin: 0; }
+  .lib-books { background: var(--s1); }
+  .lib-foot { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); align-items: center; }
+  .empty code, .banner-body code { font-family: var(--font-mono); font-size: 13px; color: var(--fg); }
+</style>
+</head>
+<body>
+@@INLINE_ICONS@@
+<div class="frame">
+  <div data-strip></div>
+  <header class="header">
+    <div class="header-title">
+      <span class="label" data-module-label>Module 04 · Library</span>
+      <h1 class="h1">Library</h1>
+    </div>
+    <div class="header-actions">
+      <button data-theme-toggle></button>
+    </div>
+  </header>
+  <div class="context" id="context">
+    <span>Kiwix · served from this box</span>
+    <span id="context-count">Loading catalog</span>
+  </div>
+  <div class="frame-body">
+    <main class="content grid-bg">
+      <div class="banner banner-info">
+        <svg class="i" aria-hidden="true" focusable="false"><use href="#offline"/></svg>
+        <div class="banner-text">
+          <div class="banner-title">Works offline</div>
+          <div class="banner-body">Every book here is stored on this box. Reading and searching need no internet connection.</div>
+        </div>
+      </div>
+
+      <div id="catalog-error" class="banner banner-crit" role="alert" hidden>
+        <svg class="i" aria-hidden="true" focusable="false"><use href="#critical"/></svg>
+        <div class="banner-text">
+          <div class="banner-title">Can't read the library catalog</div>
+          <div class="banner-body"><span id="catalog-error-reason"></span> Reload the page. If it keeps failing, check the container with <code>./manage.sh logs</code>.</div>
+        </div>
+        <button type="button" class="btn btn-crit" id="retry">
+          <svg class="i" aria-hidden="true" focusable="false"><use href="#refresh"/></svg>
+          Retry
+        </button>
+      </div>
+
+      <form class="lib-search card" id="search" action="search" method="get" role="search">
+        <div class="lib-search-row">
+          <div class="field">
+            <label class="label" for="q">Full-text search</label>
+            <div class="search">
+              <svg class="i" aria-hidden="true" focusable="false"><use href="#search"/></svg>
+              <input class="input" id="q" name="pattern" type="search" autocomplete="off" required
+                     placeholder="e.g. tourniquet, water purification">
+              <span class="badge badge-sm">LOCAL</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="label" for="scope">Search in</label>
+            <select class="select" id="scope" disabled>
+              <option>Loading books</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" id="search-go" type="submit" disabled>
+            <svg class="i" aria-hidden="true" focusable="false"><use href="#search"/></svg>
+            Search
+          </button>
+        </div>
+        <p class="help" id="search-help">Results open in Kiwix's search page. Books in different languages are searched one language at a time.</p>
+      </form>
+
+      <section class="lib-section" aria-labelledby="books-title">
+        <div class="lib-section-head">
+          <h2 class="h2" id="books-title">Books</h2>
+          <span class="label" id="books-count"></span>
+        </div>
+        <ul class="list lib-books" id="books" aria-live="polite"></ul>
+        <div class="empty" id="empty" hidden>
+          <svg class="i" aria-hidden="true" focusable="false"><use href="#library"/></svg>
+          <h3 class="empty-title">No books yet</h3>
+          <p>Books from <code>zims.txt</code> download on container start when <code>AUTO_SYNC=true</code> and appear here as each one finishes. Otherwise run <code>./manage.sh sync</code> on the host. Follow progress with <code>./manage.sh logs</code>.</p>
+        </div>
+      </section>
+
+      <div class="lib-foot body-sm fg3">
+        <span>Kiwix's own views:</span>
+        <a href="nojs">Simple library list</a>
+        <a href="catalog/v2/entries?count=-1">OPDS catalog</a>
+      </div>
+    </main>
+    <nav data-nav></nav>
+  </div>
+</div>
+<script type="module">
+@@INLINE_OUTPOST_JS@@
+@@INLINE_APP_JS@@
+</script>
+</body>
+</html>

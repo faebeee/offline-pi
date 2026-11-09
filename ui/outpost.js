@@ -128,28 +128,33 @@ export function themeToggle(button) {
 // ---------------------------------------------------------------- modules --
 
 /**
- * The suite's apps on this host, by default port. The nav links to the
- * same hostname the page was opened with, so it works on the hotspot, LAN or
- * localhost alike.
+ * The suite's modules. Everything is served by core on one port, each module
+ * under its own path, so links are plain paths and work on the hotspot, LAN
+ * or localhost alike. This list is the fallback; frame() replaces it with
+ * core's /api/modules (installed modules only, from the module manifests),
+ * so a new module shows up in every nav without touching this file.
  */
 export const MODULES = [
-  { id: "maps", num: 1, label: "Maps", icon: "map", port: 8081 },
-  { id: "mesh-map", num: 2, label: "Mesh map", icon: "nodes", port: 8086 },
-  { id: "mesh", num: 3, label: "Mesh", icon: "mesh", port: 8084 },
-  { id: "library", num: 4, label: "Library", icon: "library", port: 8082 },
-  { id: "system", num: 5, label: "System", icon: "system", port: 8080 },
+  { id: "home", num: 0, label: "Home", icon: "hub", path: "/" },
+  { id: "maps", num: 1, label: "Maps", icon: "map", path: "/maps/" },
+  { id: "mesh-map", num: 2, label: "Mesh map", icon: "nodes", path: "/mesh-map/" },
+  { id: "mesh", num: 3, label: "Mesh", icon: "mesh", path: "/mesh/" },
+  { id: "knowledge", num: 4, label: "Library", icon: "library", path: "/library/" },
+  { id: "system", num: 5, label: "System", icon: "system", path: "/system/" },
 ];
 
 /** Header label for a module: "Module 03 · Mesh". */
 export function moduleLabel(id) {
   const m = MODULES.find((x) => x.id === id);
-  return m ? `Module ${String(m.num).padStart(2, "0")} · ${m.label}` : "";
+  if (!m) return "";
+  return m.num ? `Module ${String(m.num).padStart(2, "0")} · ${m.label}` : m.label;
 }
 
-export function moduleUrl(id, path = "/") {
+/** Link to a module (same host and port as the current page). */
+export function moduleUrl(id, path = "") {
   const m = MODULES.find((x) => x.id === id);
   if (!m) return null;
-  return `${location.protocol}//${location.hostname}:${m.port}${path}`;
+  return m.path + path.replace(/^\//, "");
 }
 
 /** Fill <nav class="nav" aria-label="Modules"> with the module links. */
@@ -160,8 +165,9 @@ export function renderNav(nav, current) {
     ...MODULES.map((m) => {
       const a = document.createElement("a");
       a.className = "nav-item";
-      a.href = m.id === current ? "/" : moduleUrl(m.id);
+      a.href = m.path;
       if (m.id === current) a.setAttribute("aria-current", "page");
+      if (m.running === false) a.classList.add("is-off");
       const label = document.createElement("span");
       label.textContent = m.label;
       a.append(icon(m.icon), label);
@@ -169,6 +175,28 @@ export function renderNav(nav, current) {
     }),
   );
   return nav;
+}
+
+/**
+ * Load the installed modules from core (/api/modules) into MODULES. Resolves
+ * to false when core isn't reachable (MODULES keeps the fallback list).
+ */
+export async function loadModules() {
+  try {
+    const res = await fetch("/api/modules", { headers: { Accept: "application/json" } });
+    if (!res.ok) return false;
+    const data = await res.json();
+    const list = data.modules
+      .filter((m) => m.installed)
+      .map((m) => ({
+        id: m.id, num: m.num, label: m.label, icon: m.icon, path: m.path,
+        running: m.optional ? m.state === "running" : true,
+      }));
+    MODULES.splice(0, MODULES.length, MODULES[0], ...list);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 // ----------------------------------------------------------- status strip --
@@ -242,7 +270,9 @@ export function statusStrip(el) {
  * theme toggle and the header's module label. Expects [data-strip],
  * [data-nav] and optionally [data-theme-toggle] and [data-module-label]
  * ("Module 03 · Mesh") inside `root` (default document). Call it once per
- * page: it binds listeners and starts the strip clock.
+ * page: it binds listeners and starts the strip clock. The nav is drawn from
+ * the built-in list right away and redrawn from core's /api/modules once
+ * loaded (`modules` resolves to whether that worked).
  */
 export function frame(current, root = document) {
   initTheme();
@@ -250,10 +280,19 @@ export function frame(current, root = document) {
   const navEl = root.querySelector("[data-nav]");
   const toggle = root.querySelector("[data-theme-toggle]");
   const strip = stripEl ? statusStrip(stripEl) : null;
+  const labels = () => {
+    for (const el of root.querySelectorAll("[data-module-label]")) el.textContent = moduleLabel(current);
+  };
   if (navEl) renderNav(navEl, current);
   if (toggle) themeToggle(toggle);
-  for (const el of root.querySelectorAll("[data-module-label]")) el.textContent = moduleLabel(current);
-  return { strip };
+  labels();
+  // then the real list from core: installed modules, running state
+  const modules = loadModules().then((ok) => {
+    if (ok && navEl) renderNav(navEl, current);
+    if (ok) labels();
+    return ok;
+  });
+  return { strip, modules };
 }
 
 // ------------------------------------------------------------- formatters --

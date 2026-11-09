@@ -1,5 +1,13 @@
 # Implementation plans: portal, mesh, radio
 
+> **Note (2026-11):** these plans predate the single-app layout. offline-pi
+> is now one app: modules live in `services/<name>/` with a `module.json`,
+> are served by core under a path on one port, and are configured through
+> `lib/modules/<name>.sh` hooks (see [`AGENTS.md`](../../AGENTS.md)). Read
+> `apps/<name>` below as `services/<name>`, "default port" as the module's
+> internal loopback port, and "a tile in the portal" as the home page tile
+> core draws from the manifest. Mesh is implemented.
+
 Plans for three new apps, split into sessions that can each be done (and
 tested on the Pi) on their own. Every app follows [`AGENTS.md`](../../AGENTS.md);
 these plans only spell out what is specific to each app.

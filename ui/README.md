@@ -15,19 +15,22 @@ use the same files. Nothing here loads from the network.
 | `outpost.d.ts` | Types for `outpost.js` |
 | `sync.sh` | Copies the package into an app before it builds |
 
-## How apps get it
+## How modules get it
 
-Each app builds in its own directory (its container build context), so it
-can't reach `../../ui` at build time. Instead the app's `install.sh` and
-`start.sh` copy the package into the app before building:
+core serves the package at `/ui/` on offline-pi's one origin, so plain-JS
+module pages just load `/ui/outpost.js` and `/ui/outpost.css` from there.
+Each service builds in its own directory (its container build context), so
+anything that needs the files at build time gets a copy from its `prepare`
+hook (`lib/modules/<name>.sh`, run by the root `install.sh`/`start.sh`):
 
 ```sh
-"$SCRIPT_DIR/../../ui/sync.sh" "$SCRIPT_DIR/public/ui"
+sync_ui "$ROOT_DIR/services/<name>/src/outpost-ui"   # wraps ui/sync.sh
 ```
 
-The copy is gitignored and the app's `Dockerfile` fails fast when it is
-missing. Static apps serve it at `/ui/`; Vite apps sync it into `src/outpost-ui/`
-and import it, so it gets bundled. Change files here, never the copies.
+core (`public/ui`, served at `/ui/`), the Vite modules (`src/outpost-ui/`,
+bundled) and the Library page (inlined into one file) work this way. The
+copies are gitignored and the Dockerfiles fail fast when one is missing.
+Change files here, never the copies.
 
 ## The frame
 
@@ -57,17 +60,22 @@ Every screen (DESIGN.md section 6):
   </div>
   <script type="module">
     import { frame } from "/ui/outpost.js";
-    const { strip } = frame("mesh");             // module id, see MODULES
+    const { strip } = frame("mesh");             // module id, see MODULES / module.json
     strip.setLink("ok", "RADIO · LINKED");
     strip.setItems([{ label: "BAT", value: "78%" }]);
   </script>
 ```
 
 `frame()` applies the stored theme (`outpost.theme`, default dark), builds the
-strip with a UTC clock, fills the module nav (links to the other apps on the
-same hostname at their default ports), wires the theme toggle and writes
+strip with a UTC clock, fills the module nav, wires the theme toggle and writes
 `moduleLabel(id)` ("Module 03 · Mesh", numbered by `MODULES[].num`) into every
-`[data-module-label]`. Listen for `outpost:theme` on `window` to react to theme
+`[data-module-label]`. The nav links are paths on the same origin (core serves
+every module under its path, e.g. `/mesh/`): drawn from the built-in
+`MODULES` first, then redrawn from core's `/api/modules` (installed modules,
+with `running` state). `frame()` returns `{ strip, modules }`; `modules`
+resolves once that list is loaded, after which `MODULES` and
+`moduleUrl(id)` reflect what is installed (use it for links to another
+module, e.g. mesh's "show on map"). Listen for `outpost:theme` on `window` to react to theme
 changes (e.g. swap the map style).
 
 Vite apps bundle the package, so `/ui/theme-boot.js` has no URL before the
@@ -90,7 +98,7 @@ link text.
 
 ## React
 
-The package works on plain DOM; React apps wrap it thinly. `apps/maps`'s
+The package works on plain DOM; React apps wrap it thinly. `services/maps`'s
 `apps/frontend/src/ui.tsx` is the example.
 
 - Call `frame()` **once**, from an effect on the frame's root element, and

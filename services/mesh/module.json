@@ -1,0 +1,16 @@
+{
+  "id": "mesh",
+  "num": 3,
+  "label": "Mesh",
+  "icon": "mesh",
+  "description": "Text messages over a Meshtastic LoRa node, no internet or phone network needed.",
+  "service": "mesh",
+  "path": "/mesh/",
+  "portEnv": "MESH_PORT",
+  "stripPrefix": true,
+  "health": "/api/status",
+  "dirs": ["MESH_DATA_DIR"],
+  "optional": true,
+  "requires": ["MESH_CONNECTION"],
+  "dependsOn": []
+}

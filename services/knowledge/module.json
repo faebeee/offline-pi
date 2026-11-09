@@ -1,0 +1,16 @@
+{
+  "id": "knowledge",
+  "num": 4,
+  "label": "Library",
+  "icon": "library",
+  "description": "Offline Wikipedia, medical and survival guides (Kiwix).",
+  "service": "knowledge",
+  "path": "/library/",
+  "portEnv": "KNOWLEDGE_PORT",
+  "stripPrefix": false,
+  "health": "/library/",
+  "dirs": ["KNOWLEDGE_CONTENT_DIR"],
+  "optional": true,
+  "requires": [],
+  "dependsOn": []
+}

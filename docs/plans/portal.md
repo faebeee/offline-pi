@@ -1,5 +1,11 @@
 # Plan: `apps/portal`, landing page and captive portal
 
+> **Status (2026-11):** the tile list is done differently: core's home page
+> (`/` on `PORT`) shows every installed module with its state, from the
+> module manifests, and links by path on the same origin (no port probing).
+> What is still open here is the info pages and the captive portal; build
+> them into core (or as a module) and redirect port 80 to core's `PORT`.
+
 ## What it is
 
 One page that every device on the hotspot lands on. It shows:
