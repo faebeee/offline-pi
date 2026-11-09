@@ -2,6 +2,10 @@
 # start.sh - (re)start offline-pi from an existing installation: rebuild what
 # changed, recreate the containers, then core starts the modules that are
 # switched on in the dashboard. Run ./install.sh first.
+#
+#   ./start.sh [--pull] [--no-cache]
+#     --pull      also pull newer base images (node, python, kiwix) first
+#     --no-cache  rebuild every image from scratch, ignoring the layer cache
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -13,6 +17,16 @@ source "$ROOT_DIR/lib/common.sh"
 # shellcheck source=lib/modules.sh
 source "$ROOT_DIR/lib/modules.sh"
 load_module_hooks
+
+BUILD_FLAGS=()
+for arg in "$@"; do
+  case "$arg" in
+    --pull) BUILD_FLAGS+=(--pull) ;;
+    --no-cache) BUILD_FLAGS+=(--no-cache) ;;
+    -h|--help) sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *) log_error "Unknown option: $arg (see ./start.sh --help)"; exit 1 ;;
+  esac
+done
 
 if ! has_cmd podman; then
   log_error "podman is required. Run ./install.sh first."
@@ -38,8 +52,9 @@ for m in core ${MODS[@]+"${MODS[@]}"}; do
 done
 
 prepare_builds core ${MODS[@]+"${MODS[@]}"}
-log_info "Building images..."
-compose build core ${MODS[@]+"${MODS[@]}"}
+log_info "Building images${BUILD_FLAGS[*]:+ (${BUILD_FLAGS[*]})}..."
+# a failed build stops here: the running containers keep their old images
+compose build ${BUILD_FLAGS[@]+"${BUILD_FLAGS[@]}"} core ${MODS[@]+"${MODS[@]}"}
 
 # Modules: create (or recreate after a build) without starting; core starts
 # the ones switched on. --force-recreate: podman-compose only replaces a

@@ -61,7 +61,9 @@ The storage questions then offer to move the data out of `apps/`.
 ## Day to day
 
 ```sh
-./start.sh                      # rebuild + restart everything (after git pull or editing .env)
+./update.sh                     # install a new version: git pull, rebuild every container
+./update.sh --check             # only show whether a new version is available
+./start.sh                      # rebuild + restart everything (after editing .env)
 ./manage.sh status              # every module: installed, running
 ./manage.sh start maps          # same as the switch on the home page
 ./manage.sh stop knowledge
@@ -69,6 +71,15 @@ The storage questions then offer to move the data out of `apps/`.
 ./manage.sh knowledge list      # module commands, see ./manage.sh help
 ./manage.sh mesh set-region EU_868
 ```
+
+`update.sh` shows the new commits and which modules they touch, asks, then
+fast-forwards the checkout and runs `start.sh --pull` (fresh base images,
+every image rebuilt, every container recreated). Data and `.env` are kept;
+settings a new version adds are listed with the defaults they get. It
+refuses when tracked files have local changes, and prints the command to go
+back to the previous version. `--clean` rebuilds without the layer cache,
+`--rebuild` rebuilds even when up to date, `--yes` doesn't ask. A failed
+build leaves the running containers on their old images.
 
 Switching a module off on the dashboard stops its container; it stays off
 after a reboot until it is switched on again. A crashed module is restarted

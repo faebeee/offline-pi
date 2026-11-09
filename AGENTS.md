@@ -18,6 +18,7 @@ compose.yml              # the whole stack, project "offline-pi"
 .env                     # gitignored; written by install.sh only
 install.sh               # choose + configure modules, build, then start.sh
 start.sh                 # rebuild, (re)create containers; core starts modules
+update.sh                # git pull a new version, then start.sh --pull
 manage.sh                # status, start/stop, logs, module commands
 uninstall.sh             # remove containers/images; data only on confirmation
 lib/common.sh            # log helpers, compose wrapper, .env helpers
@@ -25,6 +26,7 @@ lib/storage.sh           # prompt_dir / resync_dir (relocatable data)
 lib/serial.sh            # USB serial device picker (mesh)
 lib/modules.sh           # module registry for the scripts, hooks, core_api
 lib/migrate.sh           # adopts the old per-app layout (apps/*/.env)
+lib/update.sh            # update.sh: git checks, incoming changes, new settings
 lib/modules/<name>.sh    # per-module hooks (configure, prepare, manage, ...)
 package.json             # npm workspaces root (apps/*, apps/maps/*, packages/*)
 package-lock.json        # the one lockfile of every JS workspace
@@ -261,6 +263,18 @@ then sources `lib/common.sh` (and what else it needs).
   (core starts the modules). `--force-recreate` is required: podman-compose
   only replaces a container when the compose config changed, not the image.
   Prints the local + LAN URL.
+  `./start.sh --pull` also pulls newer base images, `--no-cache` ignores
+  the layer cache.
+- **`update.sh`** `[--check] [--yes] [--clean] [--rebuild]`: installs a new
+  version. Requires `.env` and a git clone on a branch with an upstream and
+  no local changes to tracked files; fetches, shows the incoming commits and
+  touched modules, asks (default yes), `git merge --ff-only`, then re-runs
+  the **new** `update.sh` (`--apply <old commit>`) so a changed update
+  procedure applies to the same run. That half lists settings new in
+  `.env.example` (it never writes `.env`: compose's `${VAR:-default}`
+  covers them) and `exec`s `start.sh --pull` (`--no-cache` with
+  `--clean`). Never discards local commits or changes; prints the
+  `git reset --hard <old> && ./start.sh` way back.
 - **`manage.sh`**: `status`, `start|stop <module>` (through core's API, so
   the dashboard state stays right), `logs [module]`, `<module> <cmd>`.
   Destructive commands confirm first and never silently delete data.
