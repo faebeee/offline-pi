@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { startSetup, type Job, type Status } from "./api";
 import { JobView } from "./JobView";
+import { Badge, Banner } from "./ui";
 
 type Props = {
   status: Status;
@@ -30,38 +31,66 @@ export function SetupGate({ status, job, onJobStarted }: Props) {
   }
 
   const todo = [
-    { done: status.pmtiles.installed, label: "pmtiles extraction tool" },
-    { done: status.assets.fonts && status.assets.sprites, label: "map fonts and sprites" },
-    { done: status.catalog.ready, label: "region catalog" },
+    { done: status.pmtiles.installed, label: "Extraction tool", meta: "PMTILES CLI" },
+    {
+      done: status.assets.fonts && status.assets.sprites,
+      label: "Map fonts and sprites",
+      meta: "GLYPHS · ICONS",
+    },
+    { done: status.catalog.ready, label: "Region catalog", meta: "GEOFABRIK INDEX" },
   ];
 
+  const failed = job?.type === "setup" && job.state === "failed";
+
   return (
-    <div className="empty">
-      <div className="empty-card">
-        <h1>One-time setup</h1>
-        <p>
-          Offline Maps needs a few things on disk before it can download regions. This runs once
-          and needs an internet connection.
-        </p>
-
-        <ul className="checklist">
-          {todo.map((item) => (
-            <li key={item.label} className={item.done ? "done" : undefined}>
-              <span aria-hidden="true">{item.done ? "✓" : "•"}</span> {item.label}
-            </li>
-          ))}
-        </ul>
-
-        {running || job?.type === "setup" ? <JobView job={job} /> : null}
-        {job?.state === "failed" && <p className="error small">{job.error}</p>}
-        {error && <p className="error small">{error}</p>}
-
-        <div className="modal-actions">
-          <button type="button" className="primary" onClick={start} disabled={busy || running}>
-            {running ? "Setting up…" : job?.state === "failed" ? "Try again" : "Run setup"}
-          </button>
-        </div>
+    <section className="setup card brackets" aria-labelledby="setup-title">
+      <div className="card-head">
+        <h2 id="setup-title" className="h2">
+          One-time setup
+        </h2>
+        <Badge state="cau">Needs internet</Badge>
       </div>
-    </div>
+      <p className="fg2">
+        Offline maps needs a few files on disk before it can download regions. This runs once and
+        needs an internet connection. After that, everything works offline.
+      </p>
+
+      <ul className="list">
+        {todo.map((item) => (
+          <li key={item.label}>
+            <div className="row">
+              <span className={`led ${item.done ? "led-ok" : "led-off"}`} aria-hidden="true" />
+              <span className="row-main">
+                <span className="row-title">{item.label}</span>
+                <span className="row-meta">{item.meta}</span>
+              </span>
+              {item.done ? <Badge state="ok">Ready</Badge> : <Badge state="off">To do</Badge>}
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      {job?.type === "setup" && <JobView job={job} />}
+
+      {failed && (
+        <Banner tone="crit" title="Setup failed">
+          {job.error} Check the internet connection and retry.
+        </Banner>
+      )}
+      {error && (
+        <Banner tone="crit" title="Could not start setup">
+          {error}
+        </Banner>
+      )}
+
+      <button
+        type="button"
+        className="btn btn-primary btn-block"
+        onClick={start}
+        disabled={busy || running}
+      >
+        {running ? "Setting up" : failed ? "Retry setup" : "Run setup"}
+      </button>
+    </section>
   );
 }

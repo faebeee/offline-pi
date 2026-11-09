@@ -1,8 +1,8 @@
 import { layers, namedFlavor } from "@protomaps/basemaps";
 import type { StyleSpecification } from "maplibre-gl";
 
-export const THEMES = ["light", "dark", "white", "grayscale", "black"] as const;
-export type Theme = (typeof THEMES)[number];
+/** The basemap follows the Outpost UI theme: dark map in .t-dark, light in .t-light. */
+export type Theme = "dark" | "light";
 
 export type Bbox = [west: number, south: number, east: number, north: number];
 
@@ -23,9 +23,12 @@ const ATTRIBUTION =
  * full basemap layer stack. The stacks are interleaved by index (same as
  * apps/maps) so one region's land/water fills never paint over another's
  * roads and labels where they overlap. Every URL points back at this server.
+ * `ground` (the UI's --map token) replaces the flavor's background and land
+ * colour, so the map sits flush with the frame in both themes.
  */
-export function buildStyle(regions: Region[], theme: Theme, origin: string): StyleSpecification {
-  const flavor = namedFlavor(theme);
+export function buildStyle(regions: Region[], theme: Theme, origin: string, ground?: string): StyleSpecification {
+  const base = namedFlavor(theme);
+  const flavor = ground ? { ...base, background: ground, earth: ground } : base;
   const sources: StyleSpecification["sources"] = {};
   for (const r of regions) {
     sources[`pm-${r.name}`] = {

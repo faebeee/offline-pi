@@ -8,6 +8,17 @@ log_ok()    { printf '\033[1;32m\xe2\x9c\x94\033[0m %s\n' "$*"; }
 
 has_cmd() { command -v "$1" >/dev/null 2>&1; }
 
+# sync_ui - copy the shared Outpost UI package (../../ui) into src/outpost-ui,
+# where the Vite build imports it. Run before every image build.
+sync_ui() {
+  local sync="$SCRIPT_DIR/../../ui/sync.sh"
+  if [[ ! -f "$sync" ]]; then
+    log_error "Shared UI package not found at $SCRIPT_DIR/../../ui (incomplete checkout?)."
+    exit 1
+  fi
+  "$sync" "$SCRIPT_DIR/src/outpost-ui"
+}
+
 # compose - run the available podman compose backend with the given args.
 # Prefers the built-in `podman compose` subcommand, falls back to the
 # standalone `podman-compose` binary.

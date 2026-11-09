@@ -8,6 +8,8 @@ RUN pip install -r requirements.txt
 
 COPY app/ app/
 COPY public/ public/
+# public/ui is the shared Outpost UI package, copied in by start.sh/install.sh
+RUN test -f public/ui/outpost.css || (echo "public/ui missing: run ./start.sh, which copies ../../ui" >&2; exit 1)
 
 # Runs as the container's root, which under rootless Podman is the host user
 # (unprivileged). That keeps the host user's `dialout` group (group_add:

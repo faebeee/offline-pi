@@ -34,6 +34,7 @@ if [[ "${MESH_CONNECTION:-serial}" == serial && ! -e "${MESH_DEVICE:-/dev/ttyACM
   exit 1
 fi
 
+sync_ui
 log_info "Starting mesh..."
 # --force-recreate: podman-compose only replaces a running container when
 # the compose config changed, not when --build produced a new image.

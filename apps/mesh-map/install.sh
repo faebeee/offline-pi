@@ -75,6 +75,7 @@ fi
 source "$ENV_FILE"
 log_ok "PORT=$PORT, MESH_PORT=$MESH_PORT, MAPS_DATA_DIR=$MAPS_DATA_DIR, MAPS_ASSETS_DIR=$MAPS_ASSETS_DIR"
 
+sync_ui
 log_info "Building the mesh-map image..."
 compose --env-file "$ENV_FILE" build
 

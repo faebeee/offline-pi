@@ -30,6 +30,7 @@ for dir in "${MAPS_DATA_DIR:-../maps/data}" "${MAPS_ASSETS_DIR:-../maps/assets}"
   fi
 done
 
+sync_ui
 log_info "Starting mesh-map..."
 # --force-recreate: podman-compose only replaces a running container when
 # the compose config changed, not when --build produced a new image.

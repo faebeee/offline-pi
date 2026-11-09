@@ -1,19 +1,25 @@
 // Mesh web UI: conversations (channels + direct messages), nodes, composer.
 // Talks to the FastAPI backend: REST for history, /api/live for push events.
-"use strict";
+// Built on the shared Outpost UI package (/ui, synced in by start.sh).
+import { frame, icon, ago, coords, distance, utcTime, utcDate } from "/ui/outpost.js";
 
 const BROADCAST = 0xffffffff;
 const $ = (id) => document.getElementById(id);
+const { strip } = frame("mesh");
 
 const state = {
   status: {},
   config: { max_text_bytes: 200, send_pin_required: false, maps_port: "", mesh_map_port: "" },
   nodes: new Map(), // num -> node row
-  convs: new Map(), // conv -> { last_id, last_time }
+  convs: new Map(), // conv -> { last_id, last_time, unread }
   current: null, // conv key
   messages: [], // rows of the current conversation, oldest first
   view: "chats",
   ws: "connecting", // connecting | open | closed
+  sending: false,
+  sendError: "",
+  loadError: "",
+  expanded: new Set(), // node nums with their details open
 };
 
 // ------------------------------------------------------------ helpers
@@ -40,6 +46,7 @@ function store(key, value) {
   } catch {
     return null;
   }
+  return null;
 }
 
 async function api(path, opts = {}) {
@@ -64,6 +71,7 @@ const nodeShort = (num) => {
   return (n && n.short_name) || hex(num).slice(-4);
 };
 const isMe = (num) => num === state.status.node_num;
+const wide = () => matchMedia("(min-width: 721px)").matches;
 
 function channelName(index) {
   const ch = (state.status.channels || []).find((c) => c.index === index);
@@ -75,26 +83,17 @@ function convTitle(conv) {
   return kind === "ch" ? `# ${channelName(Number(value))}` : nodeName(Number(value));
 }
 
-const timeFmt = new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" });
-const dayFmt = new Intl.DateTimeFormat(undefined, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
-
-function ago(seconds) {
-  if (!seconds) return "never";
-  const d = Date.now() / 1000 - seconds;
-  if (d < 60) return "just now";
-  if (d < 3600) return `${Math.floor(d / 60)} min ago`;
-  if (d < 86400) return `${Math.floor(d / 3600)} h ago`;
-  return `${Math.floor(d / 86400)} d ago`;
-}
-
-function distanceKm(a, b) {
+function distanceM(a, b) {
   if (a?.latitude == null || b?.latitude == null) return null;
   const rad = (x) => (x * Math.PI) / 180;
   const dLat = rad(b.latitude - a.latitude);
   const dLon = rad(b.longitude - a.longitude);
   const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.latitude)) * Math.cos(rad(b.latitude)) * Math.sin(dLon / 2) ** 2;
-  return 2 * 6371 * Math.asin(Math.sqrt(h));
+  return 2 * 6371000 * Math.asin(Math.sqrt(h));
 }
+
+const hopsText = (h) => (h == null ? null : h === 0 ? "DIRECT" : `${h} HOP${h > 1 ? "S" : ""}`);
+const batteryText = (b) => (b == null ? null : b > 100 ? "EXT POWER" : `${b}%`);
 
 // apps/mesh-map (all nodes, this one opened) if configured, else apps/maps
 // centred on the position. The hash is the map camera in both.
@@ -108,9 +107,19 @@ function mapLink(n) {
 
 const utf8Bytes = (s) => new TextEncoder().encode(s).length;
 
+function emptyState(box, iconName, title, text) {
+  box.replaceChildren(icon(iconName), el("p", { class: "empty-title" }, title), el("p", {}, text));
+}
+
 // ------------------------------------------------------------ unread tracking
 
-const lastRead = () => JSON.parse(store("mesh.lastRead") || "{}");
+function lastRead() {
+  try {
+    return JSON.parse(store("mesh.lastRead") || "{}");
+  } catch {
+    return {};
+  }
+}
 function markRead(conv, id) {
   const lr = lastRead();
   if (!id || (lr[conv] || 0) >= id) return;
@@ -122,39 +131,86 @@ function unread(conv) {
   return c && c.last_id > (lastRead()[conv] || 0) && conv !== state.current ? c.unread || 1 : 0;
 }
 
-// ------------------------------------------------------------ rendering: header
+// ------------------------------------------------------------ rendering: frame
 
+// Status strip, header title, context bar and pinned banners.
 function renderStatus() {
   const s = state.status;
-  $("node-name").textContent = s.long_name || "Mesh";
-  document.title = s.long_name ? `${s.long_name} · Mesh` : "Mesh";
-  const meta = [s.node_id, s.hw_model, s.region && `${s.region} ${s.preset || ""}`.trim(), s.firmware && `fw ${s.firmware}`].filter(Boolean);
-  $("node-meta").textContent = meta.join(" · ") || (s.state === "connected" ? "" : "Radio not connected");
-
-  const conn = $("conn");
   const radio = s.state || "connecting";
-  const label = state.ws === "closed" ? "Offline" : state.ws !== "open" ? "Connecting" : radio === "connected" ? "Radio connected" : radio === "connecting" ? "Connecting radio" : "Radio disconnected";
-  conn.dataset.state = state.ws === "closed" ? "disconnected" : state.ws !== "open" ? "connecting" : radio;
-  conn.querySelector(".label").textContent = label;
+  document.title = s.long_name ? `${s.long_name} · Mesh` : "Mesh";
 
-  const banner = $("banner");
-  if (state.ws === "closed") {
-    banner.hidden = false;
-    banner.textContent = "Lost connection to the Pi. Reconnecting…";
-  } else if (radio === "disconnected") {
-    banner.hidden = false;
-    banner.textContent = `The radio is not connected${s.error ? ` (${s.error})` : ""}. Message history is still available; sending works again once it's back.`;
-  } else {
-    banner.hidden = true;
-  }
+  // Link to this app's own data source: the radio, through this Pi.
+  if (state.ws === "closed") strip.setLink("crit", "RADIO · PI UNREACHABLE");
+  else if (radio === "connected") strip.setLink("ok", "RADIO · LINKED");
+  else if (radio === "connecting" || (state.ws !== "open" && !s.state)) strip.setLink("cau", "RADIO · CONNECTING");
+  else strip.setLink("crit", "RADIO · DISCONNECTED");
+
+  const items = [];
+  const me = state.nodes.get(s.node_num);
+  const bat = batteryText(me?.battery);
+  if (radio === "connected" && (s.short_name || s.node_id)) items.push({ label: "NODE", value: s.short_name || s.node_id });
+  if (bat) items.push({ label: "BAT", value: bat === "EXT POWER" ? "EXT" : bat });
+  if (state.nodes.size) items.push({ label: "NODES", value: String(state.nodes.size) });
+  strip.setItems(items);
+
+  renderContext();
+  renderPinned();
   updateComposer();
+}
+
+function renderContext() {
+  const s = state.status;
+  const parts = [s.region, s.preset];
+  if (state.view === "chats" && state.current) {
+    const [kind, value] = state.current.split(":");
+    parts.push(kind === "ch" ? `CH ${value} · ${channelName(Number(value))}` : `DM · ${hex(Number(value))}`);
+  }
+  const shown = parts.filter(Boolean);
+  const box = $("context");
+  box.hidden = !shown.length;
+  box.textContent = shown.join(" · ");
+}
+
+function banner(kind, title, body) {
+  const shape = { info: "info", cau: "caution", crit: "critical" }[kind];
+  return el("div", { class: `banner banner-${kind}`, role: kind === "crit" ? "alert" : "status" },
+    icon(shape),
+    el("div", { class: "banner-text" },
+      el("span", { class: "banner-title" }, title),
+      body ? el("span", { class: "banner-body" }, body) : null));
+}
+
+function renderPinned() {
+  const s = state.status;
+  const list = [];
+  if (state.ws === "closed") {
+    list.push(banner("cau", "Lost connection to the Pi", "Reconnecting. Messages shown here may be out of date."));
+  } else if (s.state === "disconnected") {
+    list.push(banner("cau", "Radio not connected", `${s.error ? `${s.error}. ` : ""}Message history is still available; sending works again once the radio is back.`));
+  }
+  if (state.loadError) list.push(banner("crit", "Could not reach the Pi", `${state.loadError}. Check that the mesh app is running; this page retries when the live link comes back.`));
+  const box = $("pinned");
+  box.replaceChildren(...list);
+  box.hidden = !list.length;
+}
+
+// Header H1 + back button + mobile pane.
+function renderHeader() {
+  const f = $("frame");
+  f.dataset.view = state.view;
+  f.dataset.pane = state.current ? "thread" : "list";
+  let title = "Messages";
+  if (state.view === "nodes") title = "Nodes";
+  else if (state.current) title = convTitle(state.current);
+  $("title").textContent = title;
+  $("back").hidden = state.view !== "chats" || !state.current;
+  renderContext();
 }
 
 // ------------------------------------------------------------ rendering: conversations
 
 function renderConvs() {
   const list = $("conv-list");
-  list.replaceChildren();
   const channels = (state.status.channels || []).map((c) => `ch:${c.index}`);
   // channels the node no longer has but that have history
   for (const conv of state.convs.keys()) if (conv.startsWith("ch:") && !channels.includes(conv)) channels.push(conv);
@@ -164,47 +220,86 @@ function renderConvs() {
     .map(([conv]) => conv);
   if (state.current?.startsWith("dm:") && !dms.includes(state.current)) dms.unshift(state.current);
 
+  let total = 0;
   const item = (conv) => {
     const [kind, value] = conv.split(":");
+    const num = Number(value);
     const n = unread(conv);
+    total += n;
+    const c = state.convs.get(conv);
+    const meta = [];
+    if (kind === "ch") {
+      const ch = (state.status.channels || []).find((x) => x.index === num);
+      meta.push(ch ? `CH ${num} · ${ch.role === "primary" ? "PRIMARY" : "SECONDARY"}` : `CH ${num} · NOT ON RADIO`);
+    } else {
+      meta.push(hex(num));
+      const node = state.nodes.get(num);
+      if (node?.last_heard) meta.push(`HEARD ${ago(node.last_heard)}`);
+    }
+    if (c?.last_time) meta.push(`LAST ${utcTime(c.last_time * 1000)}`);
     return el("li", {},
-      el("button", { type: "button", "aria-current": conv === state.current ? "true" : null, onclick: () => openConv(conv) },
-        kind === "ch" ? el("span", { class: "avatar ch", "aria-hidden": "true" }, "#") : el("span", { class: "avatar", "aria-hidden": "true" }, nodeShort(Number(value))),
-        el("span", { class: "name" }, kind === "ch" ? channelName(Number(value)) : nodeName(Number(value))),
-        n ? el("span", { class: "badge", "aria-label": `${n} unread` }, n > 99 ? "99+" : n) : null));
+      el("button", { type: "button", class: "row has-mono", "aria-current": conv === state.current ? "true" : null, onclick: () => openConv(conv) },
+        el("span", { class: "monogram", "aria-hidden": "true" }, kind === "ch" ? "#" : nodeShort(num)),
+        el("span", { class: "row-main" },
+          el("span", { class: "row-title" }, kind === "ch" ? channelName(num) : nodeName(num)),
+          el("span", { class: "row-meta" }, meta.join(" · "))),
+        n ? el("span", { class: "badge badge-info badge-sm" }, icon("message"), `${n > 99 ? "99+" : n} NEW`) : null,
+        icon("chevron")));
   };
-  list.append(el("li", { class: "section" }, "Channels"), ...channels.map(item));
-  list.append(el("li", { class: "section" }, "Direct messages"));
-  if (dms.length) list.append(...dms.map(item));
-  else list.append(el("li", { class: "muted", style: "padding: 4px 10px 10px" }, "Start one from the Nodes tab."));
+  const items = [
+    el("li", { class: "list-section label" }, "Channels"),
+    ...channels.map(item),
+    el("li", { class: "list-section label" }, "Direct messages"),
+  ];
+  if (dms.length) items.push(...dms.map(item));
+  else items.push(el("li", { class: "list-hint help" }, "Start one from the Nodes tab."));
+  list.replaceChildren(...items);
+  $("unread-total").textContent = total ? `· ${total > 99 ? "99+" : total}` : "";
 }
 
 // ------------------------------------------------------------ rendering: messages
 
-function statusText(m) {
+// Delivery state: fixed status shapes (info / ok / critical) + word.
+function deliveryEl(m) {
   switch (m.status) {
-    case "pending": return "Sending…";
-    case "sent": return m.to_num === BROADCAST ? "✓ Sent to mesh" : "✓ Relayed";
-    case "acked": return "✓✓ Delivered";
-    case "failed": return `Failed${m.error ? ` (${m.error.replaceAll("_", " ").toLowerCase()})` : ""}`;
-    default: return "";
+    case "pending":
+      return el("span", { class: "msg-state", title: "Handing the message to the radio" }, icon("info", "i-xs"), "SENDING");
+    case "sent":
+      return el("span", { class: "msg-state", title: m.to_num === BROADCAST ? "Sent to the mesh" : "Relayed, waiting for the recipient" },
+        icon("info", "i-xs"), m.to_num === BROADCAST ? "SENT" : "SENT · RELAYED");
+    case "acked":
+      return el("span", { class: "msg-state is-ok", title: "Delivered: the recipient confirmed" }, icon("ok", "i-xs"), "ACK");
+    case "failed":
+      return el("span", { class: "msg-state is-crit" }, icon("critical", "i-xs"),
+        `FAILED${m.error ? ` · ${m.error.replaceAll("_", " ")}` : " · NO ACK"}`,
+        el("button", { type: "button", class: "btn btn-sm retry", onclick: () => retry(m) }, icon("refresh"), "Retry"));
+    default:
+      return null;
   }
 }
 
 function messageEl(m) {
   const out = m.direction === "out";
-  const t = new Date(m.rx_time * 1000);
-  const details = [timeFmt.format(t)];
+  const meta = [];
+  meta.push(el("b", {}, out ? (state.status.short_name || "YOU") : nodeName(m.from_num)));
   if (!out) {
-    if (m.hops != null) details.push(m.hops === 0 ? "direct" : `${m.hops} hop${m.hops > 1 ? "s" : ""}`);
-    if (m.rx_snr != null) details.push(`SNR ${m.rx_snr} dB`);
+    const hops = hopsText(m.hops);
+    if (hops) meta.push(el("span", {}, hops));
+    if (m.rx_snr != null) meta.push(el("span", {}, `SNR ${m.rx_snr} dB`));
   }
-  const showFrom = !out && m.to_num === BROADCAST;
-  return el("li", { class: `msg ${out ? "out" : "in"} ${m.status === "failed" ? "failed" : ""}`, "data-id": m.id },
-    showFrom ? el("span", { class: "from" }, nodeName(m.from_num)) : null,
-    el("div", { class: "bubble" }, m.text),
-    el("span", { class: "meta" }, details.join(" · "),
-      out ? el("span", { class: m.status === "failed" ? "status-failed" : "" }, ` · ${statusText(m)}`) : null));
+  meta.push(el("time", { datetime: new Date(m.rx_time * 1000).toISOString() }, utcTime(m.rx_time * 1000)));
+  return el("li", { class: `msg ${out ? "msg-out" : ""}`, "data-id": m.id },
+    el("span", { class: "msg-meta" }, meta),
+    el("span", { class: "msg-text" }, m.text),
+    out ? deliveryEl(m) : null);
+}
+
+function dividerLabel(ts) {
+  const day = utcDate(ts * 1000);
+  const today = utcDate(Date.now());
+  const yesterday = utcDate(Date.now() - 86400000);
+  const name = day === today ? "TODAY" : day === yesterday ? "YESTERDAY" : day;
+  return `${name} · ${utcTime(ts * 1000)}`;
 }
 
 // scroll: "older" keeps the view where it was (history prepended),
@@ -214,36 +309,50 @@ function renderMessages(scroll = "bottom") {
   const list = $("message-list");
   const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 60;
   const prevHeight = box.scrollHeight;
-  list.replaceChildren();
+  const items = [];
   let lastDay = "";
   for (const m of state.messages) {
-    const day = dayFmt.format(new Date(m.rx_time * 1000));
+    const day = utcDate(m.rx_time * 1000);
     if (day !== lastDay) {
-      list.append(el("li", { class: "day" }, day));
+      items.push(el("li", { class: "divider", role: "separator" }, dividerLabel(m.rx_time)));
       lastDay = day;
     }
-    list.append(messageEl(m));
+    items.push(messageEl(m));
   }
-  $("empty").hidden = !state.current || state.messages.length > 0;
+  list.replaceChildren(...items);
+
+  const empty = $("empty");
+  if (!state.current) {
+    empty.hidden = false;
+    emptyState(empty, "message", "No conversation open", "Pick a channel or a direct message from the list.");
+  } else if (!state.messages.length) {
+    empty.hidden = false;
+    emptyState(empty, "message", "No messages yet",
+      state.current.startsWith("ch:") ? "Messages on this channel show up here as they arrive." : "Send the first message; it is delivered when the node is in range.");
+  } else {
+    empty.hidden = true;
+  }
   if (scroll === "older") box.scrollTop = box.scrollHeight - prevHeight;
   else if (scroll === "bottom" || atBottom) box.scrollTop = box.scrollHeight;
 }
 
 function renderThreadHead() {
   const conv = state.current;
+  const sub = $("thread-sub");
+  renderHeader();
   if (!conv) {
-    $("thread-title").textContent = "Pick a conversation";
-    $("thread-sub").textContent = "";
+    sub.textContent = "";
+    sub.hidden = true;
     return;
   }
-  $("thread-title").textContent = convTitle(conv);
+  sub.hidden = false;
   const [kind, value] = conv.split(":");
   if (kind === "ch") {
     const ch = (state.status.channels || []).find((c) => c.index === Number(value));
-    $("thread-sub").textContent = ch ? `${ch.role === "primary" ? "Primary" : "Secondary"} channel, everyone on it can read along` : "Channel (not configured on the radio anymore)";
+    sub.textContent = ch ? `${ch.role === "primary" ? "Primary" : "Secondary"} channel · everyone on it can read along` : "Channel not configured on the radio anymore";
   } else {
     const n = state.nodes.get(Number(value));
-    $("thread-sub").textContent = `Direct message · ${hex(Number(value))}${n?.last_heard ? ` · heard ${ago(n.last_heard)}` : ""}`;
+    sub.textContent = `Direct message · ${hex(Number(value))}${n?.last_heard ? ` · heard ${ago(n.last_heard)}` : ""}`;
   }
 }
 
@@ -251,36 +360,65 @@ function renderThreadHead() {
 
 function renderNodes() {
   const list = $("node-list");
-  list.replaceChildren();
   const me = state.nodes.get(state.status.node_num);
   const nodes = [...state.nodes.values()].sort((a, b) => (isMe(b.num) - isMe(a.num)) || (b.last_heard || 0) - (a.last_heard || 0));
-  $("node-count").textContent = nodes.length ? String(nodes.length) : "";
-  $("nodes-empty").hidden = nodes.length > 0;
-  for (const n of nodes) {
+  $("node-count").textContent = nodes.length ? `· ${nodes.length}` : "";
+  const empty = $("nodes-empty");
+  empty.hidden = nodes.length > 0;
+  if (!nodes.length) emptyState(empty, "nodes", "No nodes heard yet", "Nodes appear here as soon as the radio hears them. That can take a few minutes after start-up.");
+
+  list.replaceChildren(...nodes.map((n) => {
+    const mine = isMe(n.num);
+    const m = mine ? null : distanceM(me, n);
+    const open = state.expanded.has(n.num);
+    const detailId = `node-${n.num}`;
+
+    const meta = [n.node_id || hex(n.num)];
+    if (!mine) {
+      meta.push(ago(n.last_heard));
+      const hops = hopsText(n.hops_away);
+      if (hops) meta.push(hops);
+      if (n.snr != null) meta.push(`SNR ${n.snr} dB`);
+    }
+    const value = m != null ? distance(m) : batteryText(n.battery);
+
     const rows = [];
     const add = (k, v) => v != null && v !== "" && rows.push(el("dt", {}, k), el("dd", {}, v));
-    if (!isMe(n.num)) {
+    if (!mine) {
       add("Last heard", ago(n.last_heard));
-      add("Hops", n.hops_away == null ? null : n.hops_away === 0 ? "direct" : n.hops_away);
+      add("Hops", hopsText(n.hops_away));
       add("SNR", n.snr == null ? null : `${n.snr} dB`);
     }
-    add("Battery", n.battery == null ? null : n.battery > 100 ? "plugged in" : `${n.battery} %${n.voltage ? ` (${n.voltage} V)` : ""}`);
-    const km = isMe(n.num) ? null : distanceKm(me, n);
-    add("Distance", km == null ? null : km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`);
+    add("Battery", n.battery == null ? null : `${batteryText(n.battery)}${n.voltage ? ` · ${n.voltage} V` : ""}`);
+    add("Distance", m == null ? null : distance(m));
+    add("Position", n.latitude == null ? null : coords(n.latitude, n.longitude));
     add("Hardware", n.hw_model && n.hw_model.replaceAll("_", " "));
+    if (mine) {
+      add("Firmware", state.status.firmware);
+      add("Radio", [state.status.region, state.status.preset].filter(Boolean).join(" · "));
+    }
+
     const actions = [];
-    if (!isMe(n.num)) actions.push(el("button", { type: "button", class: "primary", onclick: () => { switchView("chats"); openConv(`dm:${n.num}`); } }, "Message"));
+    if (!mine) actions.push(el("button", { type: "button", class: "btn", onclick: () => { switchView("chats"); openConv(`dm:${n.num}`); } }, icon("message"), "Message"));
     const mapHref = n.latitude == null ? null : mapLink(n);
-    if (mapHref) actions.push(el("a", { href: mapHref, target: "_blank", rel: "noopener" }, "Show on map"));
-    list.append(el("li", { class: "node" },
-      el("div", { class: "node-head" },
-        el("span", { class: "avatar", "aria-hidden": "true" }, n.short_name || hex(n.num).slice(-4)),
-        el("div", { class: "names" },
-          el("strong", {}, n.long_name || hex(n.num), isMe(n.num) ? el("span", { class: "me-tag" }, "  this Pi") : null),
-          el("span", { class: "muted" }, n.node_id || hex(n.num)))),
-      rows.length ? el("dl", {}, rows) : null,
-      actions.length ? el("div", { class: "node-actions" }, actions) : null));
-  }
+    if (mapHref) actions.push(el("a", { class: "btn", href: mapHref, target: "_blank", rel: "noopener" }, icon("map"), "Show on map", icon("external", "i-sm")));
+
+    return el("li", { class: open ? "is-open" : null },
+      el("button", {
+        type: "button", class: "row has-mono", "aria-expanded": String(open), "aria-controls": detailId,
+        onclick: () => { if (open) state.expanded.delete(n.num); else state.expanded.add(n.num); renderNodes(); },
+      },
+      el("span", { class: "monogram", "aria-hidden": "true" }, n.short_name || hex(n.num).slice(-4)),
+      el("span", { class: "row-main" },
+        el("span", { class: "row-title" }, n.long_name || hex(n.num)),
+        el("span", { class: "row-meta" }, meta.join(" · "))),
+      mine ? el("span", { class: "badge badge-sm" }, icon("mesh"), "THIS PI") : null,
+      value ? el("span", { class: "row-value" }, value) : null,
+      icon("chevron", "row-chevron")),
+      el("div", { class: "node-detail", id: detailId, hidden: !open },
+        rows.length ? el("dl", { class: "kv" }, rows) : null,
+        actions.length ? el("div", { class: "node-actions" }, actions) : null));
+  }));
 }
 
 // ------------------------------------------------------------ actions
@@ -288,8 +426,9 @@ function renderNodes() {
 async function openConv(conv) {
   state.current = conv;
   store("mesh.current", conv);
-  $("view-chats").dataset.pane = "thread";
   state.messages = [];
+  state.sendError = "";
+  $("older").hidden = true;
   renderThreadHead();
   renderConvs();
   renderMessages();
@@ -305,7 +444,7 @@ async function openConv(conv) {
   } catch (e) {
     showSendError(`Could not load messages: ${e.message}`);
   }
-  if (matchMedia("(min-width: 721px)").matches) $("text").focus();
+  if (wide()) $("text").focus();
 }
 
 async function loadOlder() {
@@ -318,72 +457,115 @@ async function loadOlder() {
   renderMessages("older");
 }
 
+// Composer: byte counter, why sending is blocked, send errors.
 function updateComposer() {
   const text = $("text");
-  const canSend = !!state.current && state.status.state === "connected" && state.ws !== "closed";
+  const radioUp = state.status.state === "connected" && state.ws !== "closed";
   text.disabled = !state.current;
-  text.placeholder = !state.current ? "Pick a conversation" : state.status.state === "connected" ? `Message ${convTitle(state.current)}` : "Radio not connected";
+  text.placeholder = !state.current ? "Pick a conversation" : radioUp ? `Message ${convTitle(state.current)}` : "Radio not connected";
   const bytes = utf8Bytes(text.value.trim());
   const max = state.config.max_text_bytes;
+  const over = bytes > max;
   const counter = $("bytes");
-  counter.textContent = text.value ? `${bytes}/${max}` : "";
-  counter.classList.toggle("over", bytes > max);
-  $("send").disabled = !canSend || bytes === 0 || bytes > max || state.sending;
+  counter.textContent = `${bytes}/${max} B`;
+  counter.classList.toggle("is-over", over);
+  text.setAttribute("aria-invalid", String(over));
+  $("send").disabled = !state.current || !radioUp || bytes === 0 || over || state.sending;
+
+  let note = null;
+  if (state.sendError) note = ["crit", state.sendError];
+  else if (over) note = ["crit", `Message is ${bytes} B, the limit is ${max} B. Shorten it to send.`];
+  else if (state.current && state.ws === "closed") note = ["cau", "Cannot send: the Pi is unreachable. Reconnecting."];
+  else if (state.current && state.status.state !== "connected") note = ["cau", "Cannot send: the radio is not connected."];
+  const p = $("composer-note");
+  p.hidden = !note;
+  if (note) {
+    p.className = `composer-note is-${note[0]}`;
+    p.replaceChildren(icon(note[0] === "crit" ? "critical" : "caution", "i-sm"), el("span", {}, note[1]));
+  }
+
   text.style.height = "auto";
-  text.style.height = `${Math.min(text.scrollHeight, 140)}px`;
+  text.style.height = `${Math.min(text.scrollHeight, 160)}px`;
 }
 
 function showSendError(msg) {
-  const p = $("send-error");
-  p.textContent = msg || "";
-  p.hidden = !msg;
+  state.sendError = msg || "";
+  updateComposer();
 }
 
-function askPin() {
+function askPin(again) {
   return new Promise((resolve) => {
     const dialog = $("pin-dialog");
     const input = $("pin-input");
+    const err = $("pin-error");
     input.value = "";
+    err.hidden = !again;
+    $("pin-field").classList.toggle("is-error", !!again);
+    input.setAttribute("aria-invalid", String(!!again));
+    if (again) err.replaceChildren(icon("critical", "i-sm"), "Wrong PIN. Try again.");
+    let settled = false;
     const done = (value) => {
+      if (settled) return;
+      settled = true;
       dialog.close();
       resolve(value);
     };
     $("pin-cancel").onclick = () => done(null);
     $("pin-form").onsubmit = (e) => { e.preventDefault(); done(input.value); };
+    dialog.oncancel = () => done(null); // Escape
     dialog.showModal();
     input.focus();
   });
 }
 
+// POST a message, asking for the PIN when the server wants one.
+// Returns true when it was handed to the radio.
+async function sendText(conv, text) {
+  let pin = store("mesh.pin") || "";
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const row = await api("/api/messages", {
+        method: "POST",
+        headers: state.config.send_pin_required ? { "X-Send-Pin": pin } : {},
+        body: JSON.stringify({ conv, text }),
+      });
+      upsertMessage(row);
+      return true;
+    } catch (err) {
+      if (err.status !== 401) throw err;
+      pin = await askPin(attempt > 0 || !!store("mesh.pin"));
+      if (pin == null) return false;
+      store("mesh.pin", pin);
+    }
+  }
+  throw new Error("Wrong PIN");
+}
+
 async function send(e) {
   e.preventDefault();
   const text = $("text").value.trim();
-  if (!text || !state.current || state.sending) return;
+  if (!text || !state.current || state.sending || $("send").disabled) return;
   state.sending = true;
   showSendError("");
-  updateComposer();
-  let pin = store("mesh.pin") || "";
   try {
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        const row = await api("/api/messages", {
-          method: "POST",
-          headers: state.config.send_pin_required ? { "X-Send-Pin": pin } : {},
-          body: JSON.stringify({ conv: state.current, text }),
-        });
-        $("text").value = "";
-        upsertMessage(row);
-        return;
-      } catch (err) {
-        if (err.status !== 401) throw err;
-        pin = await askPin();
-        if (pin == null) return;
-        store("mesh.pin", pin);
-      }
-    }
-    showSendError("Wrong PIN.");
+    if (await sendText(state.current, text)) $("text").value = "";
   } catch (err) {
-    showSendError(err.message);
+    showSendError(`Not sent: ${err.message}.`);
+  } finally {
+    state.sending = false;
+    updateComposer();
+  }
+}
+
+// FAILED → send the same text again (a new message; the failed one stays).
+async function retry(m) {
+  if (state.sending) return;
+  state.sending = true;
+  showSendError("");
+  try {
+    await sendText(m.conv, m.text);
+  } catch (err) {
+    showSendError(`Retry failed: ${err.message}.`);
   } finally {
     state.sending = false;
     updateComposer();
@@ -411,23 +593,34 @@ function upsertMessage(m) {
 
 function switchView(view) {
   state.view = view;
-  for (const b of document.querySelectorAll(".tabs button")) b.setAttribute("aria-selected", String(b.dataset.view === view));
+  for (const b of document.querySelectorAll(".tabs .tab")) b.setAttribute("aria-selected", String(b.dataset.view === view));
   $("view-chats").hidden = view !== "chats";
   $("view-nodes").hidden = view !== "nodes";
   if (view === "nodes") renderNodes();
+  renderHeader();
   history.replaceState(null, "", view === "nodes" ? "#nodes" : location.pathname);
+}
+
+function closeConv() {
+  state.current = null;
+  state.messages = [];
+  store("mesh.current", "");
+  renderConvs();
+  renderThreadHead();
+  renderMessages();
+  updateComposer();
 }
 
 // ------------------------------------------------------------ data loading
 
 async function loadAll() {
   const [status, nodes, convs] = await Promise.all([api("/api/status"), api("/api/nodes"), api("/api/conversations")]);
-  applyStatus(status);
+  state.loadError = "";
   state.nodes = new Map(nodes.map((n) => [n.num, n]));
   const lr = lastRead();
   state.convs = new Map(convs.map((c) => [c.conv, { ...c, unread: c.last_id > (lr[c.conv] || 0) ? 1 : 0 }]));
-  renderConvs();
-  if (state.view === "nodes") renderNodes();
+  applyStatus(status);
+  renderNodes();
   if (state.current) openConv(state.current);
 }
 
@@ -449,6 +642,7 @@ function connectLive() {
     state.ws = "open";
     wsBackoff = 1000;
     ping = setInterval(() => ws.readyState === 1 && ws.send("ping"), 25000);
+    renderStatus();
     // catch up on anything missed while disconnected
     loadAll().catch(() => {});
   };
@@ -458,7 +652,8 @@ function connectLive() {
     else if (type === "message") upsertMessage(data);
     else if (type === "node" || type === "nodes") {
       for (const n of type === "node" ? [data] : data) state.nodes.set(n.num, n);
-      if (state.view === "nodes") renderNodes();
+      renderNodes();
+      renderStatus();
       renderConvs();
       renderThreadHead();
     }
@@ -474,8 +669,13 @@ function connectLive() {
 
 // ------------------------------------------------------------ wiring
 
+$("back").replaceChildren(icon("back"));
+$("send").replaceChildren(icon("send"));
 $("composer").addEventListener("submit", send);
-$("text").addEventListener("input", updateComposer);
+$("text").addEventListener("input", () => {
+  if (state.sendError) state.sendError = "";
+  updateComposer();
+});
 $("text").addEventListener("keydown", (e) => {
   // Enter sends on devices with a keyboard; Shift+Enter adds a line break
   if (e.key === "Enter" && !e.shiftKey && !e.isComposing && matchMedia("(hover: hover)").matches) {
@@ -483,29 +683,37 @@ $("text").addEventListener("keydown", (e) => {
     $("composer").requestSubmit();
   }
 });
-$("older").addEventListener("click", () => loadOlder().catch((e) => showSendError(e.message)));
-$("back").addEventListener("click", () => {
-  $("view-chats").dataset.pane = "list";
-  state.current = null;
-  store("mesh.current", "");
-  renderConvs();
-  renderThreadHead();
-  updateComposer();
+$("older").addEventListener("click", () => loadOlder().catch((e) => showSendError(`Could not load older messages: ${e.message}`)));
+$("back").addEventListener("click", closeConv);
+for (const b of document.querySelectorAll(".tabs .tab")) b.addEventListener("click", () => switchView(b.dataset.view));
+// arrow keys move between tabs (WAI-ARIA tabs pattern)
+document.querySelector(".tabs").addEventListener("keydown", (e) => {
+  if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+  const next = state.view === "chats" ? "nodes" : "chats";
+  switchView(next);
+  $(`tab-${next}`).focus();
 });
-for (const b of document.querySelectorAll(".tabs button")) b.addEventListener("click", () => switchView(b.dataset.view));
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && state.current && state.messages.length) {
     markRead(state.current, state.messages[state.messages.length - 1].id);
     renderConvs();
   }
 });
-setInterval(() => { if (state.view === "nodes") renderNodes(); else renderThreadHead(); }, 60000);
+matchMedia("(min-width: 721px)").addEventListener("change", renderHeader);
+// keep "3 MIN AGO" ages fresh
+setInterval(() => { if (state.view === "nodes") renderNodes(); else { renderThreadHead(); renderConvs(); } }, 60000);
 
-state.current = store("mesh.current") || (matchMedia("(min-width: 721px)").matches ? "ch:0" : null);
+state.current = store("mesh.current") || (wide() ? "ch:0" : null);
 if (location.hash === "#nodes") switchView("nodes");
 renderStatus();
 renderConvs();
+renderThreadHead();
+renderMessages();
+renderNodes();
 // Load over REST right away; the websocket only adds live updates (and
 // reloads everything when it (re)connects, to catch up on missed events).
-loadAll().catch((e) => showSendError(`Could not reach the Pi: ${e.message}`));
+loadAll().catch((e) => {
+  state.loadError = e.message;
+  renderPinned();
+});
 connectLive();

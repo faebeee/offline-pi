@@ -218,6 +218,28 @@ trivial dependency checks or a couple of helpers, split logic into
 `lib/*.sh` (`deps.sh`, `ui.sh`, plus app-specific ones) and source them from
 `install.sh`/`start.sh`/`manage.sh`, rather than one long script.
 
+## Web UI: the Outpost design system
+
+Every app with a web UI follows [`DESIGN.md`](DESIGN.md) and builds it from
+the shared package in [`ui/`](ui/README.md) (tokens, self-hosted fonts, icon
+sprite, frame and components, `outpost.js` helpers). Don't restyle components
+per app; if something is missing, add it to `ui/` with tokens only and note it
+in the `DESIGN.md` changelog.
+
+- An app builds in its own directory, so `install.sh` and `start.sh` copy the
+  package in before building: `"$SCRIPT_DIR/../../ui/sync.sh" <dest>`, where
+  `<dest>` is `public/ui` for static apps (served at `/ui/`) or
+  `src/outpost-ui` for Vite apps (imported and bundled). The copy is
+  gitignored, and the `Dockerfile` fails fast when it is missing.
+- Every screen uses the frame: status strip, header with theme toggle, module
+  nav (`frame("<module id>")` in `outpost.js`). Add a new app to `MODULES` in
+  `ui/outpost.js` (with the next `num`) so the other apps link to it; its
+  header label is `[data-module-label]`, filled by `frame()`.
+- Load `theme-boot.js` in `<head>` before the CSS (Vite apps inline it), and
+  follow the status strip link rule in `ui/README.md`: the LED is the app's
+  link to its own local data source, `<SOURCE> · <STATE>`.
+- No runtime network requests: no CDNs, web fonts or remote icons.
+
 ## Ports
 
 Each app is a separate Podman Compose stack meant to run side by side with

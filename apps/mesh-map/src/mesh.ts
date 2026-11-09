@@ -19,10 +19,13 @@ export type MeshNode = {
 
 export type MeshState = "connecting" | "live" | "unreachable";
 
+/** Why the mesh is unreachable: no connection at all, or the node list refused. */
+export type MeshReason = "no-answer" | "blocked";
+
 export type MeshEvents = {
   onNodes: (nodes: Map<number, MeshNode>) => void;
   onMyNum: (num: number) => void;
-  onState: (state: MeshState) => void;
+  onState: (state: MeshState, reason?: MeshReason) => void;
 };
 
 const RETRY_MIN = 2_000;
@@ -74,7 +77,7 @@ export function connectMesh(port: number, events: MeshEvents): () => void {
       load()
         .then(() => !stopped && events.onState("live"))
         // reachable but the list is blocked: most likely MESH_MAP_PORT in apps/mesh
-        .catch(() => !stopped && events.onState("unreachable"));
+        .catch(() => !stopped && events.onState("unreachable", "blocked"));
     };
     ws.onmessage = (event) => {
       const { type, data } = JSON.parse(event.data as string) as { type: string; data: unknown };
@@ -88,7 +91,7 @@ export function connectMesh(port: number, events: MeshEvents): () => void {
     ws.onclose = () => {
       window.clearInterval(ping);
       if (stopped) return;
-      events.onState("unreachable");
+      events.onState("unreachable", "no-answer");
       retryTimer = window.setTimeout(connect, retry);
       retry = Math.min(retry * 2, RETRY_MAX);
     };
@@ -117,13 +120,4 @@ export function nodeAge(n: MeshNode, now: number): "fresh" | "old" | "stale" {
   if (!n.last_heard) return "stale";
   const age = now - n.last_heard;
   return age < 2 * 3600 ? "fresh" : age < 86400 ? "old" : "stale";
-}
-
-export function ago(seconds: number | null, now: number): string {
-  if (!seconds) return "never";
-  const d = now - seconds;
-  if (d < 60) return "just now";
-  if (d < 3600) return `${Math.floor(d / 60)} min ago`;
-  if (d < 86400) return `${Math.floor(d / 3600)} h ago`;
-  return `${Math.floor(d / 86400)} d ago`;
 }

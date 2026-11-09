@@ -13,6 +13,21 @@ npm run dev
 Open <http://localhost:5173> and add a region from the UI — setup, search,
 download and delete all happen in the browser.
 
+The UI is built on the shared Outpost design system in [`/ui`](../../ui)
+(tokens, fonts, icons, frame and components, see `DESIGN.md`). The frontend
+bundles a gitignored copy at `apps/frontend/src/outpost-ui/`, which
+`./install.sh` and `./start.sh` refresh with `../../ui/sync.sh` before every
+build. For `npm run dev` on a fresh clone, run that once yourself:
+
+```sh
+../../ui/sync.sh apps/frontend/src/outpost-ui
+```
+
+The basemap follows the UI theme (moon/sun button in the header): the night
+theme always loads the `dark` style, the day theme `light`. Both are the
+Protomaps flavors with their ground, water and boundaries tuned to the Outpost
+tokens (`apps/backend/src/styles/style.service.ts`).
+
 ---
 
 ## How it works
@@ -77,7 +92,7 @@ them.
 
 ## Adding regions
 
-Press **+** in the sidebar and search for a city, state or country. Names
+Open the panel (layers button on the map), press **ADD REGION** and search for a city, state or country. Names
 resolve against the Geofabrik catalog first (exact administrative borders, 554
 entries); anything it doesn't cover falls back to OpenStreetMap's Nominatim, so
 ambiguous names come back as a list to pick from:
@@ -100,7 +115,7 @@ it and removes the partial archive. Rough sizes at the default zoom 15: a city
 like Berlin is ~65 MB, a country like Switzerland ~750 MB. Each level down
 roughly halves that.
 
-Deleting is the **×** on a region row, with an inline confirm.
+Deleting is the trash button on a region row, then a hold-to-confirm button (hold for 3 s, or hold Space/Enter).
 
 Only one download runs at a time — a second request gets a `409`. Jobs live in
 memory, so restarting the server drops them; any half-written archive is swept
@@ -108,13 +123,18 @@ on the next boot.
 
 ## Points of interest
 
-Right-click the map — or long-press on touch — to drop a pin. Give it a name and
-an emoji, either typed (the OS emoji picker works) or taken from the preset row.
-Markers are draggable: let go and the new position is saved.
+Right-click the map, long-press on touch, or use **SAVE PLACE AT MAP CENTRE** in
+the panel's Places tab to drop a pin, then give it a name. Markers are square
+"saved place" markers with a mono label, and they are draggable: let go and
+the new position is saved.
 
-The sidebar lists the POIs inside the current viewport and shows how many are
-outside it. Clicking one flies to it and opens its editor; **×** deletes it
-behind an inline confirm.
+The Places tab lists the POIs inside the current viewport and shows how many
+are outside it. Clicking one flies to it and opens its editor, which also
+deletes it (hold to confirm).
+
+The API still stores an `emoji` per POI. The UI follows the Outpost design
+system, which uses no emoji, so it neither shows nor edits it: new places get
+the default and edits keep the existing value.
 
 POIs are global, not owned by a region. They are stored in `$DATA_DIR/offline-maps.db`
 so deleting or re-downloading the region they sit in leaves them alone, and a
@@ -241,7 +261,7 @@ lingering are left alone for the other apps.
 | Route | Purpose |
 |---|---|
 | `GET /api/regions` | Registry of downloaded regions |
-| `GET /api/styles/_all.json` | MapLibre style with **every** region as its own source. What the viewer loads. `?theme=…` |
+| `GET /api/styles/_all.json` | MapLibre style with **every** region as its own source. What the viewer loads. `?theme=…` (the viewer sends `dark` or `light`, following the UI theme) |
 | `GET /api/styles/:region.json` | MapLibre style for one region. `?theme=light\|dark\|white\|grayscale\|black` |
 | `GET /tiles/:region/:z/:x/:y.mvt` | Vector tile |
 | `GET /pmtiles/:region.pmtiles` | Raw archive, with HTTP range support |

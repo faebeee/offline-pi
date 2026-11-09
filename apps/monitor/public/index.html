@@ -1,145 +1,197 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="t-dark">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pi Monitor</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='2' y='2' width='12' height='12' rx='3' fill='%232a78d6'/%3E%3Cpath d='M4 10l2-3 2 2 2-4 2 3' stroke='white' stroke-width='1.5' fill='none'/%3E%3C/svg%3E">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>System</title>
+  <link rel="icon" href="data:,">
+  <script src="/ui/theme-boot.js"></script>
+  <link rel="stylesheet" href="/ui/outpost.css">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="top">
-    <div class="title">
-      <h1 id="hostname">Pi Monitor</h1>
-      <p id="model" class="muted">Connecting…</p>
-    </div>
-    <div class="controls">
-      <div class="seg" role="group" aria-label="Chart range">
-        <button type="button" data-range="live" aria-pressed="true">15 min</button>
-        <button type="button" data-range="day" aria-pressed="false">24 h</button>
+  <div class="frame">
+    <div data-strip></div>
+
+    <header class="header">
+      <div class="header-title">
+        <span class="label" data-module-label>Module 05 · System</span>
+        <h1 class="h1" id="hostname">Connecting</h1>
       </div>
-      <span id="conn" class="conn" data-state="connecting"><span class="dot"></span><span class="label">Connecting</span></span>
-    </div>
-  </header>
-
-  <section id="health" class="health" data-level="unknown" aria-live="polite">
-    <span class="health-icon" aria-hidden="true"></span>
-    <div>
-      <strong id="health-title">Waiting for data</strong>
-      <p id="health-detail" class="muted"></p>
-    </div>
-  </section>
-
-  <main class="grid">
-    <article class="card" id="card-temp">
-      <h2>Temperature</h2>
-      <div class="hero"><span id="temp-value" class="hero-num">–</span><span class="hero-unit">°C CPU</span></div>
-      <div class="meter" id="temp-meter"><span></span></div>
-      <dl class="kv" id="temp-list"></dl>
-      <div class="chart" id="chart-temp"></div>
-    </article>
-
-    <article class="card" id="card-power">
-      <h2>Power</h2>
-      <div class="hero"><span id="volt-value" class="hero-num">–</span><span class="hero-unit" id="volt-unit">V input</span></div>
-      <dl class="kv" id="power-list"></dl>
-      <div class="chart" id="chart-volt"></div>
-      <details id="rails-wrap" hidden>
-        <summary>PMIC rails</summary>
-        <table class="rails"><thead><tr><th>Rail</th><th>Volts</th><th>Amps</th><th>Watts</th></tr></thead><tbody id="rails"></tbody></table>
-      </details>
-    </article>
-
-    <article class="card" id="card-cpu">
-      <h2>CPU</h2>
-      <div class="hero"><span id="cpu-value" class="hero-num">–</span><span class="hero-unit">% used</span></div>
-      <div id="cores" class="cores"></div>
-      <dl class="kv" id="cpu-list"></dl>
-      <div class="chart" id="chart-cpu"></div>
-    </article>
-
-    <article class="card" id="card-mem">
-      <h2>Memory</h2>
-      <div class="hero"><span id="mem-value" class="hero-num">–</span><span class="hero-unit" id="mem-unit">% used</span></div>
-      <div class="meter" id="mem-meter"><span></span></div>
-      <dl class="kv" id="mem-list"></dl>
-      <div class="chart" id="chart-mem"></div>
-    </article>
-
-    <article class="card" id="card-disk">
-      <h2>Storage</h2>
-      <div id="disks" class="disks"></div>
-      <dl class="kv" id="disk-io"></dl>
-    </article>
-
-    <article class="card" id="card-net">
-      <h2>Network</h2>
-      <dl class="kv" id="net-list"></dl>
-      <div class="legend" id="net-legend">
-        <span><i style="background:var(--series-1)"></i>Download</span>
-        <span><i style="background:var(--series-2)"></i>Upload</span>
+      <div class="header-actions">
+        <div class="seg range" role="group" aria-label="Chart range">
+          <button type="button" data-range="live" aria-pressed="true">15 min</button>
+          <button type="button" data-range="day" aria-pressed="false">24 h</button>
+        </div>
+        <button data-theme-toggle></button>
       </div>
-      <div class="chart" id="chart-net"></div>
-    </article>
+    </header>
 
-    <article class="card wide" id="card-containers">
-      <div class="card-head">
-        <h2>Apps &amp; containers</h2>
-        <span id="containers-summary" class="muted small-inline"></span>
-      </div>
-      <p id="containers-error" class="muted" hidden></p>
-      <div class="table-wrap">
-        <table class="data" id="containers-table">
-          <thead><tr><th>App / container</th><th>State</th><th>Ports</th><th>Uptime</th><th class="num">CPU</th><th class="num">Memory</th><th>Image</th></tr></thead>
-          <tbody id="containers"></tbody>
-        </table>
-      </div>
-    </article>
+    <div class="context" id="context">Waiting for the first reading</div>
 
-    <article class="card wide" id="card-conn">
-      <div class="card-head">
-        <h2>Connections</h2>
-        <label class="toggle"><input type="checkbox" id="show-loopback"> Show loopback</label>
-      </div>
-      <div class="stats" id="conn-stats"></div>
-      <div class="conn-cols">
-        <section>
-          <h3>Listening ports</h3>
-          <div class="table-wrap">
-            <table class="data">
-              <thead><tr><th class="num">Port</th><th>Address</th><th>Service</th></tr></thead>
-              <tbody id="listening"></tbody>
-            </table>
+    <div class="pinned" id="pinned" role="alert" hidden></div>
+
+    <div class="frame-body">
+      <main class="content grid-bg">
+        <div id="notices" class="notices" aria-live="polite"></div>
+
+        <section class="readouts" aria-label="Key readings">
+          <div class="readout" id="ro-temp">
+            <div class="readout-head"><span class="label">CPU temp</span><span class="ro-badge"></span></div>
+            <div><span class="readout-value" id="temp-value">--</span><span class="readout-unit">°C</span></div>
+            <div class="cells" id="temp-cells" aria-hidden="true"></div>
+            <div class="readout-meta" id="temp-meta"></div>
+          </div>
+          <div class="readout" id="ro-volt">
+            <div class="readout-head"><span class="label" id="volt-label">Input voltage</span><span class="ro-badge"></span></div>
+            <div><span class="readout-value" id="volt-value">--</span><span class="readout-unit">V</span></div>
+            <div class="cells" id="volt-cells" aria-hidden="true"></div>
+            <div class="readout-meta" id="volt-meta"></div>
+          </div>
+          <div class="readout" id="ro-cpu">
+            <div class="readout-head"><span class="label">CPU usage</span><span class="ro-badge"></span></div>
+            <div><span class="readout-value" id="cpu-value">--</span><span class="readout-unit">%</span></div>
+            <div class="cells" id="cpu-cells" aria-hidden="true"></div>
+            <div class="readout-meta" id="cpu-meta"></div>
+          </div>
+          <div class="readout" id="ro-mem">
+            <div class="readout-head"><span class="label">Memory</span><span class="ro-badge"></span></div>
+            <div><span class="readout-value" id="mem-value">--</span><span class="readout-unit">%</span></div>
+            <div class="cells" id="mem-cells" aria-hidden="true"></div>
+            <div class="readout-meta" id="mem-meta"></div>
           </div>
         </section>
-        <section>
-          <h3>Active connections</h3>
-          <div class="table-wrap">
-            <table class="data">
-              <thead><tr><th>Direction</th><th>Remote</th><th class="num">Local port</th><th>Service</th></tr></thead>
-              <tbody id="established"></tbody>
-            </table>
-          </div>
-          <p id="established-more" class="muted small" hidden></p>
-        </section>
-      </div>
-    </article>
 
-    <article class="card" id="card-sys">
-      <h2>System</h2>
-      <dl class="kv" id="sys-list"></dl>
-    </article>
+        <div class="cards">
+          <article class="card" id="card-temp">
+            <div class="card-head"><h2 class="h2">Temperature</h2></div>
+            <dl class="kv" id="temp-list"></dl>
+            <div class="chart" id="chart-temp"></div>
+          </article>
 
-    <article class="card" id="card-events">
-      <h2>Power events</h2>
-      <p class="muted small">Changes of the firmware's under-voltage and throttling flags, newest first.</p>
-      <ul id="events" class="events"></ul>
-    </article>
-  </main>
+          <article class="card" id="card-power">
+            <div class="card-head"><h2 class="h2">Power</h2></div>
+            <dl class="kv" id="power-list"></dl>
+            <div class="chart" id="chart-volt"></div>
+            <details id="rails-wrap" class="details" hidden>
+              <summary class="label">PMIC rails</summary>
+              <div class="table-wrap">
+                <table class="table">
+                  <thead><tr><th>Rail</th><th class="num">Volts</th><th class="num">Amps</th><th class="num">Watts</th></tr></thead>
+                  <tbody id="rails"></tbody>
+                </table>
+              </div>
+            </details>
+          </article>
+
+          <article class="card" id="card-flags">
+            <div class="card-head"><h2 class="h2">Throttle flags</h2><span class="label" id="flags-raw"></span></div>
+            <p class="help">Firmware power and thermal flags, now and since boot.</p>
+            <div class="table-wrap">
+              <table class="table">
+                <thead><tr><th>Flag</th><th>Now</th><th>Since boot</th></tr></thead>
+                <tbody id="flags"></tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="card" id="card-cpu">
+            <div class="card-head"><h2 class="h2">CPU</h2></div>
+            <div id="cores" class="cores"></div>
+            <dl class="kv" id="cpu-list"></dl>
+            <div class="chart" id="chart-cpu"></div>
+          </article>
+
+          <article class="card" id="card-mem">
+            <div class="card-head"><h2 class="h2">Memory</h2></div>
+            <dl class="kv" id="mem-list"></dl>
+            <div class="chart" id="chart-mem"></div>
+          </article>
+
+          <article class="card" id="card-disk">
+            <div class="card-head"><h2 class="h2">Storage</h2></div>
+            <div id="disks" class="disks"></div>
+            <dl class="kv" id="disk-io"></dl>
+          </article>
+
+          <article class="card" id="card-net">
+            <div class="card-head"><h2 class="h2">Network</h2><span id="wifi" class="wifi" hidden></span></div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead><tr><th>Interface</th><th class="num">Down</th><th class="num">Up</th></tr></thead>
+                <tbody id="net-ifaces"></tbody>
+              </table>
+            </div>
+            <dl class="kv" id="net-list"></dl>
+            <div class="legend">
+              <span class="sw-rx">Download</span>
+              <span class="sw-tx">Upload (dashed)</span>
+            </div>
+            <div class="chart" id="chart-net"></div>
+          </article>
+
+          <article class="card wide" id="card-containers">
+            <div class="card-head">
+              <h2 class="h2">Apps and containers</h2>
+              <span id="containers-summary" class="label"></span>
+            </div>
+            <div id="containers-error" class="banner banner-info" hidden></div>
+            <div class="table-wrap">
+              <table class="table" id="containers-table">
+                <thead><tr><th>App / container</th><th>State</th><th>Ports</th><th>Uptime</th><th class="num">CPU</th><th class="num">Memory</th><th>Image</th></tr></thead>
+                <tbody id="containers"></tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="card wide" id="card-conn">
+            <div class="card-head">
+              <h2 class="h2">Connections</h2>
+              <label class="check"><input type="checkbox" id="show-loopback"> <span class="body-sm">Show loopback</span></label>
+            </div>
+            <div class="cellrow stats" id="conn-stats"></div>
+            <div class="conn-cols">
+              <section>
+                <h3 class="label">Listening ports</h3>
+                <div class="table-wrap">
+                  <table class="table">
+                    <thead><tr><th class="num">Port</th><th>Address</th><th>Service</th></tr></thead>
+                    <tbody id="listening"></tbody>
+                  </table>
+                </div>
+              </section>
+              <section>
+                <h3 class="label">Active connections</h3>
+                <div class="table-wrap">
+                  <table class="table">
+                    <thead><tr><th>Direction</th><th>Remote</th><th class="num">Local port</th><th>Service</th></tr></thead>
+                    <tbody id="established"></tbody>
+                  </table>
+                </div>
+                <p id="established-more" class="help" hidden></p>
+              </section>
+            </div>
+          </article>
+
+          <article class="card" id="card-sys">
+            <div class="card-head"><h2 class="h2">System</h2></div>
+            <dl class="kv" id="sys-list"></dl>
+          </article>
+
+          <article class="card" id="card-events">
+            <div class="card-head"><h2 class="h2">Power events</h2></div>
+            <p class="help">Changes of the firmware's under-voltage and throttling flags, newest first.</p>
+            <ul id="events" class="list"></ul>
+          </article>
+        </div>
+      </main>
+      <nav data-nav></nav>
+    </div>
+  </div>
 
   <div id="tooltip" class="tooltip" role="status" hidden></div>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>

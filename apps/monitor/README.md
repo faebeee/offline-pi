@@ -141,3 +141,9 @@ Code layout: `src/metrics/collector.service.ts` reads `/proc`, `/sys` and
 `vcgencmd`; `history.service.ts` keeps the ring buffers and the event log;
 `metrics.gateway.ts` pushes over WebSockets; `public/` is the plain
 HTML/CSS/JS dashboard.
+
+The UI is built on the shared Outpost package in [`/ui`](../../ui/README.md)
+(module "System"). `install.sh` and `start.sh` copy it into `public/ui/`
+(gitignored) before building, and the image serves it at `/ui/`. Change the
+package in `/ui`, never the copy; for local development run
+`../../ui/sync.sh public/ui` once.

@@ -1,39 +1,67 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="t-dark">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-    <meta name="color-scheme" content="dark" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
     <title>Mesh map</title>
+    <script>
+      // Same as ui/theme-boot.js (inlined: the package is bundled, so the file
+      // has no URL before the build). Applies the stored theme before paint.
+      (function () {
+        var t = null;
+        try { t = localStorage.getItem("outpost.theme"); } catch (e) {}
+        document.documentElement.className = (document.documentElement.className.replace(/\bt-(dark|light)\b/g, "") + " t-" + (t === "light" ? "light" : "dark")).trim();
+      })();
+    </script>
   </head>
   <body>
-    <div class="app">
-      <aside class="sidebar">
-        <header class="brand">
-          <div class="brand-row">
-            <h1>Mesh map</h1>
-            <span id="mesh-state" class="pill">…</span>
+    <div class="frame">
+      <div data-strip></div>
+      <header class="header">
+        <div class="header-title">
+          <span class="label" data-module-label>Module 02 · Mesh map</span>
+          <h1 class="h1">Node map</h1>
+        </div>
+        <div class="header-actions">
+          <button data-theme-toggle></button>
+        </div>
+      </header>
+      <div class="frame-body">
+        <main class="content bleed">
+          <div id="notices" class="mm-notices" aria-live="polite" hidden></div>
+          <div id="stage" class="map-stage">
+            <div class="map-view">
+              <div id="map" class="map-canvas" role="region" aria-label="Map of mesh nodes"></div>
+              <span id="cache" class="badge map-badge"></span>
+              <div class="map-ctrls">
+                <button id="panel-toggle" type="button" class="btn btn-icon" aria-controls="panel" aria-expanded="false" aria-pressed="false" aria-label="Show node list" title="Node list"></button>
+                <div class="group">
+                  <button id="zoom-in" type="button" class="btn btn-icon" aria-label="Zoom in" title="Zoom in"></button>
+                  <button id="zoom-out" type="button" class="btn btn-icon" aria-label="Zoom out" title="Zoom out"></button>
+                </div>
+                <button id="north" type="button" class="btn btn-icon map-compass" aria-label="Reset to north up" title="North up"></button>
+                <button id="fit" type="button" class="btn btn-icon" aria-label="Show all nodes" title="Show all nodes"></button>
+              </div>
+              <button id="locate" type="button" class="map-locate" aria-pressed="false" aria-label="Show my position" title="My position"></button>
+            </div>
+            <aside id="panel" class="map-panel" aria-labelledby="panel-title" hidden>
+              <div class="map-panel-head">
+                <div class="map-panel-title">
+                  <h2 id="panel-title" class="h2">Nodes</h2>
+                  <span id="summary" class="label"></span>
+                </div>
+                <button id="panel-close" type="button" class="btn btn-icon" aria-label="Close node list" title="Close"></button>
+              </div>
+              <div class="map-panel-body flush">
+                <div id="nodes-empty" class="empty" hidden></div>
+                <ul id="node-list" class="list"></ul>
+              </div>
+            </aside>
           </div>
-          <p id="summary" class="muted small"></p>
-        </header>
-        <div id="notice" class="notice" hidden></div>
-        <section class="nodes">
-          <h2 class="section-head">
-            Nodes
-            <button id="fit" type="button" class="link small" hidden>Show all</button>
-          </h2>
-          <p id="nodes-empty" class="muted small" hidden></p>
-          <ul id="node-list" class="node-list"></ul>
-        </section>
-        <footer class="controls">
-          <label class="field">
-            <span class="muted small">Theme</span>
-            <select id="theme"></select>
-          </label>
-          <a id="mesh-link" class="muted small" target="_blank" rel="noopener" hidden>Open Mesh</a>
-        </footer>
-      </aside>
-      <main id="map" class="map"></main>
+        </main>
+        <nav data-nav></nav>
+      </div>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>

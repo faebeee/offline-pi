@@ -1,12 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  DEFAULT_POI_EMOJI,
-  POI_EMOJI_MAX,
-  POI_EMOJI_PRESETS,
-  POI_NAME_MAX,
-  type CreatePoiRequest,
-  type Poi,
-} from "./api";
+import { coords } from "./outpost-ui/outpost.js";
+import { DEFAULT_POI_EMOJI, POI_NAME_MAX, type CreatePoiRequest, type Poi } from "./api";
+import { HoldButton, Icon } from "./ui";
 
 /** What the dialog is editing: a brand-new pin, or an existing POI. */
 export type PoiDraft = { kind: "create"; lat: number; lon: number } | { kind: "edit"; poi: Poi };
@@ -18,51 +13,58 @@ type Props = {
   onClose: () => void;
 };
 
-/** Create or edit a point of interest: name, emoji and position. */
+type FieldError = { field: "name" | "lat" | "lon" | "form"; message: string };
+
+/**
+ * Create or edit a saved place: name and position. The API still carries an
+ * `emoji` per POI; the Outpost UI does not show emoji (DESIGN.md), so an
+ * existing value is kept untouched and new places get the default.
+ */
 export function PoiDialog({ draft, onSave, onDelete, onClose }: Props) {
   const initial = draft.kind === "edit" ? draft.poi : undefined;
   const [name, setName] = useState(initial?.name ?? "");
-  const [emoji, setEmoji] = useState(initial?.emoji ?? DEFAULT_POI_EMOJI);
   const [lat, setLat] = useState(String(draft.kind === "edit" ? draft.poi.lat : draft.lat));
   const [lon, setLon] = useState(String(draft.kind === "edit" ? draft.poi.lon : draft.lon));
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<FieldError | null>(null);
   const [busy, setBusy] = useState(false);
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
-  const nameRef = useRef<HTMLInputElement>(null);
+  const ref = useRef<HTMLDialogElement>(null);
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
 
-  useEffect(() => nameRef.current?.focus(), []);
-
-  // Esc closes, matching the browser-native feel of the other overlays.
   useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+    const dialog = ref.current;
+    if (!dialog) return;
+    // No cleanup: closing would fire `close` (and onClose) on StrictMode's
+    // simulated unmount. Removing the element ends the modal state anyway.
+    if (!dialog.open) dialog.showModal();
+  }, []);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     const trimmed = name.trim();
-    if (!trimmed) return setError("Give it a name.");
-    if (!emoji.trim()) return setError("Pick an emoji.");
+    if (!trimmed) return setError({ field: "name", message: "Give the place a name." });
 
     const latitude = Number(lat);
     const longitude = Number(lon);
-    if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
-      return setError("Latitude must be between -90 and 90.");
+    if (lat.trim() === "" || !Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
+      return setError({ field: "lat", message: "Latitude must be between -90 and 90." });
     }
-    if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
-      return setError("Longitude must be between -180 and 180.");
+    if (lon.trim() === "" || !Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+      return setError({ field: "lon", message: "Longitude must be between -180 and 180." });
     }
 
     setBusy(true);
     setError(null);
     try {
-      await onSave({ name: trimmed, emoji: emoji.trim(), lat: latitude, lon: longitude });
+      await onSave({
+        name: trimmed,
+        emoji: initial?.emoji ?? DEFAULT_POI_EMOJI,
+        lat: latitude,
+        lon: longitude,
+      });
       onClose();
     } catch (err) {
-      setError((err as Error).message);
+      setError({ field: "form", message: (err as Error).message });
     } finally {
       setBusy(false);
     }
@@ -75,116 +77,133 @@ export function PoiDialog({ draft, onSave, onDelete, onClose }: Props) {
       await onDelete();
       onClose();
     } catch (err) {
-      setError((err as Error).message);
+      setError({ field: "form", message: (err as Error).message });
       setBusy(false);
     }
   }
 
-  const title = draft.kind === "edit" ? "Edit point of interest" : "New point of interest";
+  const title = draft.kind === "edit" ? "Edit place" : "New place";
+  const position = draft.kind === "edit" ? draft.poi : draft;
+  const invalid = (field: FieldError["field"]) => error?.field === field;
 
   return (
-    <div className="modal-backdrop" onMouseDown={onClose}>
-      <div
-        className="modal"
-        onMouseDown={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-label={title}
-      >
-        <header className="modal-head">
-          <h2>{title}</h2>
-          <button type="button" className="icon" onClick={onClose} aria-label="Close">
-            ×
+    <dialog
+      ref={ref}
+      className="dialog"
+      aria-labelledby="poi-title"
+      onClose={() => closeRef.current()}
+      // a click on the backdrop lands on the <dialog> itself
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) e.currentTarget.close();
+      }}
+    >
+      <form onSubmit={submit} noValidate>
+        <div className="dialog-head">
+          <span className="mk poi-dialog-mk" aria-hidden="true">
+            <span className="mk-shape" />
+          </span>
+          <h2 id="poi-title" className="h2">
+            {title}
+          </h2>
+          <button
+            type="button"
+            className="btn btn-icon"
+            aria-label="Close"
+            onClick={() => ref.current?.close()}
+          >
+            <Icon name="close" />
           </button>
-        </header>
+        </div>
 
-        <form className="modal-body" onSubmit={submit}>
-          <label className="field">
-            <span className="muted small">Name</span>
+        <div className="dialog-body">
+          <p className="label">{coords(position.lat, position.lon)}</p>
+
+          <Field id="poi-name" label="Name" error={invalid("name") ? error?.message : undefined}>
             <input
-              ref={nameRef}
+              id="poi-name"
+              className="input"
               value={name}
               maxLength={POI_NAME_MAX}
+              autoFocus
+              aria-invalid={invalid("name") || undefined}
+              aria-describedby={invalid("name") ? "poi-name-error" : undefined}
               onChange={(e) => setName(e.target.value)}
               placeholder="Trailhead parking"
             />
-          </label>
+          </Field>
 
-          <div className="field">
-            <span className="muted small">Emoji</span>
-            <div className="emoji-row">
+          <div className="coord-fields">
+            <Field id="poi-lat" label="Latitude" error={invalid("lat") ? error?.message : undefined}>
               <input
-                className="emoji-input"
-                value={emoji}
-                maxLength={POI_EMOJI_MAX}
-                onChange={(e) => setEmoji(e.target.value)}
-                aria-label="Emoji"
-              />
-              <div className="emoji-presets">
-                {POI_EMOJI_PRESETS.map((preset) => (
-                  <button
-                    key={preset}
-                    type="button"
-                    className={preset === emoji ? "emoji-preset active" : "emoji-preset"}
-                    onClick={() => setEmoji(preset)}
-                    aria-label={`Use ${preset}`}
-                  >
-                    {preset}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="coords">
-            <label className="field">
-              <span className="muted small">Latitude</span>
-              <input
-                className="tabular"
+                id="poi-lat"
+                className="input mono"
                 value={lat}
                 inputMode="decimal"
+                aria-invalid={invalid("lat") || undefined}
+                aria-describedby={invalid("lat") ? "poi-lat-error" : undefined}
                 onChange={(e) => setLat(e.target.value)}
               />
-            </label>
-            <label className="field">
-              <span className="muted small">Longitude</span>
+            </Field>
+            <Field id="poi-lon" label="Longitude" error={invalid("lon") ? error?.message : undefined}>
               <input
-                className="tabular"
+                id="poi-lon"
+                className="input mono"
                 value={lon}
                 inputMode="decimal"
+                aria-invalid={invalid("lon") || undefined}
+                aria-describedby={invalid("lon") ? "poi-lon-error" : undefined}
                 onChange={(e) => setLon(e.target.value)}
               />
-            </label>
+            </Field>
           </div>
-          <p className="muted small">Drag the marker on the map to fine-tune the position.</p>
+          <p className="help">Drag the marker on the map to fine-tune the position.</p>
 
-          {error && <p className="error small">{error}</p>}
+          {invalid("form") && (
+            <p className="field-error" role="alert">
+              <Icon name="critical" className="i-sm" />
+              {error?.message}
+            </p>
+          )}
 
-          <div className="modal-actions">
-            {onDelete &&
-              (confirmingDelete ? (
-                <span className="confirm">
-                  <button type="button" className="danger small" onClick={remove} disabled={busy}>
-                    Delete
-                  </button>
-                  <button
-                    type="button"
-                    className="small"
-                    onClick={() => setConfirmingDelete(false)}
-                  >
-                    Keep
-                  </button>
-                </span>
-              ) : (
-                <button type="button" className="danger" onClick={() => setConfirmingDelete(true)}>
-                  Delete
-                </button>
-              ))}
-            <button type="submit" className="primary" disabled={busy}>
-              {busy ? "Saving…" : "Save"}
-            </button>
-          </div>
-        </form>
-      </div>
+          {onDelete && <HoldButton label="Delete place" onConfirm={remove} disabled={busy} />}
+        </div>
+
+        <div className="dialog-actions">
+          <button type="button" className="btn btn-ghost" onClick={() => ref.current?.close()}>
+            Cancel
+          </button>
+          <button type="submit" className="btn btn-primary" disabled={busy}>
+            {busy ? "Saving" : "Save place"}
+          </button>
+        </div>
+      </form>
+    </dialog>
+  );
+}
+
+function Field({
+  id,
+  label,
+  error,
+  children,
+}: {
+  id: string;
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={error ? "field is-error" : "field"}>
+      <label className="label" htmlFor={id}>
+        {label}
+      </label>
+      {children}
+      {error && (
+        <span id={`${id}-error`} className="field-error">
+          <Icon name="critical" className="i-sm" />
+          {error}
+        </span>
+      )}
     </div>
   );
 }

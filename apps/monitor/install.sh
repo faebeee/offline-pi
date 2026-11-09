@@ -80,6 +80,7 @@ fi
 source "$ENV_FILE"
 log_ok "DATA_DIR=$DATA_DIR, PORT=$PORT, VCIO_DEVICE=$VCIO_DEVICE"
 
+sync_ui
 log_info "Building the pi-monitor image (first build takes a few minutes on a Pi)..."
 compose --env-file "$ENV_FILE" build
 

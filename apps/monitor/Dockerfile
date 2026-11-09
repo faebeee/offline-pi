@@ -26,6 +26,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 COPY --from=build /app/dist dist
 COPY public/ public/
+RUN test -f public/ui/outpost.css || (echo "public/ui missing: run ./start.sh, which copies ../../ui" >&2; exit 1)
 COPY --from=vcgencmd /usr/local/bin/vcgencmd /usr/local/bin/vcgencmd
 
 # Runs as the container's root, which under rootless Podman is the host user

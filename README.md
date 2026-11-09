@@ -15,6 +15,11 @@ Raspberry Pi), with no runtime dependency on the internet or a CDN once set up.
 
 See each app's own README for setup, architecture and usage details.
 
+All web UIs share one look and feel, the Outpost design system:
+[`DESIGN.md`](DESIGN.md) is the spec and [`ui/`](ui/README.md) the shared
+package (tokens, fonts, icons, components) every app builds from. Each app's
+`install.sh`/`start.sh` copies it in before building.
+
 ## Running an app
 
 Every app under `apps/*` exposes the same three entry points:

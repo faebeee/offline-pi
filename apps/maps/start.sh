@@ -20,6 +20,17 @@ compose() {
   fi
 }
 
+# The UI comes from the shared ../../ui package (Outpost design system). The
+# frontend bundles a gitignored copy, refreshed here before every build.
+sync_ui() {
+  local sync="$SCRIPT_DIR/../../ui/sync.sh"
+  if [[ ! -f "$sync" ]]; then
+    log_error "Shared UI package not found at $sync. Run this from the offline-pi checkout."
+    exit 1
+  fi
+  bash "$sync" "$SCRIPT_DIR/apps/frontend/src/outpost-ui"
+}
+
 if ! command -v podman >/dev/null 2>&1; then
   log_error "podman is required. Run ./install.sh first."
   exit 1
@@ -33,6 +44,7 @@ fi
 # shellcheck disable=SC1090
 source "$ENV_FILE"
 
+sync_ui
 log_info "Starting offline-maps..."
 # --force-recreate: podman-compose only replaces a running container when
 # the compose config changed, not when --build produced a new image.

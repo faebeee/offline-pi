@@ -78,6 +78,7 @@ fi
 source "$ENV_FILE"
 log_ok "DATA_DIR=$DATA_DIR, PORT=$PORT, MESH_CONNECTION=$MESH_CONNECTION, MESH_DEVICE=$MESH_DEVICE"
 
+sync_ui
 log_info "Building the mesh image (first build takes a few minutes on a Pi)..."
 compose --env-file "$ENV_FILE" build
 

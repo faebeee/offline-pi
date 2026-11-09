@@ -54,3 +54,7 @@ pnpm-debug.log*
 ._*
 Thumbs.db
 Desktop.ini
+
+# ------------------------------------------------------------- shared ui ---
+# copy of ../../ui, refreshed by install.sh/start.sh (ui/sync.sh)
+/apps/frontend/src/outpost-ui/

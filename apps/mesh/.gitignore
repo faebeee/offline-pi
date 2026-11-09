@@ -1,4 +1,5 @@
 data/
+public/ui/
 .env
 .env.*
 !.env.example

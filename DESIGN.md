@@ -196,7 +196,7 @@ Every app screen has this structure, top to bottom:
 - Phone first (390 px reference width). On tablets and desktop, the bottom nav becomes a left rail (`flex-wrap` layout, content `flex: 999 1 560px`), but it is never sticky to `100vh`.
 - Content padding 16 px on phones, 24 to 32 px on larger screens.
 - Use flex or grid with `gap`, never margins between siblings.
-- Status strip example: `● OFFLINE · LOCAL    GNSS 3D   BAT 78%   14:32Z`. The square LED is `--cau` when offline, `--ok` when synced, `--crit` on failure.
+- Status strip example: `● LOCAL · 3 REGIONS    GNSS ±8 M   BAT 78%   14:32Z`. The square LED shows the app's link to its own local data source: `--ok` when connected or loaded, `--cau` while connecting, reconnecting or stale, `--crit` on failure (see the 0.2 changelog).
 
 ---
 
@@ -381,3 +381,20 @@ The visual reference (foundations, components, Hub, Maps, Library and Mesh scree
 ## Changelog
 
 - 0.1 (2026-11): initial tokens, components, app frame, Hub / Maps / Library / Mesh patterns.
+- 0.2 (2026-11): shared implementation in `ui/` (see `ui/README.md`). Additions:
+  - **Dialog** (`.dialog`): modal sheet on `<dialog>`, `--s1` with `1px --line2`, head / body / actions split by 1 px lines.
+  - **Table** (`.table`): dense mono table for system data, header in label style, 1 px row lines.
+  - **Key/value list** (`.kv`): label-style keys, mono values; used in popups and detail panels.
+  - **Map markers** (`.mk`): DOM markers with a shape (`.mk-shape`: square = saved place / node, `.mk-diamond` = route target, `.mk-own` = own position, `.mk-sos`) and a mono uppercase label with a `--map` halo; `.is-stale` dims old data.
+  - **Status strip items** are shown only when the app has a source for them. A Raspberry Pi without GNSS or battery shows link state and UTC time rather than invented values.
+  - **Module nav**: Maps, Mesh map, Mesh, Library, System (`MODULES` in `ui/outpost.js`), linking to each app on the same hostname at its default port. There is no Hub app yet. Each module has a number (Maps 01, Mesh map 02, Mesh 03, Library 04, System 05); the header label is `moduleLabel(id)` → `Module 03 · Mesh`, filled into `[data-module-label]` by `frame()`. The header H1 is the current view or title, and every header has the theme toggle.
+  - **Status strip link rule**, the same in every app: the LED shows the app's link to its own local data source, written `<SOURCE> · <STATE>`. ok = connected / loaded (`LOCAL · 3 REGIONS`, `MESH · LIVE`, `RADIO · LINKED`, `LOCAL · LIVE`, `LOCAL · 12 BOOKS`); cau = connecting, reconnecting or stale (`LOCAL · CONNECTING`, the default); crit = failed, with a short reason (`LOCAL · NO ANSWER`, `RADIO · PI UNREACHABLE`). Other facts go in the strip items.
+  - **Theme boot** (`ui/theme-boot.js`): a classic script in `<head>`, before the CSS, applies the stored theme before first paint. Bundled apps inline the same snippet.
+  - **OK banner** (`.banner-ok`): `--ok-soft` bg, `1px --ok` border, check icon, for all-clear summaries. Banners take an optional trailing button; a 44 px dismiss icon tucks into the padding.
+  - **Progress tones** (`.progress.is-cau/.is-crit`, `progress(el, ratio, cells, tone)`): a bar lit `--cau` or `--crit`, e.g. a nearly full disk.
+  - **Static row** (`.row.static`): list row that is information only (logs, events), no hover. **Table wrap** (`.table-wrap`) scrolls wide tables sideways.
+  - **Row extras**: `.row-mk` (saved-place square as the list lead, same shape as the map marker); `.row-actions` (a row plus trailing 44 px icon buttons such as export and delete).
+  - **Status word** (`.status` > `.led` + word): LED plus uppercase mono label, so status is never colour alone in rows and popups.
+  - **Map stage and panel** (`.map-stage`, `.map-view`, `.map-panel`, `.map-panel-head` [`.is-tabs`], `.map-panel-title`, `.map-panel-body` [`.flush`], `.map-panel-actions`): from 720 px a 360 px `--s1` side panel next to the map (side by DOM order), below that a bottom sheet under the map (max 55 % height), so the locate button stays above the sheet.
+  - **Map extras**: `.map-compass` (the compass icon rotates by `--map-bearing` so it points north), `.map-badge-text` (cache badge truncates with an ellipsis), round node markers `.mk-node` with age by stroke (`.is-fresh` `--ok`, `.is-old` `--cau`, `.is-stale` `--fg3` and dimmed; the label also states the age), popup content `.map-popup` whose head clears the 44 px close button.
+  - **Icons** `fit` (frame all) and `list` (show the list panel).

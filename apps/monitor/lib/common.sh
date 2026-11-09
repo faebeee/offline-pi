@@ -85,3 +85,14 @@ set_env() {
     printf '%s=%s\n' "$key" "$value" >> "$ENV_FILE"
   fi
 }
+
+# sync_ui - copy the shared Outpost UI package (../../ui) into public/ui,
+# which the image serves at /ui/. Run before every build.
+sync_ui() {
+  local sync="$SCRIPT_DIR/../../ui/sync.sh"
+  if [[ ! -f "$sync" ]]; then
+    log_error "Shared UI package not found at $sync (run from a full offline-pi checkout)."
+    exit 1
+  fi
+  "$sync" "$SCRIPT_DIR/public/ui"
+}

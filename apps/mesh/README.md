@@ -118,6 +118,11 @@ don't spam: `SEND_RATE_LIMIT` limits each browser.
 
 - Python: FastAPI + uvicorn, the official `meshtastic` library, SQLite.
   Static vanilla HTML/JS/CSS (no CDN, works offline).
+- The look (status strip, header, module nav, chat bubbles, lists, fonts,
+  icons) comes from the shared Outpost UI package in the repo's `/ui`
+  (see `DESIGN.md`). `install.sh` and `start.sh` copy it into `public/ui/`
+  (gitignored) before building; the image build fails if it is missing. For
+  local development run `../../ui/sync.sh public/ui` once.
 - The app owns the serial port. It reconnects with backoff when the node is
   unplugged or reboots; the UI shows "Radio disconnected" meanwhile and keeps
   showing the history.

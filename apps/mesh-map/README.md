@@ -4,13 +4,18 @@ An offline map of your [Meshtastic](https://meshtastic.org) mesh. Open
 `http://<pi>:8086` in any browser on the hotspot or LAN to see every node
 that shares its position, updated live:
 
-- a badge with the node's short name; solid if heard in the last 2 hours,
-  faded within a day, grey when older. The Pi's own node is blue.
-- click a badge for last heard, hops, SNR, battery, altitude, position and
-  hardware, plus a link to message the node in the Mesh app.
-- the sidebar lists the nodes by last heard; click one to fly to it, or
-  "Show all" to fit every node in view. Themes: light, dark, white,
-  grayscale, black.
+- a marker per node with its short name: green ring and `FRESH` if heard
+  in the last 2 hours, amber `OLD` within a day, grey and faded `STALE`
+  when older; old and stale markers also show their age (`ABCD · 5 H`).
+  The Pi's own node is labelled `BASE`.
+- click a marker for status, last heard (UTC), hops, SNR, battery,
+  altitude, position and hardware, plus a link to message the node in the
+  Mesh app.
+- the node list (side panel on wide screens, a sheet on phones, toggled
+  from the map controls) sorts nodes by last heard; pick one to fly to it.
+  The map controls also zoom, reset north and fit every node in view; the
+  amber button shows your own position (the browser only allows that on
+  HTTPS or localhost). The map follows the day/night theme of the UI.
 
 "Show on map" on the Nodes tab of [`apps/mesh`](../mesh/README.md) opens
 this map on that node.
@@ -26,6 +31,13 @@ Its own app, isolated from the others:
   allows only this app's port to read them (`MESH_MAP_PORT`, default
   `8086`), and nothing else: sending stays inside the Mesh app.
 - **No data of its own:** nothing to back up or move. Uses Podman Compose.
+
+## UI
+
+The page is built on the shared Outpost UI package in [`/ui`](../../ui/README.md)
+(tokens, fonts, icons, frame and components; see `DESIGN.md` at the repo
+root). `install.sh` and `start.sh` copy it into `src/outpost-ui/` (gitignored)
+before building, so change it in `/ui`, never in the copy.
 
 ## Requirements
 
@@ -61,7 +73,8 @@ Then open the printed URL (port `8086`).
    time it defaults to what `apps/maps/.env` says; afterwards to the current
    value, and it warns when `apps/maps` has moved its data since. The
    directories must exist; nothing is created, moved or written there.
-4. Builds the image, enables `podman-restart.service` and lingering so the
+4. Copies the shared UI package (`../../ui`) into `src/outpost-ui/`, builds
+   the image, enables `podman-restart.service` and lingering so the
    app comes back after a reboot, then runs `./start.sh`.
 
 ## Configuration (`.env`)
@@ -101,6 +114,7 @@ source checkout are left alone; clean up leftover build layers with
 ## Development
 
 ```sh
+../../ui/sync.sh src/outpost-ui   # copy the shared UI package
 npm install
 npm run build                 # page into dist/
 MAPS_DATA=../maps/data MAPS_ASSETS=../maps/assets MESH_PORT=8084 PORT=8086 npm start

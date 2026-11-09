@@ -9,6 +9,9 @@ COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts
 COPY tsconfig.json vite.config.ts index.html ./
 COPY src/ src/
+# src/outpost-ui is a gitignored copy of the shared ../../ui package (outside
+# this build context); ./start.sh and ./install.sh refresh it before building.
+RUN test -f src/outpost-ui/outpost.css || { echo "src/outpost-ui/outpost.css is missing: run ./start.sh, which copies ../../ui" >&2; exit 1; }
 RUN npm run build
 
 # -------------------------------------------------------------- runtime ---
