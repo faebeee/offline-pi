@@ -21,7 +21,7 @@ load_module_hooks
 BUILD_FLAGS=()
 for arg in "$@"; do
   case "$arg" in
-    --pull) BUILD_FLAGS+=(--pull) ;;
+    --pull) BUILD_FLAGS+=(--pull=always) ;;
     --no-cache) BUILD_FLAGS+=(--no-cache) ;;
     -h|--help) sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) log_error "Unknown option: $arg (see ./start.sh --help)"; exit 1 ;;
