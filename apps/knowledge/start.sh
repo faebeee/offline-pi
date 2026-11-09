@@ -24,6 +24,14 @@ if [[ ! -d "$CONTENT_DIR" ]] || ! ls "$CONTENT_DIR" >/dev/null 2>&1; then
   exit 1
 fi
 
+# Outpost UI: copy ../../ui into the build context (the landing page is
+# generated from it at image build; the copy is gitignored).
+if [[ ! -x "$SCRIPT_DIR/../../ui/sync.sh" ]]; then
+  log_error "Missing $SCRIPT_DIR/../../ui/sync.sh; run this from a full checkout of the repo."
+  exit 1
+fi
+"$SCRIPT_DIR/../../ui/sync.sh" "$SCRIPT_DIR/container/ui"
+
 log_info "Starting kiwix-serve..."
 # --force-recreate: podman-compose only replaces a running container when the
 # compose config changed, so a rebuilt image (new zims.txt) would be ignored.

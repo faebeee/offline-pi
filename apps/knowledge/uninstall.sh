@@ -98,6 +98,9 @@ for entry in "${DATA_PATHS[@]}"; do
     echo "  - keeps ${entry%%=*}: ${entry#*=} (you'll be asked)"
   fi
 done
+for step in ${EXTRA_STEPS[@]+"${EXTRA_STEPS[@]}"}; do
+  echo "  - $step"
+done
 echo "The source checkout, Podman itself, podman-restart.service and lingering"
 echo "are left alone (other apps may use them)."
 echo
@@ -126,6 +129,13 @@ if command -v podman >/dev/null 2>&1; then
   done
 else
   log_warn "podman not found; skipping container and image removal."
+fi
+
+# -------------------------------------------------------------- app hook --
+# Optional: the config block may define app_uninstall_hook to undo the
+# app's own host-level changes (system config files, services).
+if declare -F app_uninstall_hook >/dev/null; then
+  app_uninstall_hook || log_warn "Removing the host configuration reported an error; continuing."
 fi
 
 # ------------------------------------------------------------------ data --

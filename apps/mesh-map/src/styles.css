@@ -1,0 +1,14 @@
+/* mesh-map: app layout only. Components, tokens, the frame and the map
+   stage, panel, markers and popup come from ./outpost-ui/outpost.css (the
+   shared /ui package); tokens only here. */
+
+/* Notices above the map stage. */
+.mm-notices {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}

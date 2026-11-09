@@ -28,6 +28,17 @@ compose() {
   fi
 }
 
+# The UI comes from the shared ../../ui package (Outpost design system). The
+# frontend bundles a gitignored copy, refreshed here before every build.
+sync_ui() {
+  local sync="$SCRIPT_DIR/../../ui/sync.sh"
+  if [[ ! -f "$sync" ]]; then
+    log_error "Shared UI package not found at $sync. Run this from the offline-pi checkout."
+    exit 1
+  fi
+  bash "$sync" "$SCRIPT_DIR/apps/frontend/src/outpost-ui"
+}
+
 # ensure_autostart - rootless Podman only restarts containers after a reboot
 # through the user's podman-restart.service (restart-policy=always only), and
 # only if the user lingers (has a systemd user manager without logging in).
@@ -151,6 +162,7 @@ log_ok "DATA_DIR=$DATA_DIR, ASSETS_DIR=$ASSETS_DIR"
 mkdir -p "$DATA_DIR/regions" "$ASSETS_DIR"
 log_ok "data and assets directories ready"
 
+sync_ui
 log_info "Building the offline-maps image..."
 compose build
 

@@ -1,0 +1,72 @@
+/* Outpost design tokens. Copied verbatim from DESIGN.md section 3; change
+   them there first. */
+
+:root, .t-dark {
+  /* Surfaces */
+  --bg: #0A0E0D;        /* app ground */
+  --s1: #111715;        /* cards, headers, nav */
+  --s2: #18201D;        /* inputs, nested panels */
+  --s3: #222C28;        /* tracks, disabled, empty cells */
+  --line: #2B3833;      /* dividers */
+  --line2: #405049;     /* control borders */
+  /* Text */
+  --fg: #E4ECE8;
+  --fg2: #A9B9B2;       /* secondary */
+  --fg3: #82958D;       /* labels, placeholders */
+  /* Signal (primary accent) */
+  --acc: #FFB020;       /* fills, rings, brackets */
+  --acc-ink: #FFB020;   /* amber text/icons */
+  --on-acc: #1A1100;    /* text on amber */
+  --acc-soft: rgba(255,176,32,.12);
+  /* Status */
+  --info: #4CC9E0;  --info-soft: rgba(76,201,224,.12);
+  --ok:   #3FD68A;  --ok-soft:   rgba(63,214,138,.12);
+  --cau:  #FFD84A;  --cau-soft:  rgba(255,216,74,.12);
+  --crit: #FF5A52;  --crit-soft: rgba(255,90,82,.14);
+  --on-crit: #1A0302;
+  /* Misc */
+  --grid: rgba(140,190,165,.06);
+  --map: #0E1412;
+}
+
+.t-light {
+  --bg: #E8ECE9;
+  --s1: #FFFFFF;
+  --s2: #F2F5F3;
+  --s3: #E1E7E3;
+  --line: #C8D1CC;
+  --line2: #97A69F;
+  --fg: #0C1210;
+  --fg2: #3A4843;
+  --fg3: #55645E;
+  --acc: #FFA51F;
+  --acc-ink: #8A5200;   /* amber is too light for text on light ground */
+  --on-acc: #1A1100;
+  --acc-soft: rgba(255,165,31,.16);
+  --info: #0A6F82;  --info-soft: rgba(10,111,130,.10);
+  --ok:   #0F7A45;  --ok-soft:   rgba(15,122,69,.10);
+  --cau:  #7A5C00;  --cau-soft:  rgba(230,180,0,.18);
+  --crit: #B8231E;  --crit-soft: rgba(184,35,30,.10);
+  --on-crit: #FFFFFF;
+  --grid: rgba(20,60,40,.06);
+  --map: #F1F3EC;
+}
+
+:root {
+  /* Type */
+  --font-display: 'Chakra Petch', system-ui, sans-serif;
+  --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  /* Space (4 px base) */
+  --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
+  --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px;
+  /* Shape */
+  --radius: 2px;
+  --chamfer: 10px;
+  --bracket: 12px;
+  /* Sizing */
+  --target: 44px;
+  --target-primary: 56px;
+  --strip-h: 32px;
+  --nav-h: 64px;
+}

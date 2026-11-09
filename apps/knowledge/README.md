@@ -15,6 +15,8 @@ Pi with an attached SSD.
   its download completes
 - Configurable storage location (point it at your SSD)
 - Auto-starts on boot, survives reboots; works fully offline once downloaded
+- An Outpost "Library" landing page (see below) replaces Kiwix's default
+  home page; book pages and search results stay Kiwix's own
 
 ## Requirements
 
@@ -41,8 +43,9 @@ The installer will:
 2. Ask for port and bind address (first run only) and write `.env`.
 3. Ask where to store content (every run, e.g. `/mnt/ssd/kiwix`; see
    "Moving storage" below).
-4. Build the image (`ghcr.io/kiwix/kiwix-serve` plus `aria2`, `curl`,
-   `xmlstarlet` and `zims.txt`) and enable `podman-restart.service` +
+4. Copy the shared UI package (`../../ui`) into `container/ui/`, build the
+   image (`ghcr.io/kiwix/kiwix-serve` plus `aria2`, `curl`, `xmlstarlet`,
+   `zims.txt` and the generated landing page) and enable `podman-restart.service` +
    lingering so the container comes back after a reboot.
 5. Start the container via `./start.sh`.
 
@@ -52,6 +55,29 @@ with `./manage.sh logs`, then open `http://<pi-ip>:8082`.
 
 `./start.sh` rebuilds and restarts the container from the existing `.env`
 without asking anything (e.g. after editing `zims.txt` or a `git pull`).
+
+## Landing page
+
+`http://<pi-ip>:8082/` shows the Outpost "Library" module (the suite's
+shared design, see [`DESIGN.md`](../../DESIGN.md)): status strip, links to
+the other apps on the same host, a full-text search field and the list of
+installed books with language, article count and content date. It reads
+kiwix-serve's own OPDS catalog (`/catalog/v2/entries`) in the browser, so new
+downloads show up after a reload. Search opens Kiwix's search page
+(`/search`); kiwix-serve only searches books of one language at a time, so
+the "Search in" menu offers one entry per language plus every single book.
+Books open in Kiwix's viewer (`/viewer#<book>`). Kiwix's own library list is
+still at `/nojs`.
+
+The page comes from the shared UI package in [`/ui`](../../ui):
+`install.sh`/`start.sh` copy it into `container/ui/` (gitignored) before
+building, and the image build runs `container/build-index.sh`, which inlines
+the CSS, fonts, icons and script into one self-contained
+`/usr/share/knowledge/index.html` (kiwix-serve serves only that one file for
+the home page). `container/knowledge.sh` passes it to kiwix-serve with
+`--customIndex`. To change the design, edit `/ui` (or
+`container/index.template.html` / `container/index.js` for this page) and
+run `./start.sh`.
 
 ## Defining the ZIM set (`zims.txt`)
 
@@ -142,8 +168,12 @@ as the library does, so a later `./install.sh` picks it up again. Podman,
 
 ```
 zims.txt                  The ZIM set to download and serve
-Dockerfile                kiwix-serve + aria2/curl/xmlstarlet + zims.txt
+Dockerfile                kiwix-serve + aria2/curl/xmlstarlet + zims.txt + landing page
 container/knowledge.sh    In-container tool: serve / sync / prune / list / library
+container/index.template.html, container/index.js
+                          Outpost landing page (template + script)
+container/build-index.sh  Inlines ui/ into one index.html at image build
+container/ui/             Copy of ../../ui made by install.sh/start.sh (gitignored)
 docker-compose.yml        Service definition
 install.sh                First-run setup (ends by calling start.sh)
 start.sh                  Rebuild + (re)start from an existing .env

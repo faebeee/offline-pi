@@ -1,14 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  GeolocateControl,
+  AttributionControl,
   Map as MapLibreMap,
   Marker,
-  NavigationControl,
   ScaleControl,
   type GeoJSONSource,
   type MapMouseEvent,
 } from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
+import { bearing as fmtBearing, toast } from "./outpost-ui/outpost.js";
 import {
   allStyleUrl,
   regionsKey as toRegionsKey,
@@ -19,6 +18,7 @@ import {
   type Region,
   type Theme,
 } from "./api";
+import { Icon } from "./ui";
 
 const PREVIEW_SOURCE = "preview";
 
@@ -29,6 +29,9 @@ const LONG_PRESS_SLOP = 10;
 
 export type Cursor = { lon: number; lat: number; zoom: number };
 
+/** Last known own position, for the status strip. */
+export type Fix = { lat: number; lon: number; accuracy: number; at: number };
+
 /**
  * A region to frame. `at` is a timestamp so that picking the same region twice
  * still produces a new value and re-triggers the effect.
@@ -38,23 +41,32 @@ export type RegionFocus = { bbox: Bbox; at: number };
 type Props = {
   /** every downloaded region — all of them are rendered at once */
   regions: Region[];
-  theme: Theme;
+  /** follows the UI theme: never a bright map in .t-dark */
+  theme: Extract<Theme, "dark" | "light">;
   /** boundary of a search result, drawn before it is downloaded */
   preview?: Polygon;
   onCursor: (cursor: Cursor) => void;
-  /** current viewport, so the sidebar can list only the POIs in view */
+  /** current viewport, so the panel can list only the POIs in view */
   onBounds: (bbox: Bbox) => void;
   pois: Poi[];
   selectedPoiId?: string | null;
   /** fly here when set; clear it once handled so the same POI can be revisited */
   focus?: { lat: number; lon: number } | null;
-  /** frame this region when set, e.g. after clicking it in the sidebar */
+  /** frame this region when set, e.g. after clicking it in the panel */
   regionFocus?: RegionFocus | null;
   /** right-click or long-press on empty map */
   onPoiCreate: (lat: number, lon: number) => void;
   onPoiMove: (id: string, lat: number, lon: number) => void;
   onPoiSelect: (id: string) => void;
+  panelOpen: boolean;
+  onTogglePanel: () => void;
+  onFix: (fix: Fix | null) => void;
 };
+
+/** A token's current value (the map paints with real colours, not var()). */
+function token(name: string): string {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
 
 export function MapView({
   regions,
@@ -69,20 +81,29 @@ export function MapView({
   onPoiCreate,
   onPoiMove,
   onPoiSelect,
+  panelOpen,
+  onTogglePanel,
+  onFix,
 }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<MapLibreMap | null>(null);
   const [ready, setReady] = useState(false);
+  const [rotation, setRotation] = useState(0);
+  const [center, setCenter] = useState<{ lon: number; lat: number } | null>(null);
   // One MapLibre Marker per POI id, diffed against `pois` below.
   const markers = useRef(new Map<string, Marker>());
+  const own = useRef<Marker | null>(null);
+  const watch = useRef<number | null>(null);
+  const follow = useRef(false);
   // The map is created once, so its listeners read the latest props from here
   // instead of closing over the first render's values.
-  const handlers = useRef({ onPoiCreate, onPoiMove, onPoiSelect, onBounds });
-  handlers.current = { onPoiCreate, onPoiMove, onPoiSelect, onBounds };
+  const handlers = useRef({ onPoiCreate, onPoiMove, onPoiSelect, onBounds, onCursor, onFix });
+  handlers.current = { onPoiCreate, onPoiMove, onPoiSelect, onBounds, onCursor, onFix };
 
   // Identity of the region set: changes when one is added, removed or rebuilt.
   const regionsKey = toRegionsKey(regions);
-  const maxZoom = Math.max(...regions.map((r) => r.maxzoom), 0) + 2;
+  // With no region yet, still allow zooming in on a search preview.
+  const maxZoom = regions.length ? Math.max(...regions.map((r) => r.maxzoom)) + 2 : 16;
 
   // Create the map once; styles and viewport are driven by the effects below.
   useEffect(() => {
@@ -93,22 +114,15 @@ export function MapView({
       bounds: unionBbox(regions),
       fitBoundsOptions: { padding: 24 },
       maxZoom,
-      attributionControl: { compact: true },
+      attributionControl: false,
       hash: true,
     });
-    instance.addControl(new NavigationControl({ visualizePitch: true }), "top-right");
-    instance.addControl(
-      new ScaleControl({ maxWidth: 120, unit: "metric" }),
-      "bottom-right",
-    );
-    instance.addControl(
-      new GeolocateControl({ trackUserLocation: true }),
-      "top-right",
-    );
+    instance.addControl(new ScaleControl({ maxWidth: 120, unit: "metric" }), "bottom-left");
+    instance.addControl(new AttributionControl({ compact: true }), "bottom-left");
 
     const report = () => {
       const { lng, lat } = instance.getCenter();
-      onCursor({ lon: lng, lat, zoom: instance.getZoom() });
+      handlers.current.onCursor({ lon: lng, lat, zoom: instance.getZoom() });
       const bounds = instance.getBounds();
       handlers.current.onBounds([
         bounds.getWest(),
@@ -117,13 +131,24 @@ export function MapView({
         bounds.getNorth(),
       ]);
     };
+    const settle = () => {
+      const { lng, lat } = instance.getCenter();
+      setCenter({ lon: lng, lat });
+    };
     instance.on("move", report);
+    instance.on("moveend", settle);
+    instance.on("rotate", () => setRotation(instance.getBearing()));
     instance.on("mousemove", (e: MapMouseEvent) =>
-      onCursor({ lon: e.lngLat.lng, lat: e.lngLat.lat, zoom: instance.getZoom() }),
+      handlers.current.onCursor({ lon: e.lngLat.lng, lat: e.lngLat.lat, zoom: instance.getZoom() }),
     );
+    // A manual pan stops following the own position.
+    instance.on("dragstart", () => {
+      follow.current = false;
+    });
     instance.on("load", () => {
       setReady(true);
       report();
+      settle();
     });
 
     // Right-click to drop a POI. The browser menu is suppressed by MapLibre.
@@ -168,8 +193,13 @@ export function MapView({
     canvas.addEventListener("touchend", cancelPress);
     canvas.addEventListener("touchcancel", cancelPress);
 
+    // The panel opens and closes next to the map, not just on window resize.
+    const resize = new ResizeObserver(() => instance.resize());
+    resize.observe(container.current);
+
     map.current = instance;
     return () => {
+      resize.disconnect();
       cancelPress();
       canvas.removeEventListener("touchstart", onTouchStart);
       canvas.removeEventListener("touchmove", onTouchMove);
@@ -177,6 +207,10 @@ export function MapView({
       canvas.removeEventListener("touchcancel", cancelPress);
       for (const marker of markers.current.values()) marker.remove();
       markers.current.clear();
+      own.current?.remove();
+      own.current = null;
+      if (watch.current !== null) navigator.geolocation.clearWatch(watch.current);
+      watch.current = null;
       instance.remove();
       map.current = null;
     };
@@ -193,14 +227,14 @@ export function MapView({
     instance.setMaxZoom(maxZoom);
   }, [regionsKey, theme, maxZoom, ready]);
 
-  // Frame a region picked from the sidebar.
+  // Frame a region picked from the panel.
   useEffect(() => {
     const instance = map.current;
     if (!instance || !ready || !regionFocus) return;
     instance.fitBounds(regionFocus.bbox, { padding: 24, duration: 600 });
   }, [regionFocus, ready]);
 
-  // Boundary of the candidate being considered in the add dialog.
+  // Boundary of the candidate being considered in the add view, in --info.
   useEffect(() => {
     const instance = map.current;
     if (!instance || !ready) return;
@@ -235,13 +269,13 @@ export function MapView({
         id: `${PREVIEW_SOURCE}-fill`,
         type: "fill",
         source: PREVIEW_SOURCE,
-        paint: { "fill-color": "#4f8cff", "fill-opacity": 0.12 },
+        paint: { "fill-color": token("--info-soft") },
       });
       instance.addLayer({
         id: `${PREVIEW_SOURCE}-line`,
         type: "line",
         source: PREVIEW_SOURCE,
-        paint: { "line-color": "#4f8cff", "line-width": 2, "line-dasharray": [2, 1] },
+        paint: { "line-color": token("--info"), "line-width": 2, "line-dasharray": [2, 1] },
       });
     };
 
@@ -262,9 +296,9 @@ export function MapView({
     if (bounds) instance.fitBounds(bounds, { padding: 48, duration: 600 });
   }, [preview, ready]);
 
-  // Points of interest. These are DOM markers rather than a symbol layer: they
-  // survive setStyle (which drops custom sources), they render emoji without
-  // any sprite or glyph work, and MapLibre gives us dragging for free.
+  // Points of interest: square "saved place" markers with a mono label. DOM
+  // markers survive setStyle (which drops custom sources), take their colours
+  // from the tokens, and MapLibre gives us dragging for free.
   useEffect(() => {
     const instance = map.current;
     if (!instance || !ready) return;
@@ -274,6 +308,7 @@ export function MapView({
     for (const poi of pois) {
       seen.add(poi.id);
       const existing = markers.current.get(poi.id);
+      const selected = poi.id === selectedPoiId;
 
       if (existing) {
         const position = existing.getLngLat();
@@ -281,21 +316,28 @@ export function MapView({
           existing.setLngLat([poi.lon, poi.lat]);
         }
         const element = existing.getElement();
-        if (element.textContent !== poi.emoji) element.textContent = poi.emoji;
-        element.title = poi.name;
-        element.setAttribute("aria-label", `${poi.name} — ${poi.emoji}`);
-        element.classList.toggle("selected", poi.id === selectedPoiId);
+        const label = element.querySelector(".mk-label");
+        if (label && label.textContent !== poi.name) label.textContent = poi.name;
+        element.setAttribute("aria-label", `Saved place ${poi.name}`);
+        element.setAttribute("aria-pressed", String(selected));
         continue;
       }
 
       const element = document.createElement("button");
       element.type = "button";
-      element.className = poi.id === selectedPoiId ? "poi-marker selected" : "poi-marker";
-      element.textContent = poi.emoji;
-      element.title = poi.name;
-      element.setAttribute("aria-label", `${poi.name} — ${poi.emoji}`);
+      element.className = "mk poi-mk";
+      element.setAttribute("aria-label", `Saved place ${poi.name}`);
+      element.setAttribute("aria-pressed", String(selected));
+      const shape = document.createElement("span");
+      shape.className = "mk-shape";
+      const label = document.createElement("span");
+      label.className = "mk-label";
+      label.textContent = poi.name;
+      element.append(shape, label);
 
-      const marker = new Marker({ element, anchor: "bottom", draggable: true })
+      // Anchored at the top, then shifted up by half the 16 px square so the
+      // square's centre sits on the coordinate and the label hangs below.
+      const marker = new Marker({ element, anchor: "top", offset: [0, -8], draggable: true })
         .setLngLat([poi.lon, poi.lat])
         .addTo(instance);
 
@@ -327,7 +369,7 @@ export function MapView({
     }
   }, [pois, selectedPoiId, ready]);
 
-  // Centre on a POI picked from the sidebar.
+  // Centre on a POI picked from the panel.
   useEffect(() => {
     const instance = map.current;
     if (!instance || !ready || !focus) return;
@@ -338,7 +380,128 @@ export function MapView({
     });
   }, [focus, ready]);
 
-  return <div ref={container} className="map" />;
+  function locate() {
+    const instance = map.current;
+    if (!instance) return;
+    if (!("geolocation" in navigator) || !window.isSecureContext) {
+      toast("Location needs HTTPS or localhost. Open the map on this device via localhost.");
+      return;
+    }
+    follow.current = true;
+    const marker = own.current;
+    if (marker) {
+      instance.easeTo({ center: marker.getLngLat(), zoom: Math.max(instance.getZoom(), 14) });
+    }
+    if (watch.current !== null) return;
+
+    watch.current = navigator.geolocation.watchPosition(
+      (pos) => {
+        const { latitude: lat, longitude: lon, accuracy } = pos.coords;
+        handlers.current.onFix({ lat, lon, accuracy, at: pos.timestamp });
+        if (!own.current) {
+          const element = document.createElement("div");
+          element.className = "mk mk-own";
+          element.setAttribute("role", "img");
+          element.setAttribute("aria-label", "Your position");
+          const shape = document.createElement("span");
+          shape.className = "mk-shape";
+          element.append(shape);
+          own.current = new Marker({ element, anchor: "center" }).setLngLat([lon, lat]).addTo(instance);
+        } else {
+          own.current.setLngLat([lon, lat]);
+        }
+        if (follow.current) {
+          instance.easeTo({ center: [lon, lat], zoom: Math.max(instance.getZoom(), 14) });
+        }
+      },
+      (err) => {
+        handlers.current.onFix(null);
+        if (watch.current !== null) navigator.geolocation.clearWatch(watch.current);
+        watch.current = null;
+        toast(
+          err.code === err.PERMISSION_DENIED
+            ? "Location blocked. Allow it in the browser settings, then try again."
+            : "No position fix. Move to open sky and try again.",
+        );
+      },
+      { enableHighAccuracy: true, maximumAge: 10_000 },
+    );
+  }
+
+  // Cache badge: which downloaded region the map centre falls in.
+  const cached = useMemo(() => {
+    if (!center) return undefined;
+    return regions.find(
+      (r) =>
+        center.lon >= r.bbox[0] &&
+        center.lon <= r.bbox[2] &&
+        center.lat >= r.bbox[1] &&
+        center.lat <= r.bbox[3],
+    );
+  }, [center, regions]);
+
+  return (
+    <div className="map-view">
+      <div ref={container} className="map-canvas" />
+
+      {center && regions.length > 0 && (
+        <span
+          className={`badge map-badge ${cached ? "badge-ok" : "badge-cau"}`}
+          role="status"
+        >
+          <Icon name={cached ? "ok" : "caution"} />
+          <span className="map-badge-text">
+            {cached ? `Tiles cached · ${cached.label}` : "Not cached · outside regions"}
+          </span>
+        </span>
+      )}
+
+      <div className="map-ctrls">
+        <button
+          type="button"
+          className="btn btn-icon"
+          aria-label={panelOpen ? "Hide regions and places" : "Show regions and places"}
+          aria-pressed={panelOpen}
+          aria-controls="maps-panel"
+          onClick={onTogglePanel}
+        >
+          <Icon name="list" />
+        </button>
+        <div className="group" role="group" aria-label="Zoom">
+          <button
+            type="button"
+            className="btn btn-icon"
+            aria-label="Zoom in"
+            onClick={() => map.current?.zoomIn()}
+          >
+            <Icon name="plus" />
+          </button>
+          <button
+            type="button"
+            className="btn btn-icon"
+            aria-label="Zoom out"
+            onClick={() => map.current?.zoomOut()}
+          >
+            <Icon name="minus" />
+          </button>
+        </div>
+        <button
+          type="button"
+          className="btn btn-icon map-compass"
+          aria-label={`Reset to north, heading ${fmtBearing(rotation)}`}
+          title={`Heading ${fmtBearing(rotation)}`}
+          onClick={() => map.current?.easeTo({ bearing: 0, pitch: 0 })}
+          style={{ "--map-bearing": `${-rotation}deg` } as React.CSSProperties}
+        >
+          <Icon name="compass" />
+        </button>
+      </div>
+
+      <button type="button" className="map-locate" aria-label="Show my position" onClick={locate}>
+        <Icon name="locate" />
+      </button>
+    </div>
+  );
 }
 
 /** Bounding box of a preview polygon, for framing the map on it. */

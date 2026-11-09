@@ -5,6 +5,9 @@ WORKDIR /app
 COPY package.json package-lock.json tsconfig.base.json ./
 COPY packages/ packages/
 COPY apps/ apps/
+# apps/frontend/src/outpost-ui is a gitignored copy of the shared ../../ui
+# package (outside this build context), placed there by install.sh/start.sh.
+RUN test -f apps/frontend/src/outpost-ui/outpost.css || { echo "apps/frontend/src/outpost-ui/outpost.css is missing: run ./start.sh, which copies ../../ui" >&2; exit 1; }
 # better-sqlite3 ships a binding.gyp, and npm's default for that is `node-gyp
 # rebuild` even though the package has no install script. This image has no
 # compiler, and it does not need one: the package bundles N-API prebuilds, and

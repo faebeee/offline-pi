@@ -1,6 +1,31 @@
 import { Injectable } from "@nestjs/common";
-import { layers, namedFlavor } from "@protomaps/basemaps";
+import { layers, namedFlavor, type Flavor } from "@protomaps/basemaps";
 import type { Region, Theme } from "@offline-maps/shared";
+
+/**
+ * The viewer's dark/light themes follow the Outpost UI tokens (DESIGN.md
+ * section 7, "Map"): the ground is `--map`, no-data areas are `--bg`, water is
+ * a muted `--info`. Only the surfaces are tuned; roads, labels and POI colours
+ * stay as the flavor ships them. The other flavors are left untouched.
+ */
+const OUTPOST: Partial<Record<Theme, Partial<Flavor>>> = {
+  dark: {
+    background: "#0A0E0D", // --bg
+    earth: "#0E1412", // --map
+    water: "#14292C", // --info at ~12% over --map
+    boundaries: "#405049", // --line2
+  },
+  light: {
+    background: "#E8ECE9", // --bg
+    earth: "#F1F3EC", // --map
+    water: "#BFD9DA", // --info at ~20% over --map
+    boundaries: "#97A69F", // --line2
+  },
+};
+
+function flavorFor(theme: Theme): Flavor {
+  return { ...namedFlavor(theme), ...OUTPOST[theme] };
+}
 
 const ATTRIBUTION =
   '<a href="https://protomaps.com">Protomaps</a> © <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>';
@@ -17,7 +42,7 @@ export class StyleService {
    * server, so the viewer never needs a CDN.
    */
   build(region: Region, theme: Theme, origin: string) {
-    const flavor = namedFlavor(theme);
+    const flavor = flavorFor(theme);
     return {
       version: 8 as const,
       name: `${region.label} (${theme})`,
@@ -58,7 +83,7 @@ export class StyleService {
    * inside that region's extent — N sources does not mean N times the requests.
    */
   buildAll(regions: Region[], theme: Theme, origin: string) {
-    const flavor = namedFlavor(theme);
+    const flavor = flavorFor(theme);
 
     const background = {
       id: "background",

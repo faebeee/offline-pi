@@ -24,6 +24,8 @@ LIBRARY="$DATA/library.xml"
 CATALOG_URL="${CATALOG_URL:-https://library.kiwix.org/catalog/v2/entries?count=100000}"
 CATALOG_TTL="${CATALOG_TTL:-86400}"
 PORT="${PORT:-8080}"
+# Outpost landing page, generated at image build (build-index.sh)
+INDEX_HTML="${INDEX_HTML:-/usr/share/knowledge/index.html}"
 
 log_info()  { printf '\033[1;34m[info]\033[0m %s\n' "$*"; }
 log_warn()  { printf '\033[1;33m[warn]\033[0m %s\n' "$*"; }
@@ -283,8 +285,14 @@ cmd_serve() {
     # Background: content shows up in kiwix-serve as each download finishes.
     ( cmd_sync || log_error "Startup sync failed; run './manage.sh sync' to retry." ) &
   fi
+  local -a index=()
+  if [[ -f "$INDEX_HTML" ]]; then
+    index=(--customIndex="$INDEX_HTML")
+  else
+    log_warn "No landing page at $INDEX_HTML; serving Kiwix's default."
+  fi
   exec kiwix-serve --library --monitorLibrary --port="$PORT" \
-    --address="${BIND_ADDRESS:-all}" "$LIBRARY"
+    --address="${BIND_ADDRESS:-all}" "${index[@]}" "$LIBRARY"
 }
 
 case "${1:-}" in

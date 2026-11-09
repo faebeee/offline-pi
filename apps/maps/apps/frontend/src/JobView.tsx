@@ -1,33 +1,36 @@
-import { formatBytes, type Job } from "./api";
+import { bytes } from "./outpost-ui/outpost.js";
+import type { Job } from "./api";
+import { Progress } from "./ui";
 
 /** Progress bar + live log, shared by the download and setup flows. */
 export function JobView({ job }: { job: Job }) {
-  const percent = job.progress?.percent ?? 0;
+  const p = job.progress;
+  const percent = p?.percent ?? 0;
   const tail = job.log.slice(-4);
+
+  let readout = "";
+  if (p && p.total > 0) readout = `${Math.round(percent)}% · ${amount(p.bytes, p.total)}`;
+  else if (p) readout = `${Math.round(percent)}%`;
 
   return (
     <div className="job">
-      <div className="job-head">
-        <span>{job.stage}</span>
-        {job.progress && job.progress.total > 0 && (
-          <span className="muted small tabular">
-            {formatBytes(job.progress.bytes)} / {formatBytes(job.progress.total)}
-          </span>
-        )}
+      <div className="progress-head">
+        <span className="label">{job.stage}</span>
+        {readout && <span className="data body-sm">{readout}</span>}
       </div>
-
-      <div className="bar" role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>
-        <div
-          className={job.progress ? "bar-fill" : "bar-fill indeterminate"}
-          style={job.progress ? { width: `${percent}%` } : undefined}
-        />
-      </div>
-
-      {tail.length > 0 && (
-        <pre className="job-log">{tail.map(stripAnsi).join("\n")}</pre>
-      )}
+      <Progress ratio={percent / 100} />
+      {tail.length > 0 && <pre className="job-log">{tail.map(stripAnsi).join("\n")}</pre>}
     </div>
   );
+}
+
+/** "1.4 / 2.3 GB": the unit once when both sides share it. */
+function amount(done: number, total: number): string {
+  const a = bytes(done);
+  const b = bytes(total);
+  const unitA = a.split(" ")[1];
+  const unitB = b.split(" ")[1];
+  return unitA === unitB ? `${a.split(" ")[0]} / ${b}` : `${a} / ${b}`;
 }
 
 /** Service logs are written for a terminal; drop the colour codes. */

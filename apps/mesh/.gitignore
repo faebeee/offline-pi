@@ -1,0 +1,10 @@
+data/
+public/ui/
+.env
+.env.*
+!.env.example
+__pycache__/
+.pytest_cache/
+.venv/
+*.log
+.DS_Store

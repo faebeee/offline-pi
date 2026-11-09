@@ -10,8 +10,15 @@ Raspberry Pi), with no runtime dependency on the internet or a CDN once set up.
 | [`apps/monitor`](apps/monitor/README.md) | `8080` | Realtime Pi dashboard (NestJS + WebSockets): temperature, input voltage, throttling, PSU limits, CPU, memory, storage and network. Uses Podman Compose. |
 | [`apps/maps`](apps/maps/README.md) | `8081` | Self-hosted vector map tiles with a browser viewer: download a region once, then pan/zoom with no internet connection. Uses Podman Compose. |
 | [`apps/knowledge`](apps/knowledge/README.md) | `8082` | Offline emergency-knowledge library via `kiwix-serve`; the container downloads the ZIM set from `zims.txt` itself. Uses Podman Compose. |
+| [`apps/mesh`](apps/mesh/README.md) | `8084` | Web UI for a USB Meshtastic LoRa node: send/receive channel and direct messages, node list, history kept on the Pi. Uses Podman Compose. |
+| [`apps/mesh-map`](apps/mesh-map/README.md) | `8086` | Offline map of the Meshtastic nodes heard by `apps/mesh`, updated live; reuses `apps/maps`' downloaded regions read-only. Uses Podman Compose. |
 
 See each app's own README for setup, architecture and usage details.
+
+All web UIs share one look and feel, the Outpost design system:
+[`DESIGN.md`](DESIGN.md) is the spec and [`ui/`](ui/README.md) the shared
+package (tokens, fonts, icons, components) every app builds from. Each app's
+`install.sh`/`start.sh` copies it in before building.
 
 ## Running an app
 

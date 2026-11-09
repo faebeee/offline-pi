@@ -27,6 +27,7 @@ if [[ ! -d "${DATA_DIR:-./data}" ]]; then
   exit 1
 fi
 
+sync_ui
 log_info "Starting pi-monitor..."
 # --force-recreate: podman-compose only replaces a running container when
 # the compose config changed, not when --build produced a new image.

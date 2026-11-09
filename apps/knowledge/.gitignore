@@ -4,3 +4,4 @@ data/
 *.zim.meta4
 .cache/
 *.aria2
+container/ui/

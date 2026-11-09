@@ -103,6 +103,14 @@ mkdir -p "$CONTENT_DIR/zim"
 # ---------------------------------------------------------------------------
 # Step 3: build the image (bakes in zims.txt)
 # ---------------------------------------------------------------------------
+# Outpost UI: copy ../../ui into the build context (the landing page is
+# generated from it at image build; the copy is gitignored).
+if [[ ! -x "$SCRIPT_DIR/../../ui/sync.sh" ]]; then
+  log_error "Missing $SCRIPT_DIR/../../ui/sync.sh; run this from a full checkout of the repo."
+  exit 1
+fi
+"$SCRIPT_DIR/../../ui/sync.sh" "$SCRIPT_DIR/container/ui"
+
 log_info "Building the image..."
 compose --env-file "$ENV_FILE" build
 log_ok "Image built"
