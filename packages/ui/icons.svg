@@ -27,6 +27,7 @@
     <symbol id="external" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="square" stroke-linejoin="miter"><path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/></g></symbol>
     <symbol id="fit" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="square" stroke-linejoin="miter"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></g></symbol>
     <symbol id="list" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="square" stroke-linejoin="miter"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></g></symbol>
+    <symbol id="logs" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="square" stroke-linejoin="miter"><path d="M3 4h18v16H3z"/><path d="M7 9l3 3-3 3M12 15h5"/></g></symbol>
     <symbol id="refresh" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="square" stroke-linejoin="miter"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/></g></symbol>
     <symbol id="compass" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="square" stroke-linejoin="miter"><circle cx="12" cy="12" r="9"/><path d="M15 9l-2 5-4 1 2-5z"/></g></symbol>
     <symbol id="message" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="square" stroke-linejoin="miter"><path d="M4 5h16v11H9l-5 4z"/></g></symbol>

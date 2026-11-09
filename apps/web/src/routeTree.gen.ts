@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LogsRouteImport } from './routes/logs'
 import { Route as MapsRouteImport } from './routes/maps'
 import { Route as MeshRouteImport } from './routes/mesh'
 import { Route as MeshMapRouteImport } from './routes/mesh-map'
@@ -22,6 +23,11 @@ import { Route as MeshNodesRouteImport } from './routes/mesh.nodes'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LogsRoute = LogsRouteImport.update({
+  id: '/logs',
+  path: '/logs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MapsRoute = MapsRouteImport.update({
@@ -67,6 +73,7 @@ const MeshNodesRoute = MeshNodesRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/logs': typeof LogsRoute
   '/maps': typeof MapsRoute
   '/mesh': typeof MeshRouteWithChildren
   '/mesh-map': typeof MeshMapRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/logs': typeof LogsRoute
   '/maps': typeof MapsRoute
   '/mesh-map': typeof MeshMapRoute
   '/system': typeof SystemRoute
@@ -89,6 +97,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/logs': typeof LogsRoute
   '/maps': typeof MapsRoute
   '/mesh': typeof MeshRouteWithChildren
   '/mesh-map': typeof MeshMapRoute
@@ -102,6 +111,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/logs'
     | '/maps'
     | '/mesh'
     | '/mesh-map'
@@ -113,6 +123,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/logs'
     | '/maps'
     | '/mesh-map'
     | '/system'
@@ -123,6 +134,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/logs'
     | '/maps'
     | '/mesh'
     | '/mesh-map'
@@ -135,6 +147,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LogsRoute: typeof LogsRoute
   MapsRoute: typeof MapsRoute
   MeshRoute: typeof MeshRouteWithChildren
   MeshMapRoute: typeof MeshMapRoute
@@ -150,6 +163,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/logs': {
+      id: '/logs'
+      path: '/logs'
+      fullPath: '/logs'
+      preLoaderRoute: typeof LogsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/maps': {
@@ -225,6 +245,7 @@ const MeshRouteWithChildren = MeshRoute._addFileChildren(MeshRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LogsRoute: LogsRoute,
   MapsRoute: MapsRoute,
   MeshRoute: MeshRouteWithChildren,
   MeshMapRoute: MeshMapRoute,

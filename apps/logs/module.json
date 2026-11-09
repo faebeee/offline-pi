@@ -1,0 +1,11 @@
+{
+  "id": "logs",
+  "num": 6,
+  "label": "Logs",
+  "icon": "logs",
+  "description": "Log lines of core and every module, live, filterable by level, for debugging.",
+  "service": "core",
+  "path": "/logs/",
+  "dirs": [],
+  "optional": false
+}

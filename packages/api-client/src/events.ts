@@ -7,7 +7,7 @@
  * the payload classes, run `npm run api:gen`, then add them here.
  */
 import { io, type Socket } from "socket.io-client";
-import type { Job, MeshLink, MeshMessage, MeshNode, RadioStatus, Snapshot, SystemInit } from "./generated/model";
+import type { Job, LogBatch, LogFollowError, MeshLink, MeshMessage, MeshNode, RadioStatus, Snapshot, SystemInit } from "./generated/model";
 
 export interface ServerEvents {
   "/system": {
@@ -27,6 +27,12 @@ export interface ServerEvents {
     node: (data: MeshNode) => void;
     nodes: (data: MeshNode[]) => void;
   };
+  "/logs": {
+    /** new lines of a followed source, in batches */
+    entries: (data: LogBatch) => void;
+    /** a followed source's stream failed or ended (container stopped); follow again to resume */
+    followError: (data: LogFollowError) => void;
+  };
 }
 
 /** Events the browser sends, per namespace. */
@@ -37,6 +43,11 @@ export interface ClientEvents {
     unwatchJob: (jobId: string) => void;
   };
   "/mesh": Record<string, never>;
+  "/logs": {
+    /** source = "core" or a module id */
+    follow: (source: string) => void;
+    unfollow: (source: string) => void;
+  };
 }
 
 export type Namespace = keyof ServerEvents;

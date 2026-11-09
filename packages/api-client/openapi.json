@@ -868,6 +868,70 @@
           "library"
         ]
       }
+    },
+    "/api/logs/sources": {
+      "get": {
+        "operationId": "logsSources",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogSources"
+                }
+              }
+            }
+          }
+        },
+        "summary": "core and every installed module, with its container state.",
+        "tags": [
+          "logs"
+        ]
+      }
+    },
+    "/api/logs/{source}": {
+      "get": {
+        "operationId": "logsEntries",
+        "parameters": [
+          {
+            "name": "source",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tail",
+            "required": false,
+            "in": "query",
+            "description": "how many of the last lines (default 500, max 5000)",
+            "schema": {
+              "minimum": 1,
+              "maximum": 5000,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogPage"
+                }
+              }
+            }
+          }
+        },
+        "summary": "The last lines of one source (\"core\" or a module id), oldest first.",
+        "tags": [
+          "logs"
+        ]
+      }
     }
   },
   "info": {
@@ -3025,6 +3089,169 @@
           "total",
           "start",
           "hits"
+        ]
+      },
+      "LogSource": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "\"core\" or the module id"
+          },
+          "label": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "description": "core = core's own Nest logger (in memory); container = podman logs",
+            "enum": [
+              "core",
+              "container"
+            ]
+          },
+          "container": {
+            "type": "string",
+            "description": "podman container name"
+          },
+          "state": {
+            "type": "string",
+            "description": "container state (running, exited, missing, ...)"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "kind",
+          "container",
+          "state"
+        ]
+      },
+      "LogSources": {
+        "type": "object",
+        "properties": {
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LogSource"
+            }
+          },
+          "containerError": {
+            "type": "string",
+            "nullable": true,
+            "description": "why container logs can't be read (no podman socket), else null"
+          }
+        },
+        "required": [
+          "sources",
+          "containerError"
+        ]
+      },
+      "LogEntry": {
+        "type": "object",
+        "properties": {
+          "ts": {
+            "type": "number",
+            "nullable": true,
+            "description": "ms since epoch; null when the line carries no time"
+          },
+          "level": {
+            "type": "string",
+            "description": "parsed from the line (Nest, JSON, Python logging); \"log\" when unknown",
+            "enum": [
+              "error",
+              "verbose",
+              "debug",
+              "log",
+              "warn",
+              "fatal"
+            ]
+          },
+          "context": {
+            "type": "string",
+            "nullable": true,
+            "description": "Nest context or logger name, e.g. \"ModulesService\""
+          },
+          "message": {
+            "type": "string"
+          },
+          "stream": {
+            "type": "string",
+            "nullable": true,
+            "description": "the container stream it came from (null for core's own buffer)",
+            "enum": [
+              "stdout",
+              "stderr"
+            ]
+          }
+        },
+        "required": [
+          "ts",
+          "level",
+          "context",
+          "message",
+          "stream"
+        ]
+      },
+      "LogPage": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "available": {
+            "type": "boolean",
+            "description": "false when the logs can't be read; see error"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "entries": {
+            "description": "oldest first",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LogEntry"
+            }
+          }
+        },
+        "required": [
+          "source",
+          "available",
+          "error",
+          "entries"
+        ]
+      },
+      "LogBatch": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LogEntry"
+            }
+          }
+        },
+        "required": [
+          "source",
+          "entries"
+        ]
+      },
+      "LogFollowError": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "message"
         ]
       },
       "MeshLink": {

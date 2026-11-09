@@ -1,0 +1,127 @@
+/* Logs: screen-specific layout only. Components, tokens and fonts come from
+   @offline-pi/ui/outpost.css. Tokens only: no colours or fonts. */
+
+.logs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.logs-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.logs-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.logs-filters > .seg {
+  flex: 1 1 280px;
+}
+
+.logs-search {
+  flex: 999 1 220px;
+}
+
+.logs-tail {
+  width: auto;
+  flex: 0 0 auto;
+}
+
+/* the lines scroll inside the card, so the filters stay in view */
+.logs-view {
+  height: max(320px, calc(100dvh - 420px));
+  overflow: auto;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  overscroll-behavior: contain;
+}
+
+.logs-empty {
+  padding: var(--space-4);
+}
+
+.logs-lines {
+  margin: 0;
+  padding: var(--space-1) 0;
+  list-style: none;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+
+.log-line {
+  display: grid;
+  grid-template-columns: max-content 8ch minmax(0, 1fr);
+  gap: var(--space-3);
+  padding: 1px var(--space-3);
+  border-left: 2px solid transparent;
+}
+
+.log-ts {
+  color: var(--fg3);
+}
+
+.log-level {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  color: var(--fg2);
+  text-transform: uppercase;
+}
+
+.log-level > .i {
+  align-self: center;
+}
+
+.log-msg {
+  color: var(--fg);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.log-ctx {
+  color: var(--fg2);
+}
+
+.log-line.is-warn {
+  border-left-color: var(--cau);
+}
+
+.log-line.is-warn .log-level {
+  color: var(--cau);
+}
+
+.log-line.is-error,
+.log-line.is-fatal {
+  border-left-color: var(--crit);
+  background: var(--crit-soft);
+}
+
+.log-line.is-error .log-level,
+.log-line.is-fatal .log-level {
+  color: var(--crit);
+}
+
+.log-line.is-debug .log-msg,
+.log-line.is-verbose .log-msg {
+  color: var(--fg2);
+}
+
+/* phones: the time goes above the level and message */
+@media (max-width: 560px) {
+  .log-line {
+    grid-template-columns: 8ch minmax(0, 1fr);
+    gap: 0 var(--space-2);
+  }
+
+  .log-ts {
+    grid-column: 1 / -1;
+  }
+}

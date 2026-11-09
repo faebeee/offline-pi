@@ -406,3 +406,6 @@ The visual reference (foundations, components, Hub, Maps, Library and Mesh scree
   - **Status strip** stays mounted across screens (one clock); each screen sets its link and items while it is shown.
   - **Module nav** is rendered by React from `/api/modules` with router links (no page reloads); same classes, same order, same dimmed `.is-off` state.
   - **Module gate**: a module's route shows, instead of its screen, an info banner with its START button when it is stopped, and says how to install or configure it otherwise (it was on the home page in 0.3).
+- 0.5 (2026-11): Logs module (`/logs`, served by core, number 06).
+  - **Icon** `logs` (terminal frame with prompt and cursor line), the Logs module's nav and tile icon.
+  - **Log lines** (`apps/web/src/features/logs/logs.css`, tokens only): mono 12 px lines in a scrolling `--bg` box with a `--line` border; each line is UTC time (`HH:MM:SS.mmm`, `--fg3`), the level written out in uppercase, then `[context]` (`--fg2`) and the message (pre-wrapped). Warnings get a 2 px `--cau` left edge, a caution icon and a `--cau` level word; errors and fatal a 2 px `--crit` edge, `--crit-soft` background, a critical icon and a `--crit` level word; debug and verbose messages are `--fg2`. The level is always written, so it is never colour alone. The view sticks to the newest line unless the user scrolled up.

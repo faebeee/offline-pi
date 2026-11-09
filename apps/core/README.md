@@ -7,7 +7,7 @@ serves:
 
 - `/`: the **web app** ([`apps/web`](../web/README.md)), every screen of
   every module: home (tiles and on/off switches), `/system` (the System
-  module, below), `/maps`, `/mesh`, ... (client-side routes; page loads get
+  module, below), `/logs` (the Logs module, [`apps/logs`](../logs/README.md)), `/maps`, `/mesh`, ... (client-side routes; page loads get
   its `index.html`);
 - `/api/<domain>/`: the API (table below), Swagger UI at `/api/docs`, the
   document at `/api/openapi.json`;
@@ -75,6 +75,7 @@ Set in the root `.env` (see the root README); the ones specific to core:
 | `PORT` / `BIND_ADDRESS` | `8080` / `0.0.0.0` | Where offline-pi is reachable. |
 | `CORE_DATA_DIR` | `./data/core` | `history.json` (24 h history + power events, < 1 MB) and `modules.json`. |
 | `SAMPLE_INTERVAL_MS` | `2000` | How often the Pi is sampled and pushed to dashboards (min 500). Containers and connections refresh every 5 s. |
+| `CORE_LOG_LEVEL` | `log` | Least severe level core logs: `verbose`, `debug`, `log`, `warn`, `error`, `fatal`. |
 | `CONTROL_PIN` | empty | PIN for starting/stopping modules (asked once per browser tab). |
 | `PODMAN_GRAPH_ROOT` | from `podman info` | Host path of Podman's storage, whose `db.sql` lists the containers. Empty = search the default locations. |
 | `PODMAN_SOCKET` | from `podman info` | Host path of your Podman API socket (module start/stop). |
@@ -118,6 +119,7 @@ core, or `packages/api-client/openapi.json`). By domain:
 |---|---|---|
 | modules | `GET /api/modules`; `POST /api/modules/:id/start` / `stop` (header `X-Pi-Monitor: 1`; `X-Control-Pin` when `CONTROL_PIN` is set) | |
 | system | `GET /api/system/status` (healthcheck: 200 while samples are fresh), `snapshot`, `history` | `/system`: `init` on connect, then `snapshot` per sample |
+| logs | `GET /api/logs/sources`, `GET /api/logs/:source?tail=` (`core` or a module id) | `/logs`: send `follow` / `unfollow` with a source, get `entries` (batches), `followError` |
 | maps | `GET /api/maps/status`, `regions`, `places?q=`, `jobs`, `jobs/:id`, `pois`, `styles/:name?theme=`; `POST setup`, `downloads`, `downloads/:id/confirm`, `pois`; `PATCH pois/:id`; `DELETE regions/:name`, `jobs/:id`, `pois/:id` | `/maps`: send `watchJob` / `unwatchJob`, get `job` |
 | mesh | `GET /api/mesh/status`, `conversations`, `messages?conv=`, `nodes`; `POST messages` (`X-Send-PIN`) | `/mesh`: `link`, `status`, `message`, `node`, `nodes` |
 | mesh-map | `GET /api/mesh-map/overview` (regions, assets, positioned nodes) | uses `/mesh` |

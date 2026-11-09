@@ -5,6 +5,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { SwaggerModule } from '@nestjs/swagger';
 import { dirname } from 'node:path';
 import { AppModule } from './app.module';
+import { CoreLogger } from './platform/logging/core-logger';
 import { ErrorsFilter } from './platform/http/errors.filter';
 import { ModulesService } from './platform/modules/modules.service';
 import { buildOpenApi } from './platform/openapi/openapi';
@@ -13,7 +14,9 @@ import { serveWeb } from './platform/web/web';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    logger: ['log', 'warn', 'error'],
+    // Nest's console logger that also keeps the lines for the logs screen
+    // (CORE_LOG_LEVEL sets the least severe level, default "log")
+    logger: new CoreLogger(),
     // the passthrough (/svc/) must get request bodies untouched; the JSON
     // parser is added after it, so only core's own API parses bodies
     bodyParser: false,

@@ -35,6 +35,7 @@ tsconfig.base.json       # shared TypeScript base config
 .dockerignore            # images build with the repo root as context
 apps/<name>/             # one module: Dockerfile, code, module.json, README
 apps/core/               # the API (domains), passthrough, supervisor (always on)
+apps/logs/               # a screen served by core: module.json + README only
 apps/web/                # the web app: every screen of every module
 apps/maps/backend/       # a module's container code (API, data, jobs)
 packages/ui/             # @offline-pi/ui: Outpost design system (DESIGN.md)
@@ -208,6 +209,9 @@ browser.
      `stripPrefix: true` forwards `/svc/radio/x` as `/x`, `false` keeps the
      prefix (for servers that support a URL root, like kiwix's
      `--urlRootLocation=/svc/library`).
+   - A screen core serves itself (System, Logs) has `"service": "core"`,
+     no `portEnv` and `"optional": false`: no container, always on; its
+     domain and screen are added as in steps 6 and 7.
    - `requires`: env vars that must be non-empty before it may start (e.g.
      `MESH_CONNECTION`, set by its configure hook). `dependsOn`: installed
      modules started with it.

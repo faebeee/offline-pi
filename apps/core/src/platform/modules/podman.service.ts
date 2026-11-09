@@ -1,5 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { request } from 'node:http';
+import { type IncomingMessage, request } from 'node:http';
 import { join } from 'node:path';
 import { HOST_ROOT, readText } from '../host/host';
 
@@ -56,6 +56,51 @@ export class PodmanService implements OnModuleInit {
     throw new Error(message || `podman answered HTTP ${status}`);
   }
 
+  /**
+   * A container's log stream (libpod `containers/{name}/logs`, stdout and
+   * stderr, every line prefixed with its RFC 3339 timestamp). The body is
+   * podman's multiplexed format for containers without a TTY (see
+   * domains/logs/infrastructure/log-stream.ts). `tail` = last n lines
+   * (0 = none, e.g. to only follow); `follow` keeps the response open and
+   * streams new lines until it is destroyed.
+   */
+  logs(nameOrId: string, opts: { tail: number; follow: boolean }): Promise<IncomingMessage> {
+    if (!this.socket) return Promise.reject(new Error(this.unavailableReason!));
+    const query = new URLSearchParams({
+      stdout: 'true',
+      stderr: 'true',
+      timestamps: 'true',
+      tail: String(Math.max(0, Math.floor(opts.tail))),
+      follow: String(opts.follow),
+    });
+    const path = `/v4.0.0/libpod/containers/${encodeURIComponent(nameOrId)}/logs?${query}`;
+    return new Promise((resolve, reject) => {
+      const req = request({ socketPath: this.socket!, path, method: 'GET' }, (res) => {
+        if (res.statusCode === 200) return resolve(res);
+        let body = '';
+        res.setEncoding('utf8');
+        res.on('data', (chunk: string) => (body += chunk));
+        res.on('end', () => {
+          let message = body.trim();
+          try {
+            message = JSON.parse(body).message ?? message;
+          } catch {
+            // not JSON
+          }
+          reject(new Error(res.statusCode === 404 ? `no container ${nameOrId}` : message || `podman answered HTTP ${res.statusCode}`));
+        });
+      });
+      // only the answer must be quick; a followed stream may then stay quiet for long
+      const timer = setTimeout(() => req.destroy(new Error('podman did not answer in time')), 10_000);
+      req.on('response', () => clearTimeout(timer));
+      req.on('error', (err: NodeJS.ErrnoException) => {
+        clearTimeout(timer);
+        reject(socketError(err));
+      });
+      req.end();
+    });
+  }
+
   private post(path: string, timeoutMs: number): Promise<{ status: number; body: string }> {
     return new Promise((resolve, reject) => {
       const req = request({ socketPath: this.socket!, path, method: 'POST', timeout: timeoutMs }, (res) => {
@@ -65,16 +110,17 @@ export class PodmanService implements OnModuleInit {
         res.on('end', () => resolve({ status: res.statusCode ?? 0, body }));
       });
       req.on('timeout', () => req.destroy(new Error('podman did not answer in time')));
-      req.on('error', (err: NodeJS.ErrnoException) => {
-        if (err.code === 'ENOENT' || err.code === 'ECONNREFUSED') {
-          reject(new Error(`Podman socket not reachable (${err.code}). Is podman.socket running? Re-run ./install.sh.`));
-        } else {
-          reject(err);
-        }
-      });
+      req.on('error', (err: NodeJS.ErrnoException) => reject(socketError(err)));
       req.end();
     });
   }
+}
+
+function socketError(err: NodeJS.ErrnoException): Error {
+  if (err.code === 'ENOENT' || err.code === 'ECONNREFUSED') {
+    return new Error(`Podman socket not reachable (${err.code}). Is podman.socket running? Re-run ./install.sh.`);
+  }
+  return err;
 }
 
 /**
