@@ -67,7 +67,7 @@ def wait_for(cond, timeout=3.0):
 def make_settings(tmp_path, **kw):
     base = dict(
         data_dir=tmp_path, connection="serial", device="/dev/null", host="", send_pin="",
-        rate_count=0, rate_window=0, max_text_bytes=200, maps_port="8081",
+        rate_count=0, rate_window=0, max_text_bytes=200, maps_port="8081", mesh_map_port="8086",
     )
     base.update(kw)
     return Settings(**base)
@@ -227,3 +227,25 @@ def test_persists_across_restart(tmp_path):
             else:
                 msgs = client.get("/api/messages", params={"conv": "ch:0"}).json()
                 assert [m["text"] for m in msgs] == ["keep me"]
+
+
+def test_mesh_map_origin_may_read_nodes(setup):
+    client, _, _ = setup
+    page = {"Origin": "http://pi.local:8086", "Host": "pi.local:8084"}
+    r = client.get("/api/nodes", headers=page)
+    assert r.headers["access-control-allow-origin"] == "http://pi.local:8086"
+    assert client.get("/api/status", headers=page).headers["access-control-allow-origin"] == "http://pi.local:8086"
+    # other hosts, other ports (apps/maps included) and other endpoints get no CORS header
+    for headers, path in [
+        ({"Origin": "http://evil.example:8086", "Host": "pi.local:8084"}, "/api/nodes"),
+        ({"Origin": "http://pi.local:8081", "Host": "pi.local:8084"}, "/api/nodes"),
+        (page, "/api/conversations"),
+    ]:
+        assert "access-control-allow-origin" not in client.get(path, headers=headers).headers
+
+
+def test_ports_off(tmp_path, monkeypatch):
+    monkeypatch.setenv("MAPS_PORT", "off")
+    monkeypatch.setenv("MESH_MAP_PORT", "0")
+    s = Settings.from_env()
+    assert s.maps_port == "" and s.mesh_map_port == ""

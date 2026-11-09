@@ -21,6 +21,13 @@ def parse_rate(value: str) -> tuple[int, int]:
     return (int(m.group(1)), _RATE_UNITS[m.group(2)])
 
 
+def _port_or_off(value: str) -> str:
+    """'' for 'off'/'0'/empty. compose's ${VAR:-default} turns an empty value
+    back into the default, so 'off' is the way to disable it from .env."""
+    value = (value or "").strip()
+    return "" if value.lower() in ("", "0", "off", "none") else value
+
+
 @dataclass(frozen=True)
 class Settings:
     data_dir: Path
@@ -32,6 +39,7 @@ class Settings:
     rate_window: int
     max_text_bytes: int
     maps_port: str
+    mesh_map_port: str
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -50,5 +58,8 @@ class Settings:
             # Meshtastic's payload limit is 233 bytes; leave room for headers.
             max_text_bytes=int(os.environ.get("MAX_TEXT_BYTES", "200")),
             # Port of apps/maps on the same host, for "show on map" links; empty hides them.
-            maps_port=os.environ.get("MAPS_PORT", "8081").strip(),
+            maps_port=_port_or_off(os.environ.get("MAPS_PORT", "8081")),
+            # Port of apps/mesh-map: may read the node list (CORS) and is the
+            # preferred "show on map" target; off disables both.
+            mesh_map_port=_port_or_off(os.environ.get("MESH_MAP_PORT", "8086")),
         )

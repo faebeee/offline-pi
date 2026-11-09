@@ -11,6 +11,7 @@ from collections import defaultdict, deque
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 from fastapi import FastAPI, Header, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
@@ -25,6 +26,22 @@ log = logging.getLogger("mesh")
 
 PUBLIC_DIR = Path(__file__).resolve().parent.parent / "public"
 STALE_AFTER = 120  # seconds without any ack before a sent message counts as failed
+# Read-only endpoints the apps/mesh-map page may call from its own origin.
+MESH_MAP_READABLE = ("/api/status", "/api/nodes")
+
+
+def mesh_map_origin_allowed(origin: str, host: str, port: str) -> bool:
+    """True for the apps/mesh-map page on this same host: same hostname as the
+    one the browser used to reach us, port MESH_MAP_PORT. Works under any
+    hostname or IP (hotspot, LAN, mDNS) without listing them."""
+    if not origin or not host or not port:
+        return False
+    try:
+        o = urlsplit(origin)
+        h = urlsplit(f"//{host}")
+        return o.scheme in ("http", "https") and o.hostname == h.hostname and str(o.port) == port
+    except ValueError:
+        return False
 
 
 class SendBody(BaseModel):
@@ -100,11 +117,27 @@ def create_app(settings: Settings | None = None, interface_factory=None, start_r
     app = FastAPI(title="offline-pi mesh", lifespan=lifespan, docs_url=None, redoc_url=None)
     app.state.radio, app.state.store, app.state.hub = radio, store, hub
 
+    @app.middleware("http")
+    async def mesh_map_cors(request: Request, call_next):
+        """Lets apps/mesh-map show the node list on its map. Simple GETs only
+        (no preflight); everything else, sending in particular, stays same-origin."""
+        response = await call_next(request)
+        origin = request.headers.get("origin", "")
+        if (
+            request.method == "GET"
+            and request.url.path in MESH_MAP_READABLE
+            and mesh_map_origin_allowed(origin, request.headers.get("host", ""), settings.mesh_map_port)
+        ):
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Vary"] = "Origin"
+        return response
+
     def ui_config() -> dict[str, Any]:
         return {
             "send_pin_required": bool(settings.send_pin),
             "max_text_bytes": settings.max_text_bytes,
             "maps_port": settings.maps_port,
+            "mesh_map_port": settings.mesh_map_port,
             "rate_limit": {"count": settings.rate_count, "window": settings.rate_window},
         }
 

@@ -10,6 +10,7 @@ services:
       SEND_PIN: ${SEND_PIN:-}
       SEND_RATE_LIMIT: ${SEND_RATE_LIMIT:-5/min}
       MAPS_PORT: ${MAPS_PORT:-8081}
+      MESH_MAP_PORT: ${MESH_MAP_PORT:-8086}
     volumes:
       - ${DATA_DIR:-./data}:/app/data
     devices:

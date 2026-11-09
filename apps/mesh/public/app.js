@@ -7,7 +7,7 @@ const $ = (id) => document.getElementById(id);
 
 const state = {
   status: {},
-  config: { max_text_bytes: 200, send_pin_required: false, maps_port: "" },
+  config: { max_text_bytes: 200, send_pin_required: false, maps_port: "", mesh_map_port: "" },
   nodes: new Map(), // num -> node row
   convs: new Map(), // conv -> { last_id, last_time }
   current: null, // conv key
@@ -94,6 +94,16 @@ function distanceKm(a, b) {
   const dLon = rad(b.longitude - a.longitude);
   const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.latitude)) * Math.cos(rad(b.latitude)) * Math.sin(dLon / 2) ** 2;
   return 2 * 6371 * Math.asin(Math.sqrt(h));
+}
+
+// apps/mesh-map (all nodes, this one opened) if configured, else apps/maps
+// centred on the position. The hash is the map camera in both.
+function mapLink(n) {
+  const camera = `#14/${n.latitude.toFixed(5)}/${n.longitude.toFixed(5)}`;
+  const base = (port) => `${location.protocol}//${location.hostname}:${port}`;
+  if (state.config.mesh_map_port) return `${base(state.config.mesh_map_port)}/?node=${encodeURIComponent(n.node_id || hex(n.num))}${camera}`;
+  if (state.config.maps_port) return `${base(state.config.maps_port)}/${camera}`;
+  return null;
 }
 
 const utf8Bytes = (s) => new TextEncoder().encode(s).length;
@@ -260,9 +270,8 @@ function renderNodes() {
     add("Hardware", n.hw_model && n.hw_model.replaceAll("_", " "));
     const actions = [];
     if (!isMe(n.num)) actions.push(el("button", { type: "button", class: "primary", onclick: () => { switchView("chats"); openConv(`dm:${n.num}`); } }, "Message"));
-    if (n.latitude != null && state.config.maps_port) {
-      actions.push(el("a", { href: `${location.protocol}//${location.hostname}:${state.config.maps_port}/#14/${n.latitude.toFixed(5)}/${n.longitude.toFixed(5)}`, target: "_blank", rel: "noopener" }, "Show on map"));
-    }
+    const mapHref = n.latitude == null ? null : mapLink(n);
+    if (mapHref) actions.push(el("a", { href: mapHref, target: "_blank", rel: "noopener" }, "Show on map"));
     list.append(el("li", { class: "node" },
       el("div", { class: "node-head" },
         el("span", { class: "avatar", "aria-hidden": "true" }, n.short_name || hex(n.num).slice(-4)),

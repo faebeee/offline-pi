@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>Mesh map</title>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <header class="brand">
+          <div class="brand-row">
+            <h1>Mesh map</h1>
+            <span id="mesh-state" class="pill">…</span>
+          </div>
+          <p id="summary" class="muted small"></p>
+        </header>
+        <div id="notice" class="notice" hidden></div>
+        <section class="nodes">
+          <h2 class="section-head">
+            Nodes
+            <button id="fit" type="button" class="link small" hidden>Show all</button>
+          </h2>
+          <p id="nodes-empty" class="muted small" hidden></p>
+          <ul id="node-list" class="node-list"></ul>
+        </section>
+        <footer class="controls">
+          <label class="field">
+            <span class="muted small">Theme</span>
+            <select id="theme"></select>
+          </label>
+          <a id="mesh-link" class="muted small" target="_blank" rel="noopener" hidden>Open Mesh</a>
+        </footer>
+      </aside>
+      <main id="map" class="map"></main>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

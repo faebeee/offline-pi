@@ -8,7 +8,8 @@ Pi by USB. Open `http://<pi>:8084` in any browser on the hotspot or LAN to:
 - send and receive direct messages to/from individual nodes, with delivery
   state (sending, sent to mesh, delivered, failed),
 - see which nodes are around: last heard, hops, signal, battery, distance,
-  and "Show on map" via [`apps/maps`](../maps/README.md).
+  and "Show on map" via [`apps/mesh-map`](../mesh-map/README.md), which
+  shows every node with a position on an offline map (updated live).
 
 The message history and node list are kept on the Pi (SQLite), so they
 survive restarts and are readable even while the radio is unplugged.
@@ -62,14 +63,15 @@ Then open the printed URL (port `8084`).
 | Var | Default | Notes |
 |---|---|---|
 | `DATA_DIR` | `./data` | `mesh.db` (SQLite, small). SD card is fine; can point at an SSD mount, e.g. `/mnt/ssd/mesh/data` |
-| `PORT` | `8084` | Web UI. Siblings: 8080 monitor, 8081 maps, 8082 knowledge, 8083 portal, 8085 radio |
+| `PORT` | `8084` | Web UI. Siblings: 8080 monitor, 8081 maps, 8082 knowledge, 8083 portal, 8085 radio, 8086 mesh-map |
 | `BIND_ADDRESS` | `0.0.0.0` | `127.0.0.1` for this Pi only |
 | `MESH_CONNECTION` | `serial` | `serial` (USB node) or `tcp` (node on the network) |
 | `MESH_DEVICE` | `/dev/ttyACM0` | Set by `install.sh` to the node's `/dev/serial/by-id/...` path; `/dev/null` for `tcp` |
 | `MESH_HOST` | | Node hostname/IP for `tcp` (port 4403) |
 | `SEND_PIN` | | PIN required to send from the web UI; empty = anyone who can open it |
 | `SEND_RATE_LIMIT` | `5/min` | Per client IP, e.g. `30/hour`; `0` = off |
-| `MAPS_PORT` | `8081` | Port of `apps/maps` for "Show on map"; empty hides the links |
+| `MESH_MAP_PORT` | `8086` | Port of [`apps/mesh-map`](../mesh-map/README.md): lets that page read the node list (read-only) and is where "Show on map" goes; `off` disables both |
+| `MAPS_PORT` | `8081` | Port of `apps/maps`, the "Show on map" target when `MESH_MAP_PORT` is `off`; `off` hides the links |
 
 Edit `.env` and run `./start.sh` to apply. Re-running `./install.sh` with a
 new `DATA_DIR` is the supported way to move the history (e.g. to a newly
