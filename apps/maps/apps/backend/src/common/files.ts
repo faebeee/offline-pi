@@ -29,6 +29,11 @@ export async function exists(p: string): Promise<boolean> {
  * bits via `fchmod` after copying, which fails with `EPERM` on filesystems
  * that don't support per-file permissions (e.g. exFAT, common on external
  * USB/SSD storage on a Raspberry Pi). Streaming avoids that call entirely.
+ *
+ * Symlinks are dereferenced and their target's actual content copied instead
+ * of recreated as a symlink, for the same reason: exFAT doesn't support
+ * symlinks either (upstream tarballs like basemaps-assets' fonts/ share
+ * glyphs between stacks via symlinks).
  */
 async function copyDirContents(src: string, dest: string): Promise<void> {
   await fs.mkdir(dest, { recursive: true });
@@ -36,11 +41,13 @@ async function copyDirContents(src: string, dest: string): Promise<void> {
   for (const entry of entries) {
     const srcPath = path.join(src, entry.name);
     const destPath = path.join(dest, entry.name);
-    if (entry.isDirectory()) {
+    if (entry.isSymbolicLink()) {
+      const resolved = await fs.realpath(srcPath);
+      const stat = await fs.stat(resolved);
+      if (stat.isDirectory()) await copyDirContents(resolved, destPath);
+      else await pipeline(createReadStream(resolved), createWriteStream(destPath));
+    } else if (entry.isDirectory()) {
       await copyDirContents(srcPath, destPath);
-    } else if (entry.isSymbolicLink()) {
-      const link = await fs.readlink(srcPath);
-      await fs.symlink(link, destPath);
     } else {
       await pipeline(createReadStream(srcPath), createWriteStream(destPath));
     }
