@@ -22,7 +22,5 @@ export const PATHS = {
   assets: path.join(ROOT, "assets"),
   fonts: path.join(ROOT, "assets", "fonts"),
   sprites: path.join(ROOT, "assets", "sprites"),
-  /** the built viewer (frontend workspace, `vite build`) */
-  publicDir: path.join(ROOT, "frontend", "dist"),
   tmp: path.join(ROOT, ".tmp"),
 } as const;

@@ -4,18 +4,22 @@ Self-hosted vector map tiles with a browser viewer. Download a region once, then
 pan and zoom with no internet connection.
 
 Part of offline-pi: installed with the root `./install.sh` (pick `maps`) and
-reached through core at `/maps/` on `PORT` (8080). Add a region from the UI:
+reached through core at `/maps` on `PORT` (8080). Add a region from the UI:
 setup, search, download and delete all happen in the browser. See the root
 README for install, start and uninstall.
 
-The UI is built on the shared Outpost design system, the workspace
-`@offline-pi/ui` (`packages/ui` in the repo root: tokens, fonts, icons, frame
-and components, see `DESIGN.md`), which the frontend imports and Vite bundles.
+The module has no UI of its own. The Maps screen is part of the single web
+app (`apps/web`, React + TanStack, code in `apps/web/src/features/maps/` and
+`apps/web/src/routes/maps.tsx`), built on the shared Outpost design system
+(`@offline-pi/ui`, see `DESIGN.md`). The browser talks only to core: core's
+maps domain (`apps/core/src/domains/maps/`) exposes `/api/maps/...`, calls
+this backend's own `/api` on `MAPS_PORT`, and pushes job progress over the
+Socket.IO namespace `/maps`. Raw map files (tiles, pmtiles, fonts, sprites)
+go through core's passthrough at `/svc/maps/`.
 
-The frontend uses page-relative URLs, and the server builds the absolute
-style URLs from core's `X-Forwarded-Prefix` header
-(`backend/src/common/public-base.ts`), so the same build works at
-`/maps/` and standalone.
+The backend builds the absolute style URLs from the `X-Forwarded-Prefix` and
+`Host` headers (`backend/src/common/public-base.ts`); core's maps domain sends
+`/svc/maps`, so the style points at the passthrough.
 
 The basemap follows the UI theme (moon/sun button in the header): the night
 theme always loads the `dark` style, the day theme `light`. Both are the
@@ -45,19 +49,18 @@ $MAPS_DATA_DIR/offline-maps.db        default database: your points of interest
 $MAPS_DATA_DIR/geofabrik-index.json   catalog of 554 named regions
 $MAPS_ASSETS_DIR/fonts, .../sprites   vendored map assets
 backend/                          NestJS server + region CLI (@offline-pi/maps-backend)
-frontend/                         Vite + React + MapLibre viewer (@offline-pi/maps-frontend)
-../../packages/maps-shared/       types shared by server and viewer (@offline-pi/maps-shared)
+../../packages/maps-shared/       types shared by server, core and web (@offline-pi/maps-shared)
 ```
 
 The module is part of the offline-pi monorepo (npm workspaces + Turborepo,
-see the root `AGENTS.md`): `backend` and `frontend` are workspaces of their
-own, and `@offline-pi/maps-shared` holds the `/api` contract (`Region`,
-`Theme`, response shapes), so a registry change fails the typecheck on both
-sides. From the repo root:
+see the root `AGENTS.md`): `backend` is a workspace of its own, and
+`@offline-pi/maps-shared` holds the `/api` contract (`Region`, `Theme`,
+response shapes), so a registry change fails the typecheck everywhere it is
+used. From the repo root:
 
 ```sh
 npm install                                   # once, every workspace
-npx turbo run build --filter=@offline-pi/maps-backend --filter=@offline-pi/maps-frontend
+npx turbo run build --filter=@offline-pi/maps-backend
 npx turbo run typecheck                       # every workspace
 ```
 
@@ -70,8 +73,6 @@ A NestJS app on the Express adapter, compiled with `tsc` to `backend/dist`
 src/regions/    registry + open PMTiles handles; /api/regions, /tiles, /pmtiles
 src/styles/     MapLibre style assembly; /api/styles
 src/assets/     vendored glyphs and sprites; /fonts, /sprites
-src/spa/        catch-all serving the built viewer (imported last, so it
-                never shadows an API route)
 src/places/     name -> boundary lookup; /api/places
 src/pois/       points of interest; /api/pois
 src/db/         TypeORM entities and migrations
@@ -177,8 +178,9 @@ npm run -w @offline-pi/maps-backend migration:revert    # undo the last one
 ## Running
 
 ```sh
-npm run dev:maps                                     # (repo root) backend :8081 + Vite :5173, both reloading
-npm run build && npm start -w @offline-pi/maps-backend  # (repo root) single server on :8081
+npm run dev:maps    # (repo root) backend on :8081, reloading
+npm run dev:core    # (repo root) core, which proxies the browser to it
+npm run dev:web     # (repo root) the web app with the Maps screen
 ```
 
 Turborepo builds `@offline-pi/maps-shared` first and runs its `tsc --watch`
@@ -189,8 +191,8 @@ too. Backend dev runs `tsc --watch` next to `node --watch dist/main.js`, so a sa
 
 The service `maps` in `compose.yml` in the repo root runs as container
 `offline-pi-maps` (image `localhost/offline-pi-maps`) with host networking,
-listening on `127.0.0.1:MAPS_PORT`; only core's gateway is reachable from
-the LAN. `./install.sh` builds the image and runs the first-run setup
+listening on `127.0.0.1:MAPS_PORT`; only core is reachable from the LAN.
+The image builds only the backend. `./install.sh` builds the image and runs the first-run setup
 (pmtiles binary, fonts, sprites); the same by hand:
 
 ```sh
@@ -208,7 +210,7 @@ Set in the root `.env` (see the root README):
 |---|---|---|
 | `MAPS_DATA_DIR` | `./data/maps` | Regions, the POI db and the registry. Point at an SSD mount for large catalogs. |
 | `MAPS_ASSETS_DIR` | `./data/maps-assets` | Vendored fonts and sprites (~100 MB). |
-| `MAPS_PORT` | `8081` | Internal port (loopback only), proxied by core at `/maps/`. |
+| `MAPS_PORT` | `8081` | Internal port (loopback only), called by core (API) and passed through at `/svc/maps/`. |
 | `MAPS_ALLOWED_ORIGINS` | empty | Extra origins allowed to call `/api`. |
 | `MAPS_DATABASE_URL` | empty | Empty uses sqlite in `MAPS_DATA_DIR`; a `postgres://` URL uses Postgres. |
 | `MAPS_DB_LOGGING` | `false` | `true` logs every SQL statement. |
@@ -218,6 +220,9 @@ regions, POIs and assets to a new path (e.g. a newly mounted SSD).
 `./uninstall.sh` keeps them unless you confirm deleting them.
 
 ## API
+
+These are the backend's own routes on `MAPS_PORT`; the browser reaches them
+through core (`/api/maps/...`, raw files under `/svc/maps/`).
 
 | Route | Purpose |
 |---|---|
@@ -239,7 +244,7 @@ Region management:
 | `POST /api/downloads` | Start a download; parks on an estimate |
 | `POST /api/downloads/:id/confirm` | Accept the estimate, run the extract |
 | `GET /api/jobs`, `GET /api/jobs/:id` | Job state |
-| `GET /api/jobs/:id/events` | Server-sent progress stream |
+| `GET /api/jobs/:id/events` | Server-sent progress stream (core relays it to the browser on the `/maps` socket) |
 | `DELETE /api/jobs/:id` | Cancel a job, or decline an estimate |
 | `DELETE /api/regions/:name` | Delete an archive and its registry entry |
 | `GET /api/pois` | Points of interest; `?bbox=minLon,minLat,maxLon,maxLat` to limit |
@@ -249,7 +254,7 @@ Region management:
 
 Map data (`/tiles`, `/pmtiles`, `/fonts`, `/sprites`) is readable from any
 origin so QGIS and the pmtiles CLI keep working. `/api` is not: it answers only
-the origin that served the viewer, and mutating requests are additionally
+the origin that served the UI, and mutating requests are additionally
 rejected when `Sec-Fetch-Site` says cross-site — otherwise any page you visit
 could start a 50 GB download on your disk. Set `MAPS_ALLOWED_ORIGINS` (comma
 separated) if you front it with something unusual.
@@ -262,7 +267,7 @@ The `/pmtiles/` route serves proper `206 Partial Content` responses, so the
 archive can be opened directly by other tools over HTTP:
 
 ```sh
-pmtiles show http://<pi>:8080/maps/pmtiles/berlin.pmtiles
+pmtiles show http://<pi>:8080/svc/maps/pmtiles/berlin.pmtiles
 ```
 
 QGIS can add the same URL as a vector tile layer.

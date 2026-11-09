@@ -9,11 +9,9 @@ import logging
 import time
 from collections import defaultdict, deque
 from contextlib import asynccontextmanager
-from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, Header, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from .config import Settings
@@ -23,7 +21,6 @@ from .store import Store
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("mesh")
 
-PUBLIC_DIR = Path(__file__).resolve().parent.parent / "public"
 STALE_AFTER = 120  # seconds without any ack before a sent message counts as failed
 
 
@@ -71,6 +68,16 @@ class RateLimiter:
             return hits[0] + self.window - now
         hits.append(now)
         return 0
+
+
+def client_key(request: Request) -> str:
+    """Rate-limit key: the browser's address. Behind core (loopback) it is the
+    first X-Forwarded-For entry, so the limit stays per client, not per core."""
+    host = request.client.host if request.client else "?"
+    forwarded = request.headers.get("x-forwarded-for", "")
+    if forwarded and host in ("127.0.0.1", "::1"):
+        return forwarded.split(",")[0].strip() or host
+    return host
 
 
 def create_app(settings: Settings | None = None, interface_factory=None, start_radio: bool = True) -> FastAPI:
@@ -147,7 +154,7 @@ def create_app(settings: Settings | None = None, interface_factory=None, start_r
             raise HTTPException(400, str(exc)) from exc
         if radio.state != "connected":
             raise HTTPException(503, "Radio is not connected")
-        wait = limiter.check(request.client.host if request.client else "?")
+        wait = limiter.check(client_key(request))
         if wait:
             raise HTTPException(429, f"Too many messages, try again in {int(wait) + 1} s")
         try:
@@ -171,5 +178,4 @@ def create_app(settings: Settings | None = None, interface_factory=None, start_r
         finally:
             hub.clients.discard(ws)
 
-    app.mount("/", StaticFiles(directory=PUBLIC_DIR, html=True), name="public")
     return app

@@ -401,4 +401,8 @@ The visual reference (foundations, components, Hub, Maps, Library and Mesh scree
 - 0.3 (2026-11): offline-pi becomes one app; every module is served under a path on one port.
   - **Module nav** is path based: Home (`/`), Maps (`/maps/`), Mesh map (`/mesh-map/`), Mesh (`/mesh/`), Library (`/library/`), System (`/system/`). `frame()` draws the built-in list right away, then redraws it from core's `/api/modules` (installed modules only, from the module manifests), so a new module needs no change in `packages/ui`. Home has no number; its header label is just "Home". A module that is installed but stopped stays in the nav, dimmed (`.nav-item.is-off`, `--fg3`), and leads to its START on the home page.
   - **Hub** (home page, core): the module tiles from 0.1 (`a.tile`), each with a state badge, plus a card of `.switch-row`s to switch modules on and off. Opening a stopped or missing module shows an info banner there with its START button.
-
+- 0.4 (2026-11): one web app. Every screen is a route of `apps/web` (React, TanStack Router), served by core at `/`; modules have no UI of their own any more.
+  - **React bindings** live in `apps/web/src/ui/outpost.tsx` (`Icon`, `Badge`, `Banner`, `HoldButton`, `Progress`, `ThemeToggle`, `useTheme`) and `apps/web/src/app/` (`Screen` = header + content + nav, `StripProvider`/`useStripLink`/`useStripItems`, `Nav`). The markup and classes are the package's; nothing is restyled.
+  - **Status strip** stays mounted across screens (one clock); each screen sets its link and items while it is shown.
+  - **Module nav** is rendered by React from `/api/modules` with router links (no page reloads); same classes, same order, same dimmed `.is-off` state.
+  - **Module gate**: a module's route shows, instead of its screen, an info banner with its START button when it is stopped, and says how to install or configure it otherwise (it was on the home page in 0.3).

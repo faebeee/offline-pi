@@ -3,10 +3,12 @@
 offline-pi is **one app** meant to run offline on a host like a Raspberry Pi:
 one Podman Compose project, one set of scripts, one `.env`, one port. It is
 made of **modules** (maps, library, mesh, ...), each a container behind
-**core**, which serves the dashboard and every module's UI under its own
-path. The code is a **Turborepo monorepo on npm workspaces**: every module
-is an app in `apps/`, shared code lives in `packages/`. Read this before
-adding a module or touching the scripts.
+**core**. Core is the **one API** (NestJS, one domain module per feature)
+and serves the **one web app** (`apps/web`, React + TanStack), so the user
+works with every module through a single UI. The code is a **Turborepo
+monorepo on npm workspaces**: every module is an app in `apps/`, shared code
+lives in `packages/`. Read this before adding a feature or a module or
+touching the scripts.
 
 ## Layout
 
@@ -30,10 +32,12 @@ turbo.json               # Turborepo tasks: build, typecheck, dev
 tsconfig.base.json       # shared TypeScript base config
 .dockerignore            # images build with the repo root as context
 apps/<name>/             # one module: Dockerfile, code, module.json, README
-apps/core/               # dashboard + gateway + supervisor (always on)
-apps/maps/{backend,frontend}/  # a module made of several workspaces
+apps/core/               # the API (domains), passthrough, supervisor (always on)
+apps/web/                # the web app: every screen of every module
+apps/maps/backend/       # a module's container code (API, data, jobs)
 packages/ui/             # @offline-pi/ui: Outpost design system (DESIGN.md)
-packages/maps-shared/    # @offline-pi/maps-shared: maps API contract
+packages/api-client/     # @offline-pi/api-client: generated from core's OpenAPI
+packages/maps-shared/    # @offline-pi/maps-shared: maps container contract
 host/hotspot-pi/         # host-level utility, no container (see below)
 data/                    # gitignored default home of every *_DIR
 ```
@@ -47,8 +51,14 @@ data/                    # gitignored default home of every *_DIR
   and, where it makes sense, `dev` scripts. `turbo.json` orders them
   (`^build` first), so `npm run build`, `npm run typecheck` and
   `npx turbo run dev --filter=<workspace>` work from the root.
-- Non-JS modules (mesh: Python, knowledge: kiwix) live in `apps/` without
-  a `package.json`; npm and turbo ignore them.
+- Modules without a JS build (mesh: Python, knowledge: kiwix, mesh-map: a
+  dependency-free `server.mjs`) live in `apps/` without a `package.json`;
+  npm and turbo ignore them.
+- `@offline-pi/core` depends on `@offline-pi/web`, so `turbo prune
+  @offline-pi/core` and `turbo run build --filter=@offline-pi/core` include
+  the web app; core's image serves its `dist/`. The web app's packages are
+  all `devDependencies` (Vite bundles them), so core's runtime image doesn't
+  install them.
 - **Images build with the repo root as context** (`compose.yml`:
   `context: .`, `dockerfile: apps/<name>/Dockerfile`), so they can use
   `packages/*` directly. Node images start with a `prune` stage
@@ -63,17 +73,36 @@ the "never silently delete user data" rules of `uninstall.sh`.
 
 ## How it fits together
 
+```
+browser ──> core :8080
+            ├─ /                 apps/web (SPA; /maps, /mesh, ... are its routes)
+            ├─ /api/<domain>/*   core's API, one Nest domain module per feature
+            ├─ /api/docs         Swagger UI (/api/openapi.json)
+            ├─ /socket.io        live updates, one namespace per domain
+            ├─ /ui/              @offline-pi/ui
+            └─ /svc/<module>/*   passthrough to a module's raw files
+core ──HTTP/WS──> maps :8081 · knowledge :8082 · mesh :8084 · mesh-map :8086
+```
+
 - **core** (`apps/core`, NestJS) is the only service the LAN reaches, on
-  `PORT` (8080). It serves:
-  - `/`: the home page (module tiles and on/off switches),
-  - `/system/`: the Pi dashboard (health, power, storage, containers),
-  - `/ui/`: the shared Outpost package,
-  - `/api/*`: its own API (`/api/modules`, `/api/snapshot`, ...),
-  - `/<module path>/`: a streaming reverse proxy to each installed module
-    (`src/gateway/gateway.ts`), WebSockets, SSE and range requests included.
+  `PORT` (8080), and the **only thing the browser talks to**. It serves:
+  - `/`: the web app (`apps/web`), with an `index.html` fallback for its
+    client-side routes (`src/platform/web/web.ts`),
+  - `/api/<domain>/*`: its API. Each feature is a **domain module** in
+    `src/domains/<name>/` that talks to its module's container
+    (see "Core: domains"),
+  - `/socket.io`: one Socket.IO server, one namespace per domain
+    (`/system`, `/maps`, `/mesh`); domains bridge their container's live
+    feed (SSE, WebSocket) onto it,
+  - `/svc/<module path>/`: a streaming passthrough to each installed module
+    (`src/platform/passthrough/passthrough.ts`) for what is not JSON: map
+    tiles, fonts, sprites, `.pmtiles` range requests, kiwix articles.
+    WebSockets, SSE and range requests included,
+  - `/ui/`: the shared Outpost package.
 - **Modules** listen on `MODULES_BIND_ADDRESS` (127.0.0.1) on an internal
-  port, so they are never exposed on their own. The browser only ever talks
-  to one origin: no CORS, no ports in links.
+  port, so they are never exposed on their own. They have **no UI of their
+  own**: an API, data and jobs. The browser only ever talks to one origin:
+  no CORS, no ports in links.
 - **Start/stop**: core talks to the user's `podman.socket` (libpod REST,
   `src/modules/podman.service.ts`). Which installed modules run is chosen
   on the dashboard and stored in `CORE_DATA_DIR/modules.json` (the modules
@@ -85,13 +114,71 @@ the "never silently delete user data" rules of `uninstall.sh`.
   what gets built and has a container. The dashboard can only start
   installed modules; adding one means re-running `./install.sh`.
 
+## Core: domains
+
+Core is a **domain-driven** NestJS app. `src/platform/` is the shared kernel
+(module registry and start/stop `ModulesService`, `PodmanService`,
+`RuntimeService`, `UpstreamService`, passthrough, OpenAPI, web serving); it
+has no feature logic. Every feature is one folder:
+
+```
+apps/core/src/domains/<name>/
+  <name>.module.ts      # Nest module, imported in src/app.module.ts
+  api/                  # <name>.controller.ts: routes under /api/<name>/
+  application/          # use cases with logic (may combine domains)
+  infrastructure/       # <name>.client.ts: talks to the container, mappers
+  domain/               # <name>.dto.ts: the domain's model = the API contract
+  <name>.events.ts      # Socket.IO namespace /<name> (optional)
+```
+
+- **Talking to a container**: `UpstreamService.client('<module id>')` gives
+  an `UpstreamClient` (base URL from the manifest). It maps failures to the
+  errors the web app expects: not installed 404, not running 503 (with
+  `Retry-After`), upstream 4xx/5xx with the upstream message. Controllers may
+  call the infrastructure client directly for 1:1 calls; anything with logic
+  goes in `application/`.
+- **The contract**: request and response types are **classes** in
+  `*.dto.ts` files; the `@nestjs/swagger` CLI plugin (`nest-cli.json`) turns
+  them, the controllers' return types and their doc comments into the OpenAPI
+  document. No interfaces for API types (the plugin can't see them). Request
+  DTOs need `class-validator` decorators (`ValidationPipe` whitelists).
+  Map the container's shapes to the domain model in `infrastructure/`
+  (e.g. mesh: snake_case -> camelCase).
+- **Operation ids** are `<controller without "Controller"><Method>`
+  (`MapsController.regions` -> `mapsRegions` -> `useMapsRegions()`), so name
+  controller methods for the client.
+- **Live updates**: a `*.events.ts` gateway with
+  `@WebSocketGateway(socketOptions('/<name>'))`; register the payload classes
+  with `registerEventModels(...)` and add the events to
+  `packages/api-client/src/events.ts`.
+- **The client**: `npm run api:gen` (root) builds core, writes
+  `packages/api-client/openapi.json` (Nest preview mode, no containers
+  needed) and runs orval: `src/generated/<tag>/` gets fetch functions, query
+  keys and TanStack Query hooks, `src/generated/model/` every DTO. The
+  generated files are checked in; regenerate after every API change.
+
+### Adding a feature (endpoint -> screen)
+
+1. In `apps/core/src/domains/<name>/`: the DTO classes, the client call, the
+   controller method (and an application service if there is logic). A new
+   domain: also its `<name>.module.ts` in `src/app.module.ts`.
+2. `npm run api:gen`.
+3. In `apps/web`: use the generated hook (`useXxx()` from
+   `@offline-pi/api-client`) in `src/features/<name>/`, and a route in
+   `src/routes/` if it is a new screen.
+
+A feature may combine domains (e.g. mesh-map's overview uses the mesh
+domain's client): import the other domain's Nest module and inject its
+exported client or service. Never call another module's container from the
+browser.
+
 ## Adding a module
 
 1. `apps/<name>/` with a `Dockerfile` and the code. `<name>` is the
    compose service name, the container is `offline-pi-<name>`. A JS module
-   is a workspace (`package.json` named `@offline-pi/<name>`, or several
-   workspaces like `apps/maps/{backend,frontend}`, added to the root
-   `workspaces`); run `npm install` at the root to update the lockfile.
+   is a workspace (`package.json` named `@offline-pi/<name>`, or nested
+   workspaces like `apps/maps/backend`, added to the root `workspaces`);
+   run `npm install` at the root to update the lockfile.
 2. `apps/<name>/module.json`, **one key per line** (the shell scripts
    read it with `sed`, arrays on one line):
 
@@ -114,17 +201,19 @@ the "never silently delete user data" rules of `uninstall.sh`.
    }
    ```
 
-   - `path`: public path under core's port; `stripPrefix: true` forwards
-     `/radio/x` as `/x`, `false` keeps the prefix (for servers that support a
-     URL root, like kiwix's `--urlRootLocation`).
+   - `path`: the module's route in the web app (`/radio/`); core's
+     passthrough to the container is `/svc` + path (`/svc/radio/`).
+     `stripPrefix: true` forwards `/svc/radio/x` as `/x`, `false` keeps the
+     prefix (for servers that support a URL root, like kiwix's
+     `--urlRootLocation=/svc/library`).
    - `requires`: env vars that must be non-empty before it may start (e.g.
      `MESH_CONNECTION`, set by its configure hook). `dependsOn`: installed
      modules started with it.
    - `dirs`: its bind-mounted `*_DIR` vars (checked by `start.sh`).
    - core picks up the manifest at the next build (its Dockerfile copies
      every `apps/*/module.json` into the image; in development it reads them
-     from the checkout): home tile, nav entry and gateway route come from
-     it. Nothing in core needs code changes.
+     from the checkout): home tile, nav entry, start/stop, the upstream URL
+     and the passthrough come from it.
 3. A service block in `compose.yml` (see "Compose rules").
 4. Its settings in `.env.example`, prefixed with the module name
    (`RADIO_PORT`, `RADIO_DATA_DIR`, ...), with the next free internal port.
@@ -138,7 +227,10 @@ the "never silently delete user data" rules of `uninstall.sh`.
    - `<name>_post_build`: install.sh, after building (one-off setup).
    - `<name>_manage` / `<name>_usage`: `./manage.sh <name> <cmd>`; return 2
      for "unknown command" (prints the usage).
-6. Its UI under the module path (see "Web UI").
+6. Its domain in core (`apps/core/src/domains/<name>/`, see "Core:
+   domains") and its screen in the web app (`apps/web/src/routes/<path>.tsx`
+   + `src/features/<name>/`, see "Web UI"). The container itself serves no
+   UI.
 7. A row in the root `README.md` module table and an `apps/<name>/README.md`.
 8. Images and `*_DIR` vars in `uninstall.sh`'s config block.
 
@@ -253,33 +345,41 @@ the SD card.
 - List the vars in `module.json` `dirs`, in `uninstall.sh` and in the root
   README's config table.
 
-## Web UI: the Outpost design system
+## Web UI: one app, the Outpost design system
 
-Every UI follows [`DESIGN.md`](DESIGN.md) and builds on
-[`packages/ui`](packages/ui/README.md) (`@offline-pi/ui`)
-(tokens, self-hosted fonts, icon sprite, frame and components, `outpost.js`).
-Don't restyle components per module; add missing ones to `packages/ui` with tokens
-only and note them in the `DESIGN.md` changelog.
+There is one UI: `apps/web` (`@offline-pi/web`), Vite + React + TanStack
+Router (file routes) + TanStack Query, built into core's image and served
+at `/`. It follows [`DESIGN.md`](DESIGN.md) and builds on
+[`packages/ui`](packages/ui/README.md) (`@offline-pi/ui`: tokens,
+self-hosted fonts, icon sprite, components, `outpost.js`), bundled by Vite.
+Don't restyle components per feature; add missing ones to `packages/ui` with
+tokens only and note them in the `DESIGN.md` changelog.
 
-- **Paths, not ports.** A module's UI is served under its path
-  (`/maps/`), so every URL in its frontend is **relative to the page**
-  (`api/x`, `new URL("api/live", location.href)` for WebSockets); Vite apps
-  set `base: "./"`. Servers that build absolute URLs (e.g. map styles) use
-  the `X-Forwarded-Prefix` and `Host` headers the gateway sends. Links to
-  another module come from `MODULES` (`outpost.js`, filled from core's
-  `/api/modules`), never a hardcoded port.
-- **Outpost package**: plain-JS modules load it from core at `/ui/`
-  (absolute, it's core's path; core serves the `@offline-pi/ui`
-  workspace there). Vite apps depend on `"@offline-pi/ui": "*"` and import
-  it (`import "@offline-pi/ui/outpost.css"`,
-  `from "@offline-pi/ui/outpost.js"`), so it is bundled. Never copy it.
-- Every screen uses the frame: status strip, header with theme toggle,
-  module nav (`frame("<module id>")`). The nav is drawn from core's module
-  list, so a new module needs no change in `packages/ui`.
-- Load `theme-boot.js` in `<head>` before the CSS (Vite apps inline it), and
-  follow the status strip link rule in `packages/ui/README.md`: the LED is the
-  module's link to its own local data source, `<SOURCE> · <STATE>`.
+```
+apps/web/src/
+  main.tsx              # QueryClient, router
+  routes/               # one file per screen (/, /system, /maps, /mesh, ...)
+  features/<domain>/    # components, hooks and CSS of one domain
+  app/                  # Screen (frame), strip, Nav, realtime, maplibre
+  ui/outpost.tsx        # React wrappers for the Outpost package
+```
+
+- **Data only through `@offline-pi/api-client`**: generated hooks for REST
+  (`useMapsRegions()`, ...), `useSocketEvent("/<domain>", ...)`
+  (`src/app/realtime.ts`) for live updates, updating the Query cache. No
+  hand-written `fetch` to `/api`, never a module's container directly; raw
+  files (tiles, `.pmtiles`, kiwix pages) through `/svc/<module>/`.
+- **Every screen** is `<Screen module="<id>" title=...>` (header with theme
+  toggle, content, module nav; the status strip is shared) and, for a
+  module, `<ModuleGate id="<id>">`, which shows "not installed / not
+  running / START" instead of the screen. The nav and home tiles come from
+  `/api/modules`, so a new module needs no change in `packages/ui`.
+- Follow the status strip link rule in `packages/ui/README.md`
+  (`useStripLink`): the LED is the screen's link to its own local data
+  source, `<SOURCE> · <STATE>`.
 - No runtime network requests: no CDNs, web fonts or remote icons.
+- Dev: `npm run dev:core` (API on :8080) and `npm run dev:web` (Vite on
+  :5173, proxies `/api`, `/socket.io`, `/svc`, `/ui` to core).
 
 ## Documentation
 

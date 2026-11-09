@@ -1,18 +1,18 @@
 // server.mjs - the whole backend of mesh-map, no dependencies.
 //
-// Serves the built page (dist/) and, read-only, the map data the Maps module
-// has downloaded: region archives (*.pmtiles, read by the browser with HTTP
-// range requests), fonts and sprites. It never writes anything, and it never
-// talks to Maps or Mesh: the browser reads the mesh nodes from the Mesh module
-// itself (/mesh/, same origin through core's gateway, which serves this page
-// under /mesh-map/ with the prefix stripped).
+// Serves, read-only, the map data the Maps module has downloaded: region
+// archives (*.pmtiles, read by the browser with HTTP range requests), fonts
+// and sprites. It never writes anything, and it never talks to Maps or Mesh.
+// The page is the web app's /mesh-map screen (apps/web); core's mesh-map
+// domain combines /api/config with the mesh nodes (/api/mesh-map/overview),
+// and the browser loads the files below through core's passthrough
+// (/svc/mesh-map/, prefix stripped).
 //
 //   GET /api/config               { regions } (re-read each call)
 //   GET /pmtiles/<region>.pmtiles  range requests into a region archive
 //   GET /fonts/<stack>/<range>.pbf glyphs (comma-separated fallback stacks)
 //   GET /sprites/<file>            sprite sheets
 //   GET /healthz                   liveness for the container healthcheck
-//   GET /*                         the page
 
 import { createReadStream } from "node:fs";
 import fs from "node:fs/promises";
@@ -25,15 +25,11 @@ const PORT = Number(process.env.PORT ?? 8086);
 const HOST = process.env.HOST ?? "127.0.0.1";
 const MAPS_DATA = path.resolve(process.env.MAPS_DATA ?? path.join(HERE, "../maps/data"));
 const MAPS_ASSETS = path.resolve(process.env.MAPS_ASSETS ?? path.join(HERE, "../maps/assets"));
-const STATIC = path.join(HERE, "dist");
 
 const REGION_NAME = /^[a-z0-9][a-z0-9-]*$/;
 const GLYPH_RANGE = /^\d+-\d+\.pbf$/;
 const IMMUTABLE = "public, max-age=604800, immutable";
 const TYPES = {
-  ".html": "text/html; charset=utf-8",
-  ".js": "text/javascript; charset=utf-8",
-  ".css": "text/css; charset=utf-8",
   ".json": "application/json",
   ".png": "image/png",
   ".svg": "image/svg+xml",
@@ -165,13 +161,7 @@ async function handle(req, res) {
     return stat ? sendFile(req, res, file, stat, IMMUTABLE) : send(res, 404, "sprite not found");
   }
 
-  // the page: hashed assets cache forever, everything else falls back to index.html
-  const file = safeJoin(STATIC, `.${pathname}`);
-  const stat = file && pathname !== "/" ? await statFile(file) : undefined;
-  if (stat) return sendFile(req, res, file, stat, pathname.startsWith("/assets/") ? IMMUTABLE : "no-cache");
-  const index = path.join(STATIC, "index.html");
-  const indexStat = await statFile(index);
-  return indexStat ? sendFile(req, res, index, indexStat, "no-cache") : send(res, 503, "page not built (npm run build)");
+  return send(res, 404, "not found");
 }
 
 http

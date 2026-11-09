@@ -1,0 +1,27 @@
+{
+  "name": "@offline-pi/api-client",
+  "private": true,
+  "description": "Typed client for core's API: TanStack Query hooks generated from core's OpenAPI document (orval), plus typed Socket.IO namespaces",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./model": "./src/generated/model/index.ts"
+  },
+  "scripts": {
+    "generate": "orval --config orval.config.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.0.0",
+    "react": "^19.0.0",
+    "socket.io-client": "^4.8.0"
+  },
+  "devDependencies": {
+    "@tanstack/react-query": "^5.107.1",
+    "@types/react": "^19.0.7",
+    "orval": "^8.47.0",
+    "react": "^19.3.1",
+    "socket.io-client": "^4.8.4",
+    "typescript": "^5.9.2"
+  }
+}

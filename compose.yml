@@ -1,9 +1,10 @@
 # offline-pi: one Podman Compose project ("offline-pi", see lib/common.sh).
 #
-# core is the only service reachable from the LAN: it serves the dashboard on
-# PORT and reverse-proxies every module under its path (/maps/, /library/,
-# /mesh/, /mesh-map/). Modules bind MODULES_BIND_ADDRESS (127.0.0.1) on their
-# own internal port.
+# core is the only service reachable from the LAN: on PORT it serves the web
+# app (/), the one API (/api/<domain>/, a NestJS domain module per feature,
+# which talks to the module containers) and a passthrough for the modules'
+# raw files (/svc/maps/, /svc/library/, /svc/mesh/, /svc/mesh-map/). Modules
+# bind MODULES_BIND_ADDRESS (127.0.0.1) on their own internal port.
 #
 # Only core has restart: always (podman-restart.service brings it back after
 # a reboot). Modules use on-failure: podman restarts them after a crash, but
@@ -55,7 +56,7 @@ services:
       - keep-groups
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:' + (process.env.PORT || 8080) + '/api/status').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))\""]
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:' + (process.env.PORT || 8080) + '/api/system/status').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))\""]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -102,8 +103,10 @@ services:
     environment:
       PORT: ${KNOWLEDGE_PORT:-8082}
       BIND_ADDRESS: ${MODULES_BIND_ADDRESS:-127.0.0.1}
-      # served by core under /library/ (kiwix-serve --urlRootLocation)
-      URL_ROOT: /library
+      # core's passthrough serves kiwix under /svc/library/ (kiwix-serve
+      # --urlRootLocation, so its links point there); the web app's Library
+      # screen is /library
+      URL_ROOT: /svc/library
       AUTO_SYNC: ${KNOWLEDGE_AUTO_SYNC:-true}
     volumes:
       - ${KNOWLEDGE_CONTENT_DIR:-./data/knowledge}:/data

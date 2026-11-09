@@ -16,10 +16,11 @@
     "dev": "turbo run dev",
     "typecheck": "turbo run typecheck",
     "dev:core": "turbo run dev --filter=@offline-pi/core",
-    "dev:maps": "turbo run dev --filter=@offline-pi/maps-backend --filter=@offline-pi/maps-frontend --filter=@offline-pi/maps-shared",
-    "dev:mesh-map": "turbo run dev --filter=@offline-pi/mesh-map",
+    "dev:maps": "turbo run dev --filter=@offline-pi/maps-backend --filter=@offline-pi/maps-shared",
     "maps:setup": "turbo run build --filter=@offline-pi/maps-shared && npm run -w @offline-pi/maps-backend setup",
-    "maps:assets:fetch": "turbo run build --filter=@offline-pi/maps-shared && npm run -w @offline-pi/maps-backend assets:fetch"
+    "maps:assets:fetch": "turbo run build --filter=@offline-pi/maps-shared && npm run -w @offline-pi/maps-backend assets:fetch",
+    "dev:web": "turbo run dev --filter=@offline-pi/web",
+    "api:gen": "npm run -w @offline-pi/core build && npm run -w @offline-pi/core openapi && npm run -w @offline-pi/api-client generate"
   },
   "devDependencies": {
     "turbo": "^2.6.0"

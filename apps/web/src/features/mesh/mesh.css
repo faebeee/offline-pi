@@ -1,0 +1,222 @@
+/* Mesh: layout only. Components, tokens and fonts come from the Outpost
+   package (@offline-pi/ui); use tokens, never values (DESIGN.md). */
+
+/* ------------------------------------------------------------ frame */
+
+/* The views scroll inside their panes, so the bleed main does not scroll. */
+.mesh {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.mesh > .tabs {
+  flex: none;
+  padding: 0 var(--space-2);
+  background: var(--s1);
+}
+
+.mesh .tab-count {
+  color: var(--fg3);
+  font-variant-numeric: tabular-nums;
+}
+
+.mesh-pinned {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--line);
+}
+
+/* the header back button only exists for the phone thread pane */
+@media (min-width: 721px) {
+  .mesh-back {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------ chats */
+
+.mesh-chats {
+  display: grid;
+  min-height: 0;
+  flex: 1;
+  grid-template-columns: minmax(260px, 340px) 1fr;
+}
+
+.mesh-chats .conv-pane {
+  min-height: 0;
+  overflow-y: auto;
+  border-right: 1px solid var(--line);
+}
+
+.mesh-chats .conv-list {
+  border-top: 0;
+}
+
+.mesh-chats .conv-list > li:not(.list-section):not(.list-hint) {
+  background: var(--s1);
+}
+
+.mesh-chats .list-section {
+  padding: var(--space-4) var(--space-3) var(--space-2);
+}
+
+.mesh-chats .list-hint {
+  padding: var(--space-3);
+}
+
+.mesh-chats .row > .badge {
+  flex: none;
+}
+
+.mesh-chats .thread {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.mesh-chats .messages {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  overflow-y: auto;
+}
+
+.mesh-chats .thread-sub {
+  margin: 0;
+  text-align: center;
+}
+
+.mesh-chats .older {
+  align-self: center;
+}
+
+.mesh-chats .chat {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mesh-chats .msg-state .retry {
+  min-height: var(--target);
+  margin-left: var(--space-2);
+}
+
+.mesh-chats .composer-field {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.mesh-chats .composer-field .counter {
+  align-self: flex-end;
+}
+
+.mesh-chats .composer-note {
+  display: flex;
+  flex: none;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--line);
+  background: var(--s2);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.mesh-chats .composer-note .i {
+  flex: none;
+  margin-top: 2px;
+}
+
+.mesh-chats .composer-note.is-crit {
+  background: var(--crit-soft);
+  color: var(--crit);
+}
+
+.mesh-chats .composer-note.is-cau .i {
+  color: var(--cau);
+}
+
+/* phones: one pane at a time (list, or the open conversation) */
+@media (max-width: 720px) {
+  .mesh-chats {
+    grid-template-columns: 1fr;
+  }
+
+  .mesh-chats .conv-pane {
+    border-right: 0;
+  }
+
+  .mesh-chats[data-pane="list"] .thread,
+  .mesh-chats[data-pane="thread"] .conv-pane {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------ nodes */
+
+.mesh-nodes {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  overflow-y: auto;
+}
+
+.mesh-nodes .node-list > li {
+  background: var(--s1);
+}
+
+.mesh-nodes .row-chevron {
+  flex: none;
+  color: var(--fg3);
+  transition: transform 120ms;
+}
+
+.mesh-nodes .is-open .row-chevron {
+  transform: rotate(90deg);
+}
+
+.mesh-nodes .node-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3) var(--space-4) calc(var(--space-3) + 40px + var(--space-3));
+  border-top: 1px solid var(--line);
+}
+
+.mesh-nodes .node-detail[hidden] {
+  display: none;
+}
+
+.mesh-nodes .node-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+@media (max-width: 480px) {
+  .mesh-nodes .node-detail {
+    padding-left: var(--space-3);
+  }
+}
+
+@media (min-width: 720px) {
+  .mesh-chats .messages,
+  .mesh-nodes {
+    padding: var(--space-5) var(--space-6);
+  }
+}

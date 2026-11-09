@@ -1,0 +1,33 @@
+{
+  "name": "@offline-pi/web",
+  "private": true,
+  "description": "offline-pi web app: the one UI for every module (React, TanStack Router + Query), served by core",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@offline-pi/api-client": "*",
+    "@offline-pi/maps-shared": "*",
+    "@offline-pi/ui": "*",
+    "@protomaps/basemaps": "^5.7.2",
+    "@tanstack/react-query": "^5.107.1",
+    "@tanstack/react-router": "^1.170.46",
+    "@tanstack/router-cli": "^1.168.0",
+    "@tanstack/router-plugin": "^1.169.0",
+    "@types/geojson": "^7946.0.16",
+    "@types/react": "^19.0.7",
+    "@types/react-dom": "^19.0.3",
+    "@vitejs/plugin-react": "^6.3.0",
+    "maplibre-gl": "^6.17.0",
+    "pmtiles": "^4.5.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "socket.io-client": "^4.8.4",
+    "typescript": "^5.9.2",
+    "vite": "^8.3.7"
+  }
+}

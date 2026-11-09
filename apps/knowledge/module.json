@@ -8,7 +8,7 @@
   "path": "/library/",
   "portEnv": "KNOWLEDGE_PORT",
   "stripPrefix": false,
-  "health": "/library/",
+  "health": "/svc/library/",
   "dirs": ["KNOWLEDGE_CONTENT_DIR"],
   "optional": true,
   "requires": [],

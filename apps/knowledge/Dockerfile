@@ -5,14 +5,10 @@ FROM ghcr.io/kiwix/kiwix-serve:3.8.2
 USER root
 RUN apk add --no-cache bash curl aria2 xmlstarlet
 
-# Outpost "Library" landing page (kiwix-serve --customIndex), assembled from
-# the Outpost package (packages/ui; the build context is the repo root) into
-# one self-contained file (see build-index.sh).
-COPY apps/knowledge/container/ /tmp/knowledge-build/
-COPY packages/ui/ /tmp/knowledge-build/ui/
-RUN bash /tmp/knowledge-build/build-index.sh /tmp/knowledge-build /usr/share/knowledge/index.html \
-    && rm -rf /tmp/knowledge-build
-
+# The Library screen is in the web app (apps/web, /library); core's library
+# domain reads kiwix's OPDS catalogue and search. kiwix-serve keeps its own
+# viewer for reading articles, reached through core's passthrough
+# (/svc/library/).
 COPY apps/knowledge/container/knowledge.sh /usr/local/bin/knowledge
 COPY apps/knowledge/zims.txt /etc/knowledge/zims.txt
 RUN chmod 0755 /usr/local/bin/knowledge

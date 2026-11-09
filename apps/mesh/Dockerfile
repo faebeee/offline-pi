@@ -8,9 +8,8 @@ COPY apps/mesh/requirements.txt ./
 RUN pip install -r requirements.txt
 
 COPY apps/mesh/app/ app/
-# The Outpost UI package is not bundled: the page loads it from /ui/, served
-# by core (the module itself is reached through core under /mesh/).
-COPY apps/mesh/public/ public/
+# No UI here: the web app (apps/web) is the UI, core's mesh domain the API
+# the browser uses (/api/mesh/..., socket namespace /mesh).
 
 # Runs as the container's root, which under rootless Podman is the host user
 # (unprivileged). That keeps the host user's `dialout` group (group_add:

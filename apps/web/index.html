@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en" class="t-dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark light" />
+    <title>offline-pi</title>
+    <link rel="icon" href="data:," />
+    <script>
+      // Same as ui/theme-boot.js (inlined: the package is bundled, so the file
+      // has no URL before the build). Applies the stored theme before paint.
+      (function () {
+        var t = null;
+        try { t = localStorage.getItem("outpost.theme"); } catch (e) {}
+        document.documentElement.className = (document.documentElement.className.replace(/\bt-(dark|light)\b/g, "") + " t-" + (t === "light" ? "light" : "dark")).trim();
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

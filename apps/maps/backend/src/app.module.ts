@@ -9,12 +9,12 @@ import { PlacesModule } from "./places/places.module.ts";
 import { PoisModule } from "./pois/pois.module.ts";
 import { RegionsModule } from "./regions/regions.module.ts";
 import { SetupModule } from "./setup/setup.module.ts";
-import { SpaModule } from "./spa/spa.module.ts";
 import { StylesModule } from "./styles/styles.module.ts";
 
 /**
- * SpaModule is imported last on purpose: it owns the catch-all route that
- * serves the viewer, and must not shadow the API routes.
+ * The maps container: API, tiles and assets only. Its UI is the web app
+ * (apps/web, /maps), which reaches it through core's maps domain
+ * (/api/maps/...) and passthrough (/svc/maps/...).
  */
 @Module({
   imports: [
@@ -27,7 +27,6 @@ import { StylesModule } from "./styles/styles.module.ts";
     JobsModule,
     DownloadsModule,
     SetupModule,
-    SpaModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: SameOriginGuard }],
 })

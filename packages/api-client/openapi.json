@@ -1,0 +1,2976 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/modules": {
+      "get": {
+        "operationId": "modulesList",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModulesOverview"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "modules"
+        ]
+      }
+    },
+    "/api/modules/{id}/{action}": {
+      "post": {
+        "operationId": "modulesControl",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "action",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": [
+                "start",
+                "stop"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Control-Pin",
+            "in": "header",
+            "description": "CONTROL_PIN, when set",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Pi-Monitor",
+            "in": "header",
+            "description": "must be \"1\" (CSRF guard)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModuleActionResult"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Start or stop a module container; the choice survives reboots.",
+        "tags": [
+          "modules"
+        ]
+      }
+    },
+    "/api/system/status": {
+      "get": {
+        "operationId": "systemStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Liveness"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Cheap liveness check (container healthcheck): 503 when sampling stalled.",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/system/snapshot": {
+      "get": {
+        "operationId": "systemSnapshot",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Snapshot"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Latest snapshot (null right after start).",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/system/history": {
+      "get": {
+        "operationId": "systemHistory",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/History"
+                }
+              }
+            }
+          }
+        },
+        "summary": "One point per minute for 24 h, and the power events.",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/maps/status": {
+      "get": {
+        "operationId": "mapsStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MapsStatus"
+                }
+              }
+            }
+          }
+        },
+        "summary": "What the first-run setup still has to do.",
+        "tags": [
+          "maps"
+        ]
+      }
+    },
+    "/api/maps/setup": {
+      "post": {
+        "operationId": "mapsSetup",
+        "parameters": [],
+        "responses": {
+          "202": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Start the first-run setup (pmtiles, fonts, sprites, catalogue).",
+        "tags": [
+          "maps"
+        ]
+      }
+    },
+    "/api/maps/regions": {
+      "get": {
+        "operationId": "mapsRegions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegionsResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "maps"
+        ]
+      }
+    },
+    "/api/maps/regions/{name}": {
+      "delete": {
+        "operationId": "mapsDeleteRegion",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "maps"
+        ]
+      }
+    },
+    "/api/maps/places": {
+      "get": {
+        "operationId": "mapsPlaces",
+        "parameters": [
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlacesResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Candidate boundaries for a new region (Geofabrik index, Nominatim).",
+        "tags": [
+          "maps"
+        ]
+      }
+    },
+    "/api/maps/downloads": {
+      "post": {
+        "operationId": "mapsCreateDownload",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDownloadRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Estimate a download; it waits in \"awaiting-confirmation\".",
+        "tags": [
+          "maps"
+        ]
+      }
+    },
+    "/api/maps/downloads/{id}/confirm": {
+      "post": {
+        "operationId": "mapsConfirmDownload",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "maps"
+        ]
+      }
+    },
+    "/api/maps/jobs": {
+      "get": {
+        "operationId": "mapsJobs",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobsResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "maps"
+        ]
+      }
+    },
+    "/api/maps/jobs/{id}": {
+      "get": {
+        "operationId": "mapsJob",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "maps"
+        ]
+      },
+      "delete": {
+        "operationId": "mapsCancelJob",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Cancel a running job, or decline one waiting for confirmation.",
+        "tags": [
+          "maps"
+        ]
+      }
+    },
+    "/api/maps/pois": {
+      "get": {
+        "operationId": "mapsPois",
+        "parameters": [
+          {
+            "name": "bbox",
+            "required": false,
+            "in": "query",
+            "description": "minLon,minLat,maxLon,maxLat",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PoisResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "maps"
+        ]
+      },
+      "post": {
+        "operationId": "mapsCreatePoi",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePoiRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Poi"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "maps"
+        ]
+      }
+    },
+    "/api/maps/pois/{id}": {
+      "patch": {
+        "operationId": "mapsUpdatePoi",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePoiRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Poi"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "maps"
+        ]
+      },
+      "delete": {
+        "operationId": "mapsDeletePoi",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "maps"
+        ]
+      }
+    },
+    "/api/maps/styles/{name}": {
+      "get": {
+        "operationId": "mapsStyle",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "theme",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "light",
+                "dark",
+                "white",
+                "grayscale",
+                "black"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        },
+        "summary": "MapLibre style for one region, or \"_all\" for every region at once. Its\nsource URLs point at /svc/maps/ on the host the browser used.",
+        "tags": [
+          "maps"
+        ]
+      }
+    },
+    "/api/mesh/status": {
+      "get": {
+        "operationId": "meshStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RadioStatus"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Radio state, own node, channels and the send settings.",
+        "tags": [
+          "mesh"
+        ]
+      }
+    },
+    "/api/mesh/conversations": {
+      "get": {
+        "operationId": "meshConversations",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Conversation"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Conversations with traffic, newest first.",
+        "tags": [
+          "mesh"
+        ]
+      }
+    },
+    "/api/mesh/messages": {
+      "get": {
+        "operationId": "meshMessages",
+        "parameters": [
+          {
+            "name": "conv",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "before",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MeshMessage"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Messages of one conversation, newest last; page back with `before` (a message id).",
+        "tags": [
+          "mesh"
+        ]
+      },
+      "post": {
+        "operationId": "meshSend",
+        "parameters": [
+          {
+            "name": "X-Send-PIN",
+            "in": "header",
+            "description": "MESH_SEND_PIN, when set",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendMessageRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeshMessage"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Send a text to a channel or a node. 401 wrong PIN, 429 rate limit, 503 radio down.",
+        "tags": [
+          "mesh"
+        ]
+      }
+    },
+    "/api/mesh/nodes": {
+      "get": {
+        "operationId": "meshNodes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MeshNode"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Every node the radio has heard of.",
+        "tags": [
+          "mesh"
+        ]
+      }
+    },
+    "/api/mesh-map/overview": {
+      "get": {
+        "operationId": "meshMapOverview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeshMapOverview"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Regions to draw, map assets and every node with a position.",
+        "tags": [
+          "mesh-map"
+        ]
+      }
+    },
+    "/api/library/books": {
+      "get": {
+        "operationId": "libraryBooks",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BooksResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Every installed book, by title.",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/library/search": {
+      "get": {
+        "operationId": "librarySearch",
+        "parameters": [
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lang",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageLength",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "start",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Full-text search. kiwix can't search across languages at once, so the\nscope is one book (bookId) or every book of one language (lang).",
+        "tags": [
+          "library"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "offline-pi",
+    "description": "The API of offline-pi: one domain per feature, under /api/<domain>/.",
+    "version": "1",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "ModuleStatus": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "num": {
+            "type": "number"
+          },
+          "label": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string",
+            "description": "web route of the module (e.g. /maps/); also its passthrough under /svc"
+          },
+          "optional": {
+            "type": "boolean"
+          },
+          "container": {
+            "type": "string",
+            "description": "podman container name, offline-pi-<service>"
+          },
+          "installed": {
+            "type": "boolean"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "switched on (persisted); modules not installed are never enabled"
+          },
+          "busy": {
+            "type": "string",
+            "nullable": true,
+            "description": "a start/stop is in flight",
+            "enum": [
+              "start",
+              "stop"
+            ]
+          },
+          "missing": {
+            "description": "requires[] entries that are still unset",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "state": {
+            "type": "string",
+            "description": "'missing' = no container, otherwise the container's state (running, exited, created, ...)"
+          },
+          "health": {
+            "type": "string",
+            "nullable": true
+          },
+          "error": {
+            "type": "string",
+            "nullable": true,
+            "description": "last start/stop failure, cleared on the next attempt"
+          }
+        },
+        "required": [
+          "id",
+          "num",
+          "label",
+          "icon",
+          "description",
+          "path",
+          "optional",
+          "container",
+          "installed",
+          "enabled",
+          "busy",
+          "missing",
+          "state",
+          "health",
+          "error"
+        ]
+      },
+      "ModulesOverview": {
+        "type": "object",
+        "properties": {
+          "control": {
+            "type": "boolean",
+            "description": "core can reach podman.socket and start/stop modules"
+          },
+          "controlError": {
+            "type": "string",
+            "nullable": true
+          },
+          "pinRequired": {
+            "type": "boolean",
+            "description": "start/stop needs the X-Control-Pin header (CONTROL_PIN is set)"
+          },
+          "modules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ModuleStatus"
+            }
+          }
+        },
+        "required": [
+          "control",
+          "controlError",
+          "pinRequired",
+          "modules"
+        ]
+      },
+      "ModuleActionResult": {
+        "type": "object",
+        "properties": {
+          "module": {
+            "$ref": "#/components/schemas/ModuleStatus"
+          }
+        },
+        "required": [
+          "module"
+        ]
+      },
+      "Liveness": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "ts": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "ok",
+          "ts"
+        ]
+      },
+      "HostAddress": {
+        "type": "object",
+        "properties": {
+          "iface": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "iface",
+          "address"
+        ]
+      },
+      "SystemInfo": {
+        "type": "object",
+        "properties": {
+          "hostname": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string",
+            "nullable": true
+          },
+          "os": {
+            "type": "string",
+            "nullable": true
+          },
+          "kernel": {
+            "type": "string"
+          },
+          "arch": {
+            "type": "string"
+          },
+          "uptimeSec": {
+            "type": "number"
+          },
+          "processes": {
+            "type": "number",
+            "nullable": true
+          },
+          "addresses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HostAddress"
+            }
+          }
+        },
+        "required": [
+          "hostname",
+          "model",
+          "os",
+          "kernel",
+          "arch",
+          "uptimeSec",
+          "processes",
+          "addresses"
+        ]
+      },
+      "CpuInfo": {
+        "type": "object",
+        "properties": {
+          "usage": {
+            "type": "number",
+            "nullable": true,
+            "description": "percent, all cores"
+          },
+          "cores": {
+            "description": "percent per core",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "freqMhz": {
+            "description": "current frequency per core",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "maxFreqMhz": {
+            "type": "number",
+            "nullable": true
+          },
+          "load": {
+            "description": "1, 5 and 15 minute load average",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "usage",
+          "cores",
+          "freqMhz",
+          "maxFreqMhz",
+          "load"
+        ]
+      },
+      "Sensor": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "celsius": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "celsius"
+        ]
+      },
+      "TempsInfo": {
+        "type": "object",
+        "properties": {
+          "cpu": {
+            "type": "number",
+            "nullable": true,
+            "description": "°C"
+          },
+          "sensors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Sensor"
+            }
+          }
+        },
+        "required": [
+          "cpu",
+          "sensors"
+        ]
+      },
+      "FanInfo": {
+        "type": "object",
+        "properties": {
+          "rpm": {
+            "type": "number",
+            "nullable": true
+          },
+          "pwmPercent": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "rpm",
+          "pwmPercent"
+        ]
+      },
+      "PowerRail": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "volts": {
+            "type": "number",
+            "nullable": true
+          },
+          "amps": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "name",
+          "volts",
+          "amps"
+        ]
+      },
+      "PowerInfo": {
+        "type": "object",
+        "properties": {
+          "inputVolts": {
+            "type": "number",
+            "nullable": true,
+            "description": "Pi 5 PMIC EXT5V_V: the 5 V rail as delivered by the PSU"
+          },
+          "coreVolts": {
+            "type": "number",
+            "nullable": true
+          },
+          "socWatts": {
+            "type": "number",
+            "nullable": true,
+            "description": "Sum of the PMIC rails (Pi 5 only); excludes USB peripherals"
+          },
+          "rails": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PowerRail"
+            }
+          },
+          "psuMaxCurrentMa": {
+            "type": "number",
+            "nullable": true,
+            "description": "Current the PSU negotiated via USB-PD (Pi 5 only)"
+          },
+          "usbHighCurrent": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "true = USB ports may draw 1.6 A, false = limited to 600 mA"
+          },
+          "usbOverCurrent": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "underVoltageNow": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "live under-voltage alarm from the rpi_volt hwmon"
+          }
+        },
+        "required": [
+          "inputVolts",
+          "coreVolts",
+          "socWatts",
+          "rails",
+          "psuMaxCurrentMa",
+          "usbHighCurrent",
+          "usbOverCurrent",
+          "underVoltageNow"
+        ]
+      },
+      "ThrottleFlags": {
+        "type": "object",
+        "properties": {
+          "underVoltage": {
+            "type": "boolean"
+          },
+          "freqCapped": {
+            "type": "boolean"
+          },
+          "throttled": {
+            "type": "boolean"
+          },
+          "softTempLimit": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "underVoltage",
+          "freqCapped",
+          "throttled",
+          "softTempLimit"
+        ]
+      },
+      "ThrottleState": {
+        "type": "object",
+        "properties": {
+          "raw": {
+            "type": "string"
+          },
+          "now": {
+            "$ref": "#/components/schemas/ThrottleFlags"
+          },
+          "sinceBoot": {
+            "$ref": "#/components/schemas/ThrottleFlags"
+          }
+        },
+        "required": [
+          "raw",
+          "now",
+          "sinceBoot"
+        ]
+      },
+      "MemoryInfo": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number"
+          },
+          "available": {
+            "type": "number"
+          },
+          "used": {
+            "type": "number"
+          },
+          "swapTotal": {
+            "type": "number"
+          },
+          "swapUsed": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "total",
+          "available",
+          "used",
+          "swapTotal",
+          "swapUsed"
+        ]
+      },
+      "DiskInfo": {
+        "type": "object",
+        "properties": {
+          "mount": {
+            "type": "string"
+          },
+          "device": {
+            "type": "string"
+          },
+          "fstype": {
+            "type": "string"
+          },
+          "total": {
+            "type": "number"
+          },
+          "used": {
+            "type": "number"
+          },
+          "free": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "mount",
+          "device",
+          "fstype",
+          "total",
+          "used",
+          "free"
+        ]
+      },
+      "DiskIo": {
+        "type": "object",
+        "properties": {
+          "readBps": {
+            "type": "number"
+          },
+          "writeBps": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "readBps",
+          "writeBps"
+        ]
+      },
+      "NetworkInfo": {
+        "type": "object",
+        "properties": {
+          "iface": {
+            "type": "string"
+          },
+          "rxBps": {
+            "type": "number"
+          },
+          "txBps": {
+            "type": "number"
+          },
+          "rxTotal": {
+            "type": "number"
+          },
+          "txTotal": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "iface",
+          "rxBps",
+          "txBps",
+          "rxTotal",
+          "txTotal"
+        ]
+      },
+      "WifiInfo": {
+        "type": "object",
+        "properties": {
+          "iface": {
+            "type": "string"
+          },
+          "signalDbm": {
+            "type": "number"
+          },
+          "quality": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "iface",
+          "signalDbm",
+          "quality"
+        ]
+      },
+      "ContainerPort": {
+        "type": "object",
+        "properties": {
+          "hostPort": {
+            "type": "number"
+          },
+          "containerPort": {
+            "type": "number"
+          },
+          "protocol": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "hostPort",
+          "containerPort",
+          "protocol"
+        ]
+      },
+      "ContainerInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "app": {
+            "type": "string",
+            "nullable": true,
+            "description": "compose project, i.e. the offline-pi app directory"
+          },
+          "service": {
+            "type": "string",
+            "nullable": true
+          },
+          "image": {
+            "type": "string",
+            "nullable": true
+          },
+          "state": {
+            "type": "string"
+          },
+          "health": {
+            "type": "string",
+            "nullable": true
+          },
+          "startedAt": {
+            "type": "number",
+            "nullable": true
+          },
+          "finishedAt": {
+            "type": "number",
+            "nullable": true
+          },
+          "exitCode": {
+            "type": "number",
+            "nullable": true
+          },
+          "restartPolicy": {
+            "type": "string",
+            "nullable": true
+          },
+          "hostNetwork": {
+            "type": "boolean"
+          },
+          "ports": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContainerPort"
+            }
+          },
+          "cpuPercent": {
+            "type": "number",
+            "nullable": true,
+            "description": "share of the whole machine, percent"
+          },
+          "memoryBytes": {
+            "type": "number",
+            "nullable": true
+          },
+          "processes": {
+            "type": "number"
+          },
+          "self": {
+            "type": "boolean",
+            "description": "the container core runs in (cannot be stopped from here)"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "app",
+          "service",
+          "image",
+          "state",
+          "health",
+          "startedAt",
+          "finishedAt",
+          "exitCode",
+          "restartPolicy",
+          "hostNetwork",
+          "ports",
+          "cpuPercent",
+          "memoryBytes",
+          "processes",
+          "self"
+        ]
+      },
+      "ContainersInfo": {
+        "type": "object",
+        "properties": {
+          "available": {
+            "type": "boolean"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ContainerInfo"
+            }
+          }
+        },
+        "required": [
+          "available",
+          "error",
+          "list"
+        ]
+      },
+      "ListeningSocket": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string"
+          },
+          "port": {
+            "type": "number"
+          },
+          "process": {
+            "type": "string",
+            "nullable": true
+          },
+          "container": {
+            "type": "string",
+            "nullable": true
+          },
+          "service": {
+            "type": "string",
+            "nullable": true
+          },
+          "loopback": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "address",
+          "port",
+          "process",
+          "container",
+          "service",
+          "loopback"
+        ]
+      },
+      "EstablishedSocket": {
+        "type": "object",
+        "properties": {
+          "direction": {
+            "type": "string",
+            "enum": [
+              "in",
+              "out"
+            ]
+          },
+          "localAddress": {
+            "type": "string"
+          },
+          "localPort": {
+            "type": "number"
+          },
+          "remoteAddress": {
+            "type": "string"
+          },
+          "remotePort": {
+            "type": "number"
+          },
+          "process": {
+            "type": "string",
+            "nullable": true
+          },
+          "container": {
+            "type": "string",
+            "nullable": true
+          },
+          "service": {
+            "type": "string",
+            "nullable": true
+          },
+          "loopback": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "direction",
+          "localAddress",
+          "localPort",
+          "remoteAddress",
+          "remotePort",
+          "process",
+          "container",
+          "service",
+          "loopback"
+        ]
+      },
+      "ConnectionsInfo": {
+        "type": "object",
+        "properties": {
+          "counts": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "TCP sockets per state (ESTABLISHED, LISTEN, TIME_WAIT, ...)"
+          },
+          "listening": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ListeningSocket"
+            }
+          },
+          "established": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EstablishedSocket"
+            }
+          },
+          "totalEstablished": {
+            "type": "number"
+          },
+          "remoteHosts": {
+            "type": "number",
+            "description": "distinct non-loopback peers"
+          }
+        },
+        "required": [
+          "counts",
+          "listening",
+          "established",
+          "totalEstablished",
+          "remoteHosts"
+        ]
+      },
+      "Snapshot": {
+        "type": "object",
+        "properties": {
+          "ts": {
+            "type": "number"
+          },
+          "system": {
+            "$ref": "#/components/schemas/SystemInfo"
+          },
+          "cpu": {
+            "$ref": "#/components/schemas/CpuInfo"
+          },
+          "temps": {
+            "$ref": "#/components/schemas/TempsInfo"
+          },
+          "fan": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FanInfo"
+              }
+            ]
+          },
+          "power": {
+            "$ref": "#/components/schemas/PowerInfo"
+          },
+          "throttle": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ThrottleState"
+              }
+            ]
+          },
+          "memory": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MemoryInfo"
+              }
+            ]
+          },
+          "disks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DiskInfo"
+            }
+          },
+          "diskIo": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DiskIo"
+              }
+            ]
+          },
+          "network": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NetworkInfo"
+            }
+          },
+          "wifi": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WifiInfo"
+              }
+            ]
+          },
+          "vcgencmd": {
+            "type": "boolean"
+          },
+          "containers": {
+            "$ref": "#/components/schemas/ContainersInfo"
+          },
+          "connections": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConnectionsInfo"
+              }
+            ]
+          }
+        },
+        "required": [
+          "ts",
+          "system",
+          "cpu",
+          "temps",
+          "fan",
+          "power",
+          "throttle",
+          "memory",
+          "disks",
+          "diskIo",
+          "network",
+          "wifi",
+          "vcgencmd",
+          "containers",
+          "connections"
+        ]
+      },
+      "HistoryPoint": {
+        "type": "object",
+        "properties": {
+          "t": {
+            "type": "number"
+          },
+          "cpu": {
+            "type": "number",
+            "nullable": true
+          },
+          "temp": {
+            "type": "number",
+            "nullable": true
+          },
+          "volt": {
+            "type": "number",
+            "nullable": true
+          },
+          "mem": {
+            "type": "number",
+            "nullable": true
+          },
+          "rx": {
+            "type": "number",
+            "nullable": true
+          },
+          "tx": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "t",
+          "cpu",
+          "temp",
+          "volt",
+          "mem",
+          "rx",
+          "tx"
+        ]
+      },
+      "PowerEvent": {
+        "type": "object",
+        "properties": {
+          "t": {
+            "type": "number"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "under-voltage",
+              "throttled",
+              "freq-capped",
+              "soft-temp-limit"
+            ]
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "t",
+          "kind",
+          "active"
+        ]
+      },
+      "History": {
+        "type": "object",
+        "properties": {
+          "minutes": {
+            "description": "one point per minute, last 24 h",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HistoryPoint"
+            }
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PowerEvent"
+            }
+          }
+        },
+        "required": [
+          "minutes",
+          "events"
+        ]
+      },
+      "PmtilesStatus": {
+        "type": "object",
+        "properties": {
+          "installed": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "installed"
+        ]
+      },
+      "AssetsStatus": {
+        "type": "object",
+        "properties": {
+          "fonts": {
+            "type": "boolean"
+          },
+          "sprites": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "fonts",
+          "sprites"
+        ]
+      },
+      "CatalogStatus": {
+        "type": "object",
+        "properties": {
+          "ready": {
+            "type": "boolean"
+          },
+          "count": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "ready",
+          "count"
+        ]
+      },
+      "MapsStatus": {
+        "type": "object",
+        "properties": {
+          "pmtiles": {
+            "$ref": "#/components/schemas/PmtilesStatus"
+          },
+          "assets": {
+            "$ref": "#/components/schemas/AssetsStatus"
+          },
+          "catalog": {
+            "$ref": "#/components/schemas/CatalogStatus"
+          },
+          "regions": {
+            "type": "number"
+          },
+          "ready": {
+            "type": "boolean",
+            "description": "true once tiles can be downloaded and rendered"
+          }
+        },
+        "required": [
+          "pmtiles",
+          "assets",
+          "catalog",
+          "regions",
+          "ready"
+        ]
+      },
+      "RegionRef": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "minzoom": {
+            "type": "number"
+          },
+          "maxzoom": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "label",
+          "minzoom",
+          "maxzoom"
+        ]
+      },
+      "DownloadEstimate": {
+        "type": "object",
+        "properties": {
+          "archiveBytes": {
+            "type": "number"
+          },
+          "transferBytes": {
+            "type": "number"
+          },
+          "build": {
+            "type": "string"
+          },
+          "diskWarning": {
+            "type": "string",
+            "description": "set when the archive would not comfortably fit on the disk"
+          }
+        },
+        "required": [
+          "archiveBytes",
+          "transferBytes",
+          "build"
+        ]
+      },
+      "JobProgress": {
+        "type": "object",
+        "properties": {
+          "bytes": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number",
+            "description": "expected total; 0 when unknown"
+          },
+          "percent": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "bytes",
+          "total",
+          "percent"
+        ]
+      },
+      "Job": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "download",
+              "setup"
+            ],
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "running",
+              "estimating",
+              "awaiting-confirmation",
+              "done",
+              "failed",
+              "cancelled"
+            ],
+            "type": "string"
+          },
+          "stage": {
+            "type": "string",
+            "description": "short label for the current step, e.g. \"downloading tiles\""
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "region": {
+            "description": "download jobs only",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RegionRef"
+              }
+            ]
+          },
+          "estimate": {
+            "$ref": "#/components/schemas/DownloadEstimate"
+          },
+          "progress": {
+            "$ref": "#/components/schemas/JobProgress"
+          },
+          "error": {
+            "type": "string"
+          },
+          "log": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "state",
+          "stage",
+          "createdAt",
+          "updatedAt",
+          "log"
+        ]
+      },
+      "GeoPolygon": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "Polygon",
+              "MultiPolygon"
+            ]
+          },
+          "coordinates": {
+            "description": "number[][][] (Polygon) or number[][][][] (MultiPolygon)",
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "coordinates"
+        ]
+      },
+      "Region": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "url-safe id, e.g. \"switzerland\""
+          },
+          "label": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "geofabrik",
+              "nominatim"
+            ]
+          },
+          "bbox": {
+            "description": "[minLon, minLat, maxLon, maxLat]",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "center": {
+            "description": "[lon, lat]",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "minzoom": {
+            "type": "number"
+          },
+          "maxzoom": {
+            "type": "number"
+          },
+          "build": {
+            "type": "string",
+            "description": "protomaps build date, YYYYMMDD"
+          },
+          "bytes": {
+            "type": "number"
+          },
+          "addedAt": {
+            "type": "string"
+          },
+          "polygon": {
+            "$ref": "#/components/schemas/GeoPolygon"
+          }
+        },
+        "required": [
+          "name",
+          "label",
+          "source",
+          "bbox",
+          "center",
+          "minzoom",
+          "maxzoom",
+          "build",
+          "bytes",
+          "addedAt"
+        ]
+      },
+      "RegionsResponse": {
+        "type": "object",
+        "properties": {
+          "regions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Region"
+            }
+          }
+        },
+        "required": [
+          "regions"
+        ]
+      },
+      "PlaceCandidate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "description": "suggested region id, e.g. \"berlin\""
+          },
+          "label": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string",
+            "description": "context when disambiguating, e.g. \"Germany\" or the OSM type"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "geofabrik",
+              "nominatim"
+            ]
+          },
+          "bbox": {
+            "description": "[minLon, minLat, maxLon, maxLat]",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "span": {
+            "type": "string",
+            "description": "rough degree span, e.g. \"0.38° × 0.42°\""
+          },
+          "preview": {
+            "description": "coarse outline for the map",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GeoPolygon"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "label",
+          "detail",
+          "source",
+          "bbox",
+          "span",
+          "preview"
+        ]
+      },
+      "PlacesResponse": {
+        "type": "object",
+        "properties": {
+          "places": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlaceCandidate"
+            }
+          }
+        },
+        "required": [
+          "places"
+        ]
+      },
+      "CreateDownloadRequest": {
+        "type": "object",
+        "properties": {
+          "placeId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "description": "override the region id used in URLs and filenames",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "minzoom": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 15
+          },
+          "maxzoom": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 15
+          },
+          "build": {
+            "type": "string",
+            "description": "planet build to extract from, YYYYMMDD; omit for the latest",
+            "pattern": "^\\d{8}$"
+          },
+          "force": {
+            "type": "boolean",
+            "description": "replace an existing region of the same name"
+          }
+        },
+        "required": [
+          "placeId"
+        ]
+      },
+      "JobsResponse": {
+        "type": "object",
+        "properties": {
+          "jobs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Job"
+            }
+          }
+        },
+        "required": [
+          "jobs"
+        ]
+      },
+      "Poi": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "emoji": {
+            "type": "string",
+            "description": "a single emoji, rendered as the map marker"
+          },
+          "lat": {
+            "type": "number"
+          },
+          "lon": {
+            "type": "number"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "emoji",
+          "lat",
+          "lon",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PoisResponse": {
+        "type": "object",
+        "properties": {
+          "pois": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Poi"
+            }
+          }
+        },
+        "required": [
+          "pois"
+        ]
+      },
+      "CreatePoiRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "emoji": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8
+          },
+          "lat": {
+            "type": "number"
+          },
+          "lon": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "emoji",
+          "lat",
+          "lon"
+        ]
+      },
+      "UpdatePoiRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "emoji": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8
+          },
+          "lat": {
+            "type": "number"
+          },
+          "lon": {
+            "type": "number"
+          }
+        }
+      },
+      "RadioChannel": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "description": "primary | secondary"
+          }
+        },
+        "required": [
+          "index",
+          "name",
+          "role"
+        ]
+      },
+      "RateLimit": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "number"
+          },
+          "window": {
+            "type": "number",
+            "description": "seconds"
+          }
+        },
+        "required": [
+          "count",
+          "window"
+        ]
+      },
+      "MeshConfig": {
+        "type": "object",
+        "properties": {
+          "sendPinRequired": {
+            "type": "boolean",
+            "description": "sending needs the X-Send-PIN header (MESH_SEND_PIN)"
+          },
+          "maxTextBytes": {
+            "type": "number"
+          },
+          "rateLimit": {
+            "$ref": "#/components/schemas/RateLimit"
+          }
+        },
+        "required": [
+          "sendPinRequired",
+          "maxTextBytes",
+          "rateLimit"
+        ]
+      },
+      "RadioStatus": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "description": "connecting | connected | disconnected | error ..."
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "connection": {
+            "type": "string",
+            "description": "serial | tcp"
+          },
+          "device": {
+            "type": "string",
+            "nullable": true
+          },
+          "nodeNum": {
+            "type": "number",
+            "nullable": true
+          },
+          "nodeId": {
+            "type": "string",
+            "nullable": true
+          },
+          "longName": {
+            "type": "string",
+            "nullable": true
+          },
+          "shortName": {
+            "type": "string",
+            "nullable": true
+          },
+          "hwModel": {
+            "type": "string",
+            "nullable": true
+          },
+          "firmware": {
+            "type": "string",
+            "nullable": true
+          },
+          "region": {
+            "type": "string",
+            "nullable": true
+          },
+          "preset": {
+            "type": "string",
+            "nullable": true
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RadioChannel"
+            }
+          },
+          "config": {
+            "description": "absent on live status updates",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MeshConfig"
+              }
+            ]
+          }
+        },
+        "required": [
+          "state",
+          "error",
+          "connection",
+          "device",
+          "channels"
+        ]
+      },
+      "Conversation": {
+        "type": "object",
+        "properties": {
+          "conv": {
+            "type": "string",
+            "description": "\"ch:<index>\" or \"dm:<node num>\""
+          },
+          "count": {
+            "type": "number"
+          },
+          "lastId": {
+            "type": "number"
+          },
+          "lastTime": {
+            "type": "number",
+            "description": "unix seconds"
+          }
+        },
+        "required": [
+          "conv",
+          "count",
+          "lastId",
+          "lastTime"
+        ]
+      },
+      "MeshMessage": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "packetId": {
+            "type": "number"
+          },
+          "conv": {
+            "type": "string"
+          },
+          "rxTime": {
+            "type": "number",
+            "description": "unix seconds"
+          },
+          "fromNum": {
+            "type": "number"
+          },
+          "toNum": {
+            "type": "number"
+          },
+          "channel": {
+            "type": "number"
+          },
+          "text": {
+            "type": "string"
+          },
+          "direction": {
+            "enum": [
+              "in",
+              "out"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "nullable": true,
+            "description": "sent messages: pending | sent | acked | failed; received: null",
+            "enum": [
+              "failed",
+              "pending",
+              "sent",
+              "acked"
+            ],
+            "type": "string"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "rxSnr": {
+            "type": "number",
+            "nullable": true
+          },
+          "rxRssi": {
+            "type": "number",
+            "nullable": true
+          },
+          "hops": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "packetId",
+          "conv",
+          "rxTime",
+          "fromNum",
+          "toNum",
+          "channel",
+          "text",
+          "direction",
+          "status",
+          "error",
+          "rxSnr",
+          "rxRssi",
+          "hops"
+        ]
+      },
+      "MeshNode": {
+        "type": "object",
+        "properties": {
+          "num": {
+            "type": "number"
+          },
+          "nodeId": {
+            "type": "string",
+            "nullable": true
+          },
+          "longName": {
+            "type": "string",
+            "nullable": true
+          },
+          "shortName": {
+            "type": "string",
+            "nullable": true
+          },
+          "hwModel": {
+            "type": "string",
+            "nullable": true
+          },
+          "role": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastHeard": {
+            "type": "number",
+            "nullable": true,
+            "description": "unix seconds"
+          },
+          "snr": {
+            "type": "number",
+            "nullable": true
+          },
+          "hopsAway": {
+            "type": "number",
+            "nullable": true
+          },
+          "battery": {
+            "type": "number",
+            "nullable": true,
+            "description": "percent (101 = powered)"
+          },
+          "voltage": {
+            "type": "number",
+            "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "nullable": true
+          },
+          "altitude": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "num",
+          "nodeId",
+          "longName",
+          "shortName",
+          "hwModel",
+          "role",
+          "lastHeard",
+          "snr",
+          "hopsAway",
+          "battery",
+          "voltage",
+          "latitude",
+          "longitude",
+          "altitude"
+        ]
+      },
+      "SendMessageRequest": {
+        "type": "object",
+        "properties": {
+          "conv": {
+            "type": "string",
+            "description": "\"ch:<0-7>\" or \"dm:<node num>\"",
+            "pattern": "^(ch:[0-7]|dm:\\d+)$"
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "conv",
+          "text"
+        ]
+      },
+      "MapRegion": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "bbox": {
+            "description": "[minLon, minLat, maxLon, maxLat]",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "minzoom": {
+            "type": "number"
+          },
+          "maxzoom": {
+            "type": "number"
+          },
+          "pmtilesUrl": {
+            "type": "string",
+            "description": "archive for the pmtiles:// protocol, under core's passthrough"
+          }
+        },
+        "required": [
+          "name",
+          "label",
+          "bbox",
+          "minzoom",
+          "maxzoom",
+          "pmtilesUrl"
+        ]
+      },
+      "MapAssets": {
+        "type": "object",
+        "properties": {
+          "glyphs": {
+            "type": "string",
+            "description": "MapLibre glyphs template, e.g. /svc/mesh-map/fonts/{fontstack}/{range}.pbf"
+          },
+          "spriteBase": {
+            "type": "string",
+            "description": "sprite base without theme, e.g. /svc/mesh-map/sprites/ (append \"light\" or \"dark\")"
+          }
+        },
+        "required": [
+          "glyphs",
+          "spriteBase"
+        ]
+      },
+      "MeshMapOverview": {
+        "type": "object",
+        "properties": {
+          "regions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MapRegion"
+            }
+          },
+          "assets": {
+            "$ref": "#/components/schemas/MapAssets"
+          },
+          "meshRunning": {
+            "type": "boolean",
+            "description": "the mesh module runs; nodes is empty otherwise"
+          },
+          "ownNum": {
+            "type": "number",
+            "nullable": true,
+            "description": "our own node number (marks \"you\"), when the radio is connected"
+          },
+          "nodes": {
+            "description": "nodes with a position only",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MeshNode"
+            }
+          }
+        },
+        "required": [
+          "regions",
+          "assets",
+          "meshRunning",
+          "ownNum",
+          "nodes"
+        ]
+      },
+      "Book": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "kiwix book id (uuid)"
+          },
+          "name": {
+            "type": "string",
+            "description": "kiwix book name, part of its content URLs"
+          },
+          "title": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string",
+            "description": "ISO 639-3 code(s) of the first language, e.g. \"eng\""
+          },
+          "articleCount": {
+            "type": "number"
+          },
+          "size": {
+            "type": "number",
+            "nullable": true,
+            "description": "bytes of the ZIM file, when known"
+          },
+          "date": {
+            "type": "string",
+            "description": "YYYY-MM"
+          },
+          "fulltext": {
+            "type": "boolean",
+            "description": "has a full-text index (searchable), otherwise titles only"
+          },
+          "viewerUrl": {
+            "type": "string",
+            "description": "kiwix's viewer with its toolbar, e.g. /svc/library/viewer#wikipedia_en_all"
+          },
+          "contentUrl": {
+            "type": "string",
+            "description": "the book's main page, e.g. /svc/library/content/wikipedia_en_all"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "title",
+          "summary",
+          "language",
+          "articleCount",
+          "size",
+          "date",
+          "fulltext",
+          "viewerUrl",
+          "contentUrl"
+        ]
+      },
+      "BooksResponse": {
+        "type": "object",
+        "properties": {
+          "books": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Book"
+            }
+          }
+        },
+        "required": [
+          "books"
+        ]
+      },
+      "SearchHit": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "description": "article URL under the passthrough"
+          },
+          "viewerUrl": {
+            "type": "string",
+            "description": "kiwix viewer URL for the article"
+          },
+          "snippet": {
+            "type": "string",
+            "description": "plain-text excerpt"
+          },
+          "book": {
+            "type": "string",
+            "description": "title of the book it is in"
+          },
+          "wordCount": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "title",
+          "url",
+          "viewerUrl",
+          "snippet",
+          "book",
+          "wordCount"
+        ]
+      },
+      "SearchResponse": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number"
+          },
+          "start": {
+            "type": "number"
+          },
+          "hits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchHit"
+            }
+          }
+        },
+        "required": [
+          "total",
+          "start",
+          "hits"
+        ]
+      },
+      "MeshLink": {
+        "type": "object",
+        "properties": {
+          "connected": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "connected"
+        ]
+      },
+      "SystemInit": {
+        "type": "object",
+        "properties": {
+          "minutes": {
+            "description": "one point per minute, last 24 h",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HistoryPoint"
+            }
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PowerEvent"
+            }
+          },
+          "intervalMs": {
+            "type": "number"
+          },
+          "snapshot": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Snapshot"
+              }
+            ]
+          },
+          "live": {
+            "description": "every sample of the last 15 minutes",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HistoryPoint"
+            }
+          }
+        },
+        "required": [
+          "minutes",
+          "events",
+          "intervalMs",
+          "snapshot",
+          "live"
+        ]
+      }
+    }
+  }
+}

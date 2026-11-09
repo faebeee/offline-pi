@@ -1,0 +1,67 @@
+/* App-wide layout on top of the Outpost package (components, tokens and
+   fonts come from @offline-pi/ui/outpost.css; DESIGN.md). Feature styles
+   live next to their feature (src/features/<domain>/*.css). */
+
+#root {
+  height: 100dvh;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* home hub */
+.hub {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+  gap: var(--space-3);
+}
+
+.tile .i {
+  width: 28px;
+  height: 28px;
+}
+
+.tile-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.tile.is-off {
+  color: var(--fg2);
+}
+
+/* module switches */
+.card-control .stack {
+  gap: 0;
+}
+
+.card-control .switch-row + .switch-row {
+  border-top: 1px solid var(--line);
+}
+
+.card-control .switch-row {
+  padding: var(--space-2) 0;
+}
+
+.card-control .row-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-control .help {
+  margin: var(--space-3) 0 0;
+}
+
+/* a module's "not running" state, padded even on full-bleed screens */
+.module-gate {
+  padding: var(--space-4);
+}
+
+.content:not(.bleed) > .module-gate {
+  padding: 0;
+}

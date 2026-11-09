@@ -1,17 +1,22 @@
-# core: dashboard, gateway and module supervisor
+# core: the API, the passthrough and the module supervisor
 
 core is the part of offline-pi that always runs and the only one the LAN
-reaches (`PORT`, 8080). It serves:
+reaches (`PORT`, 8080). It is **the one API** of offline-pi: one NestJS
+domain module per feature, each talking to its module's container. It
+serves:
 
-- `/`: the **home page**: every installed module as a tile (open it) and an
-  on/off switch (start/stop its container), plus a banner when a stopped or
-  missing module was opened;
-- `/system/`: the **System module**, a realtime dashboard of the Pi (below);
-- `/<module>/`: every installed module, through a streaming reverse proxy
-  (`src/gateway/gateway.ts`) to its loopback port, WebSockets, SSE and HTTP
-  range requests included. A stopped module redirects page loads to the home
-  page; API calls get `503`;
-- `/ui/`: the shared Outpost package; `/api/*`: core's API.
+- `/`: the **web app** ([`apps/web`](../web/README.md)), every screen of
+  every module: home (tiles and on/off switches), `/system` (the System
+  module, below), `/maps`, `/mesh`, ... (client-side routes; page loads get
+  its `index.html`);
+- `/api/<domain>/`: the API (table below), Swagger UI at `/api/docs`, the
+  document at `/api/openapi.json`;
+- `/socket.io`: live updates, one Socket.IO namespace per domain;
+- `/svc/<module>/`: a streaming passthrough to each installed module's
+  loopback port for raw files (map tiles, fonts, `.pmtiles` range requests,
+  kiwix articles), WebSockets and SSE included. A stopped module gets `503`
+  (page loads are sent to its screen, which offers START);
+- `/ui/`: the shared Outpost package.
 
 Built with NestJS and Socket.IO; fully offline: no CDN, no external fonts or
 chart libraries.
@@ -20,8 +25,7 @@ chart libraries.
 
 core reads the module manifests (`apps/*/module.json`; its Dockerfile copies
 every one into the image, in development it reads the checkout) for the home page, the nav
-(`/api/modules`, used by `outpost.js` in every module) and the gateway
-routes. Installed = listed in `MODULES` (`.env`).
+(`/api/modules`), the upstream URL of each domain and the passthrough. Installed = listed in `MODULES` (`.env`).
 
 Modules are started and stopped through the Podman REST API on your user's
 `podman.socket` (`PODMAN_SOCKET`, detected by `install.sh`), reached through
@@ -107,14 +111,20 @@ unprivileged user on the host.
 
 ## API
 
-| Endpoint | Description |
-|---|---|
-| `GET /api/status` | Healthcheck: 200 while samples are fresh |
-| `GET /api/snapshot` | Latest full reading as JSON |
-| `GET /api/history` | 24 h minute history and power events |
-| `GET /api/modules` | Every module: manifest fields, installed, switched on, container state and health, missing settings |
-| `POST /api/modules/:id/start` / `stop` | Switch a module on/off (header `X-Pi-Monitor: 1`; `X-Control-Pin` when `CONTROL_PIN` is set) |
-| Socket.IO `init` / `snapshot` | `init` on connect (snapshot, history, events), then `snapshot` on every sample |
+The full, typed contract is the OpenAPI document (`/api/docs` on a running
+core, or `packages/api-client/openapi.json`). By domain:
+
+| Domain | Endpoints | Live (Socket.IO namespace) |
+|---|---|---|
+| modules | `GET /api/modules`; `POST /api/modules/:id/start` / `stop` (header `X-Pi-Monitor: 1`; `X-Control-Pin` when `CONTROL_PIN` is set) | |
+| system | `GET /api/system/status` (healthcheck: 200 while samples are fresh), `snapshot`, `history` | `/system`: `init` on connect, then `snapshot` per sample |
+| maps | `GET /api/maps/status`, `regions`, `places?q=`, `jobs`, `jobs/:id`, `pois`, `styles/:name?theme=`; `POST setup`, `downloads`, `downloads/:id/confirm`, `pois`; `PATCH pois/:id`; `DELETE regions/:name`, `jobs/:id`, `pois/:id` | `/maps`: send `watchJob` / `unwatchJob`, get `job` |
+| mesh | `GET /api/mesh/status`, `conversations`, `messages?conv=`, `nodes`; `POST messages` (`X-Send-PIN`) | `/mesh`: `link`, `status`, `message`, `node`, `nodes` |
+| mesh-map | `GET /api/mesh-map/overview` (regions, assets, positioned nodes) | uses `/mesh` |
+| library | `GET /api/library/books`, `search?q=&lang=|bookId=` | |
+
+A module that is not running answers `503` with `Retry-After`, one that is
+not installed `404`.
 
 ## Development
 
@@ -125,21 +135,34 @@ npm install         # once, every workspace
 npm run dev:core    # builds and serves on :8080 (needs Linux /proc and /sys)
 ```
 
-For the gateway without containers, point it at the module ports by hand:
-`MODULES=maps MAPS_PORT=8081 npm run dev:core` (the manifests come from
-`apps/*/module.json`; `APPS_DIR` overrides where they are read).
+To reach module containers without Podman, point core at their ports by
+hand: `MODULES=maps MAPS_PORT=8081 npm run dev:core` (the manifests come from
+`apps/*/module.json`; `APPS_DIR` overrides where they are read). The web app
+runs next to it with `npm run dev:web`.
 
-Code layout:
-- `src/metrics/`: `collector.service.ts` reads `/proc`, `/sys` and
-  `vcgencmd`; `history.service.ts` keeps the ring buffers and the event log;
-  `runtime.service.ts` reads Podman's state DB and the TCP sockets;
-  `metrics.gateway.ts` pushes over Socket.IO.
-- `src/modules/`: `registry.ts` loads the manifests, `modules.service.ts`
-  keeps the desired state and reconciles, `podman.service.ts` talks to the
-  socket, `modules.controller.ts` is `/api/modules`.
-- `src/gateway/gateway.ts`: the reverse proxy.
-- `public/`: home page (`index.html`, `home.js`), `system/` dashboard,
-  `modules.js` (shared start/stop client).
+After changing the API (a DTO, a controller), regenerate the client:
+`npm run api:gen` at the root (see
+[`packages/api-client`](../../packages/api-client/README.md)).
+
+Code layout (domain-driven; how to add a domain: root `AGENTS.md`):
+- `src/platform/`: the shared kernel, no feature logic.
+  - `modules/`: `registry.ts` loads the manifests, `modules.service.ts`
+    keeps the desired state and reconciles, `podman.service.ts` talks to the
+    socket.
+  - `runtime/`: `runtime.service.ts` reads Podman's state DB and the TCP
+    sockets; `host/`: `/proc` and Podman DB readers.
+  - `upstream/`: `UpstreamService` / `UpstreamClient`, how a domain calls
+    its container (errors mapped to 404/503/upstream status), SSE reader.
+  - `passthrough/passthrough.ts`: `/svc/<module>/`.
+  - `openapi/`, `realtime/`, `http/` (error filter), `web/` (serves `apps/web`).
+- `src/domains/<name>/` (`modules`, `system`, `maps`, `mesh`, `mesh-map`,
+  `library`): `api/` controllers, `application/` use cases,
+  `infrastructure/` container clients and mappers, `domain/` DTO classes
+  (the contract), `<name>.events.ts` Socket.IO namespace.
+  - `system/application/`: `collector.service.ts` reads `/proc`, `/sys` and
+    `vcgencmd`; `history.service.ts` keeps the ring buffers and the event
+    log.
+- `src/openapi-emit.ts`: writes the OpenAPI document without starting core.
 - `/ui/` is the workspace [`@offline-pi/ui`](../../packages/ui/README.md)
   (`packages/ui`), a dependency of core, served straight from where it
   resolves (`src/main.ts`).

@@ -1,7 +1,7 @@
 # mesh
 
 A web UI for a [Meshtastic](https://meshtastic.org) LoRa node plugged into the
-Pi by USB. Open `http://<pi>:8080/mesh/` in any browser on the hotspot or
+Pi by USB. Open `http://<pi>:8080/mesh` in any browser on the hotspot or
 LAN to:
 
 - read and send messages on the node's channels (e.g. the public `LongFast`
@@ -9,10 +9,10 @@ LAN to:
 - send and receive direct messages to/from individual nodes, with delivery
   state (sending, sent to mesh, delivered, failed),
 - see which nodes are around: last heard, hops, signal, battery, distance,
-  and "Show on map": to the Mesh map module (`/mesh-map/`,
+  and "Show on map": to the Mesh map screen (`/mesh-map`,
   [`apps/mesh-map`](../mesh-map/README.md)) when installed, which shows
   every node with a position on an offline map (updated live), otherwise to
-  Maps (`/maps/`). Which one comes from core's module list; without either
+  Maps (`/maps`). Which one comes from core's module list; without either
   the links are hidden.
 
 The message history and node list are kept on the Pi (SQLite), so they
@@ -20,7 +20,7 @@ survive restarts and are readable even while the radio is unplugged.
 
 Scope: the web UI talks **as the Pi's node**. Everyone else uses their own
 Meshtastic node (companion radio + Meshtastic app) and reaches the Pi over
-LoRa. The module is reached only through core at `/mesh/`: no Meshtastic
+LoRa. The module is reached only through core: no Meshtastic
 TCP API, no port forwarding or router config.
 
 ## Requirements
@@ -61,7 +61,7 @@ Set in the root `.env` (see the root README):
 | Variable | Default | Description |
 |---|---|---|
 | `MESH_DATA_DIR` | `./data/mesh` | `mesh.db` (SQLite, small). SD card is fine; can point at an SSD mount. |
-| `MESH_PORT` | `8084` | Internal port (loopback only), proxied by core at `/mesh/`. |
+| `MESH_PORT` | `8084` | Internal port (loopback only), called by core's mesh domain. |
 | `MESH_CONNECTION` | empty | `serial` (USB node) or `tcp` (node on the network); empty = not configured. |
 | `MESH_DEVICE` | `/dev/null` | Set by `install.sh` to the node's `/dev/serial/by-id/...` path; `/dev/null` for `tcp`. |
 | `MESH_HOST` | empty | Node hostname/IP for `tcp` (port 4403). |
@@ -110,21 +110,24 @@ don't spam: `MESH_SEND_RATE_LIMIT` limits each browser.
 
 - The service `mesh` in `compose.yml` in the repo root runs as container
   `offline-pi-mesh` (image `localhost/offline-pi-mesh`) with host
-  networking, bound to `127.0.0.1:MESH_PORT`. The page uses page-relative
-  URLs, so it works under `/mesh/`.
+  networking, bound to `127.0.0.1:MESH_PORT`.
 - Python: FastAPI + uvicorn, the official `meshtastic` library, SQLite.
-  Static vanilla HTML/JS/CSS (no CDN, works offline).
-- The look (status strip, header, module nav, chat bubbles, lists, fonts,
-  icons) comes from the shared Outpost UI package in `packages/ui` in the repo root
-  (see `DESIGN.md`). mesh doesn't bundle it: the page loads `/ui/` from
-  core.
+  API only, no static files.
+- The UI is the `/mesh` screen of the single web app (`apps/web`, code in
+  `apps/web/src/features/mesh/` and `apps/web/src/routes/mesh*.tsx`), built
+  on the shared Outpost UI package (see `DESIGN.md`). The browser talks only
+  to core: its mesh domain (`apps/core/src/domains/mesh/`) exposes
+  `/api/mesh/...`, maps this API's snake_case JSON to camelCase and relays
+  live events on the Socket.IO namespace `/mesh`.
 - The app owns the serial port. It reconnects with backoff when the node is
   unplugged or reboots; the UI shows "Radio disconnected" meanwhile and keeps
   showing the history.
-- API (under `/mesh/`): `GET /api/status`, `GET /api/conversations`,
+- API (on `MESH_PORT`, called by core): `GET /api/status`, `GET /api/conversations`,
   `GET /api/messages?conv=ch:0|dm:<node num>&before=<id>`, `GET /api/nodes`,
   `POST /api/messages {conv, text}` (header `X-Send-Pin` if set),
   `WS /api/live` (status, message, node events).
+- The send rate limit is per client: when the peer is loopback (core), the
+  key is the first `X-Forwarded-For` entry (`client_key` in `app/main.py`).
 - Outgoing messages are sent with `wantAck`. The state goes from *sending*
   to *sent to mesh* (a neighbour rebroadcast it) and, for direct messages,
   *delivered* (the recipient confirmed). No ack within 2 minutes = *failed*.

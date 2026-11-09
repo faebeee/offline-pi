@@ -1,6 +1,6 @@
 # Built with the repo root as context (compose.yml): `turbo prune` cuts the
-# monorepo down to the maps workspaces (backend, frontend) and the packages
-# they depend on (@offline-pi/maps-shared, @offline-pi/ui).
+# monorepo down to the maps backend and the packages it depends on
+# (@offline-pi/maps-shared). Its UI is the web app (apps/web), served by core.
 
 # ---------------------------------------------------------------- prune ---
 FROM node:22-slim AS prune
@@ -8,7 +8,7 @@ ARG TURBO_VERSION=2.11.10
 RUN npm install -g "turbo@${TURBO_VERSION}"
 WORKDIR /repo
 COPY . .
-RUN turbo prune @offline-pi/maps-backend @offline-pi/maps-frontend --docker
+RUN turbo prune @offline-pi/maps-backend --docker
 
 # ---------------------------------------------------------------- build ---
 FROM node:22-slim AS build
@@ -17,13 +17,13 @@ COPY --from=prune /repo/out/json/ ./
 # better-sqlite3 ships a binding.gyp, and npm's default for that is `node-gyp
 # rebuild` even though the package has no install script. This image has no
 # compiler, and it does not need one: the package bundles N-API prebuilds, and
-# this stage only runs tsc and vite. It is the only package here with scripts.
+# this stage only runs tsc. It is the only package here with scripts.
 RUN npm ci --ignore-scripts
 COPY --from=prune /repo/out/full/ ./
 # root files are not part of the pruned output
 COPY tsconfig.base.json ./
-# builds @offline-pi/maps-shared, then the backend and the viewer
-RUN npx turbo run build --filter=@offline-pi/maps-backend --filter=@offline-pi/maps-frontend
+# builds @offline-pi/maps-shared, then the backend
+RUN npx turbo run build --filter=@offline-pi/maps-backend
 
 # -------------------------------------------------------------- pmtiles ---
 # Linux go-pmtiles CLI, same version as UPSTREAM.pmtilesVersion
@@ -52,7 +52,6 @@ RUN npm ci --omit=dev --ignore-scripts --workspace @offline-pi/maps-backend \
 
 COPY --from=build /app/packages/maps-shared/dist packages/maps-shared/dist
 COPY --from=build /app/apps/maps/backend/dist apps/maps/backend/dist
-COPY --from=build /app/apps/maps/frontend/dist apps/maps/frontend/dist
 COPY --from=pmtiles /usr/local/bin/pmtiles apps/maps/bin/pmtiles
 
 # The module root (PATHS.root): data/ and assets/ are bind mounts (compose.yml)

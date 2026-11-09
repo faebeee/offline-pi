@@ -20,19 +20,16 @@ It is the npm workspace `@offline-pi/ui` (no build step: the files are the
 package). Every image builds with the repo root as context, so nothing is
 ever copied into an app before a build:
 
-- **core** depends on it and serves it at `/ui/` on offline-pi's one origin,
-  so plain-JS module pages (mesh, core's own pages) just load
-  `/ui/outpost.js` and `/ui/outpost.css` from there.
-- **Vite modules** (maps, mesh-map) depend on it (`"@offline-pi/ui": "*"`)
-  and import it, so Vite bundles it:
+- **The web app** (`apps/web`, every screen of offline-pi) depends on it
+  (`"@offline-pi/ui": "*"`) and imports it, so Vite bundles it:
 
   ```ts
   import "@offline-pi/ui/outpost.css";
-  import { frame, toast } from "@offline-pi/ui/outpost.js"; // typed by outpost.d.ts
+  import { toast, bytes } from "@offline-pi/ui/outpost.js"; // typed by outpost.d.ts
   ```
 
-- **Library** (kiwix, not Node): its Dockerfile copies `packages/ui` into
-  the build stage and inlines it into one page.
+- **core** also serves it at `/ui/` on offline-pi's one origin, for any
+  plain page that needs it.
 
 ## The frame
 
@@ -81,8 +78,7 @@ module, e.g. mesh's "show on map"). Listen for `outpost:theme` on `window` to re
 changes (e.g. swap the map style).
 
 Vite apps bundle the package, so `/ui/theme-boot.js` has no URL before the
-build: they inline the same snippet in a `<script>` in `index.html`. The
-Library page (one self-contained file) inlines the file at image build.
+build: they inline the same snippet in a `<script>` in `index.html`.
 
 ### Status strip link
 
@@ -100,8 +96,11 @@ link text.
 
 ## React
 
-The package works on plain DOM; React apps wrap it thinly. Maps'
-`apps/maps/frontend/src/ui.tsx` is the example.
+The package works on plain DOM; React apps wrap it thinly. The web app's
+`apps/web/src/ui/outpost.tsx` and `apps/web/src/app/` (`Screen`, `strip.tsx`,
+`Nav.tsx`) are the bindings every screen uses: the web app renders the frame
+itself instead of calling `frame()`. The notes below apply when a React page
+does use `frame()`.
 
 - Call `frame()` **once**, from an effect on the frame's root element, and
   guard it with a ref, not state: StrictMode runs effects twice before state

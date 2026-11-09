@@ -1,0 +1,106 @@
+/* Library: layout only, tokens only (components from @offline-pi/ui). */
+
+.lib-search {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.lib-search-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: flex-end;
+}
+
+.lib-search-row .field {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.lib-search-row .btn {
+  flex: 0 0 auto;
+}
+
+.lib-search .help {
+  margin: 0;
+}
+
+.lib-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.lib-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.lib-section-head .h2 {
+  margin: 0;
+}
+
+.lib-section-title {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.lib-list {
+  flex: none;
+  background: var(--s1);
+}
+
+/* previous page stays visible while the next one loads */
+.lib-list.is-loading {
+  opacity: 0.6;
+}
+
+.lib-snippet {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--fg2);
+  font: 400 14px/20px var(--font-body);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+.lib-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.lib-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  align-items: center;
+}
+
+.lib-foot a {
+  display: inline-flex;
+  min-height: var(--target);
+  align-items: center;
+}
+
+.empty code,
+.banner-body code {
+  color: var(--fg);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+/* the reader fills the bleed content */
+.lib-reader {
+  width: 100%;
+  min-height: 0;
+  flex: 1;
+  border: 0;
+  background: var(--bg);
+}

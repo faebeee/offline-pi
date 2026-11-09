@@ -2,13 +2,14 @@
   "name": "@offline-pi/core",
   "version": "1.0.0",
   "private": true,
-  "description": "offline-pi core: dashboard, module gateway and supervisor (NestJS + WebSockets)",
+  "description": "offline-pi core: the one API (NestJS, a domain module per feature), module gateway and supervisor; serves the web app",
   "license": "MIT",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "nest build",
     "start": "node dist/main.js",
-    "dev": "tsc -p tsconfig.build.json && node dist/main.js",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "dev": "nest build && node dist/main.js",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "openapi": "node dist/openapi-emit.js"
   },
   "engines": {
     "node": ">=22"
@@ -18,13 +19,20 @@
     "@nestjs/core": "^12.4.2",
     "@nestjs/platform-express": "^12.4.2",
     "@nestjs/platform-socket.io": "^12.4.2",
+    "@nestjs/swagger": "^12.1.1",
     "@nestjs/websockets": "^12.4.2",
     "@offline-pi/ui": "*",
+    "@offline-pi/web": "*",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
+    "fast-xml-parser": "^5.12.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "socket.io": "^4.8.1"
   },
   "devDependencies": {
+    "@nestjs/cli": "^12.0.12",
+    "@offline-pi/maps-shared": "*",
     "@types/express": "^5.0.3",
     "@types/node": "^22.18.0",
     "typescript": "^5.9.2"

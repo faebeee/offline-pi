@@ -1,5 +1,7 @@
 # Built with the repo root as context (compose.yml): `turbo prune` cuts the
-# monorepo down to core and the workspaces it depends on (@offline-pi/ui).
+# monorepo down to core and the workspaces it depends on (@offline-pi/ui,
+# @offline-pi/web and its @offline-pi/api-client). The web app is built here
+# and served by core at /.
 
 # ---------------------------------------------------------------- prune ---
 FROM node:22-slim AS prune
@@ -8,7 +10,7 @@ RUN npm install -g "turbo@${TURBO_VERSION}"
 WORKDIR /repo
 COPY . .
 RUN turbo prune @offline-pi/core --docker
-# every module manifest (apps/<name>/module.json): home tiles, nav, gateway routes
+# every module manifest (apps/<name>/module.json): home tiles, nav, upstreams
 RUN mkdir -p /manifests \
  && for f in apps/*/module.json; do \
       mkdir -p "/manifests/$(dirname "$f")" && cp "$f" "/manifests/$f"; \
@@ -20,6 +22,7 @@ WORKDIR /app
 COPY --from=prune /repo/out/json/ ./
 RUN npm ci --ignore-scripts
 COPY --from=prune /repo/out/full/ ./
+# core and, before it (^build), the web app
 RUN npx turbo run build --filter=@offline-pi/core
 
 # ------------------------------------------------------------- vcgencmd ---
@@ -38,12 +41,15 @@ RUN git clone --depth 1 --branch "$RPI_UTILS_REF" https://github.com/raspberrypi
 FROM node:22-slim
 WORKDIR /app
 COPY --from=prune /repo/out/json/ ./
+# the web app's packages are all devDependencies (bundled by Vite), so only
+# core's runtime dependencies are installed here
 RUN npm ci --omit=dev --ignore-scripts --workspace @offline-pi/core && npm cache clean --force
 # the Outpost package, served at /ui/ (node_modules/@offline-pi/ui links here)
 COPY --from=prune /repo/out/full/packages/ui packages/ui
 COPY --from=prune /manifests/apps/ apps/
 COPY --from=build /app/apps/core/dist apps/core/dist
-COPY --from=prune /repo/out/full/apps/core/public apps/core/public
+# the built web app (node_modules/@offline-pi/web links to apps/web)
+COPY --from=build /app/apps/web/dist apps/web/dist
 COPY --from=vcgencmd /usr/local/bin/vcgencmd /usr/local/bin/vcgencmd
 
 # Runs as the container's root, which under rootless Podman is the host user

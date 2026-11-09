@@ -11,17 +11,19 @@ downloads).
 Core always runs; the other modules are chosen at install and switched on
 and off on the dashboard.
 
-| Module | Path | Internal port | Description |
-|---|---|---|---|
-| Home | `/` | | Every installed module as a tile, with on/off switches. |
-| [System](apps/core/README.md) (core) | `/system/` | `8080` (public) | Realtime Pi dashboard: temperature, input voltage, throttling, PSU limits, CPU, memory, storage, network, containers and connections. Core also serves the other modules (gateway) and starts/stops them. |
-| [Maps](apps/maps/README.md) | `/maps/` | `8081` | Self-hosted vector maps: download a region once, then pan, zoom and search with no internet connection. |
-| [Mesh map](apps/mesh-map/README.md) | `/mesh-map/` | `8086` | Live map of the Meshtastic nodes heard by Mesh, on the regions downloaded in Maps (read-only). |
-| [Mesh](apps/mesh/README.md) | `/mesh/` | `8084` | Web UI for a USB Meshtastic LoRa node: channel and direct messages, node list, history kept on the Pi. |
-| [Library](apps/knowledge/README.md) | `/library/` | `8082` | Offline Wikipedia, medical and survival guides via `kiwix-serve`; the container downloads the ZIM set from `zims.txt` itself. |
+| Module | Screen | API | Internal port | Description |
+|---|---|---|---|---|
+| Home | `/` | `/api/modules` | | Every installed module as a tile, with on/off switches. |
+| [System](apps/core/README.md) (core) | `/system` | `/api/system` | `8080` (public) | Realtime Pi dashboard: temperature, input voltage, throttling, PSU limits, CPU, memory, storage, network, containers and connections. Core is also the API of every module and starts/stops them. |
+| [Maps](apps/maps/README.md) | `/maps` | `/api/maps` | `8081` | Self-hosted vector maps: download a region once, then pan, zoom and search with no internet connection. |
+| [Mesh map](apps/mesh-map/README.md) | `/mesh-map` | `/api/mesh-map` | `8086` | Live map of the Meshtastic nodes heard by Mesh, on the regions downloaded in Maps (read-only). |
+| [Mesh](apps/mesh/README.md) | `/mesh` | `/api/mesh` | `8084` | Messaging over a USB Meshtastic LoRa node: channel and direct messages, node list, history kept on the Pi. |
+| [Library](apps/knowledge/README.md) | `/library` | `/api/library` | `8082` | Offline Wikipedia, medical and survival guides via `kiwix-serve`; the container downloads the ZIM set from `zims.txt` itself. |
 
 Modules listen on `127.0.0.1` only; the LAN sees just `PORT` (8080), where
-core serves `/`, `/system/` and proxies every module under its path.
+core serves the one web app ([`apps/web`](apps/web/README.md)), the one API
+(`/api/<domain>/`, Swagger UI at `/api/docs`) and a passthrough for module
+files (`/svc/<module>/`: map tiles, kiwix articles).
 
 [`host/hotspot-pi`](host/hotspot-pi) is a host-level extra (no container):
 join a known Wi-Fi at boot or open a hotspot so phones can reach the Pi.
@@ -116,12 +118,19 @@ at the root and let Turborepo order the builds:
 npm install            # every JS workspace, one package-lock.json
 npm run build          # turbo run build (packages first)
 npm run typecheck
-npm run dev:maps       # or dev:core, dev:mesh-map (turbo run dev --filter=...)
+npm run dev:core       # the API on :8080 (and dev:maps for the maps container)
+npm run dev:web        # the web app on :5173, proxied to core
+npm run api:gen        # after changing core's API: OpenAPI + typed client
 ```
 
-All UIs share the Outpost design system: [`DESIGN.md`](DESIGN.md) is the spec
-and [`packages/ui`](packages/ui/README.md) (`@offline-pi/ui`) the package every
-module builds from.
-[`AGENTS.md`](AGENTS.md) describes the architecture and how to add a module
-(an `apps/<name>/` directory with a `module.json` manifest, a compose
-service and optional install hooks; core picks up the rest).
+Core (`apps/core`, NestJS) has one domain module per feature
+(`src/domains/<name>/`) that talks to its module's container; the web app
+(`apps/web`, React + TanStack Router/Query) uses the client generated from
+core's OpenAPI document (`packages/api-client`), so a new endpoint is one
+`npm run api:gen` away from a typed hook in the UI. The UI follows the
+Outpost design system: [`DESIGN.md`](DESIGN.md) is the spec and
+[`packages/ui`](packages/ui/README.md) (`@offline-pi/ui`) the package.
+[`AGENTS.md`](AGENTS.md) describes the architecture, how to add a feature
+(domain, `api:gen`, screen) and how to add a module (an `apps/<name>/`
+directory with a `module.json` manifest, a compose service and optional
+install hooks).

@@ -3,7 +3,7 @@
 Offline emergency-knowledge box built on [Kiwix](https://www.kiwix.org/):
 a fixed set of ZIM files (medical/first aid, food & water, shelter & repair,
 general survival, reference) that's useful to have *without* internet
-access, served over your LAN through core at `/library/` (module label
+access, served over your LAN through core at `/library` (module label
 "Library").
 
 - The ZIM set is defined once in [`zims.txt`](zims.txt); there is no
@@ -15,8 +15,8 @@ access, served over your LAN through core at `/library/` (module label
   its download completes
 - Configurable storage location (point it at your SSD)
 - Works fully offline once downloaded
-- An Outpost "Library" landing page (see below) replaces Kiwix's default
-  home page; book pages and search results stay Kiwix's own
+- A "Library" screen in the web app (see below) lists books, searches and
+  opens articles in an in-app reader; the article pages stay Kiwix's own
 
 ## Requirements
 
@@ -29,33 +29,25 @@ access, served over your LAN through core at `/library/` (module label
 
 On start the container serves whatever is already installed and downloads
 every entry of `zims.txt` that's missing in the background. Follow progress
-with `./manage.sh logs knowledge`, then open `http://<pi-ip>:8080/library/`.
+with `./manage.sh logs knowledge`, then open `http://<pi-ip>:8080/library`.
 
-## Landing page
+## Library screen
 
-`/library/` shows the Outpost "Library" module (the suite's shared design,
-see `DESIGN.md` in the repo root): status strip, module nav, a full-text
-search field and the list of installed books with language, article count
-and content date. It reads kiwix-serve's own OPDS catalog
-(`catalog/v2/entries`) in the browser, so new downloads show up after a
-reload. Search opens Kiwix's search page (`search`); kiwix-serve only
-searches books of one language at a time, so the "Search in" menu offers
-one entry per language plus every single book. Books open in Kiwix's viewer
-(`viewer#<book>`). Kiwix's own library list is still at `/library/nojs`.
+`/library` is the "Library" screen of the single web app (`apps/web`, code
+in `apps/web/src/features/library/` and `apps/web/src/routes/library.*.tsx`,
+built on the shared Outpost design, see `DESIGN.md` in the repo root): a
+full-text search field and the list of installed books with language,
+article count and content date. It goes through core's library domain
+(`apps/core/src/domains/library/`): `/api/library/books` parses kiwix-serve's
+OPDS catalog (`catalog/v2/entries`), so new downloads show up after a
+reload, and `/api/library/search` uses kiwix's `search?format=xml`. Articles
+open in an in-app reader (`/library/read?url=...`), an iframe of Kiwix's
+viewer.
 
-kiwix-serve runs with `--urlRootLocation /library` (`URL_ROOT`), so its own
-links already carry the path and core proxies it without stripping the
-prefix.
-
-The page comes from the shared UI package in `packages/ui` in the repo root
-(the image builds with the repo root as context): the Dockerfile copies it
-into the build stage and runs `container/build-index.sh`, which inlines
-the CSS, fonts, icons and script into one self-contained
-`/usr/share/knowledge/index.html` (kiwix-serve serves only that one file for
-the home page). `container/knowledge.sh` passes it to kiwix-serve with
-`--customIndex`. To change the design, edit `packages/ui` (or
-`container/index.template.html` / `container/index.js` for this page) and
-run `./start.sh`.
+kiwix-serve runs with `--urlRootLocation /svc/library` (`URL_ROOT` in
+`compose.yml`), so its viewer and search pages live under `/svc/library/`,
+core's passthrough, which forwards the path without stripping it. Kiwix's
+own home page is there too (no custom index).
 
 ## Defining the ZIM set (`zims.txt`)
 
@@ -102,7 +94,7 @@ Set in the root `.env` (see the root README):
 | Variable | Default | Description |
 |---|---|---|
 | `KNOWLEDGE_CONTENT_DIR` | `./data/knowledge` | ZIM files, partial downloads, catalog cache, `library.xml`. Point at your SSD. |
-| `KNOWLEDGE_PORT` | `8082` | Internal port kiwix-serve listens on (loopback only, `MODULES_BIND_ADDRESS`), proxied by core at `/library/`. |
+| `KNOWLEDGE_PORT` | `8082` | Internal port kiwix-serve listens on (loopback only, `MODULES_BIND_ADDRESS`), passed through by core at `/svc/library/`. |
 | `KNOWLEDGE_AUTO_SYNC` | `true` | `true`: download missing `zims.txt` entries on every start. `false`: only on `./manage.sh knowledge sync`. |
 
 Re-running `./install.sh` re-asks `KNOWLEDGE_CONTENT_DIR` and moves the
@@ -133,12 +125,9 @@ unless you confirm deleting it.
 
 ```
 zims.txt                  The ZIM set to download and serve
-Dockerfile                kiwix-serve + aria2/curl/xmlstarlet + zims.txt + landing page
+Dockerfile                kiwix-serve + aria2/curl/xmlstarlet + zims.txt
 container/knowledge.sh    In-container tool: serve / sync / prune / list / library
-container/index.template.html, container/index.js
-                          Outpost landing page (template + script)
-container/build-index.sh  Inlines packages/ui into one index.html at image build
-module.json               Module manifest (path /library/, port, data dir)
+module.json               Module manifest (path, port, data dir, health /svc/library/)
 ```
 
 Setup, start/stop and `manage.sh` commands live in the repo root
