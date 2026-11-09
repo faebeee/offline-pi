@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# lib/modules/mesh.sh - Meshtastic messaging (services/mesh).
+# lib/modules/mesh.sh - Meshtastic messaging (apps/mesh).
 #
 # Node configuration needs the serial port, which only one program can open
 # at a time, so those manage commands stop the module (through core, so the

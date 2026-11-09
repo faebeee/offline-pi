@@ -1,20 +1,23 @@
 #!/usr/bin/env bash
 # lib/modules.sh - the module registry as seen by the shell scripts.
 #
-# A module is a directory services/<service>/ with a module.json manifest
+# A module is a directory apps/<service>/ with a module.json manifest
 # (read by core for the dashboard and the gateway) and a compose service of
 # the same name. lib/modules/<service>.sh may define hooks, named with the
 # service's dashes turned into underscores:
 #
 #   <name>_configure    install.sh, every run while installed: prompts,
 #                       storage dirs (set_env), device checks
-#   <name>_prepare      install.sh and start.sh, before building: copy the
-#                       Outpost UI package into the build context etc.
+#   <name>_prepare      install.sh and start.sh, before building: files the
+#                       build needs that are not in the checkout
 #   <name>_post_build   install.sh, after building: one-off setup runs
 #   <name>_manage ARGS  ./manage.sh <service> ARGS
 #   <name>_usage        lines for ./manage.sh's help
 #
-# core is a module too (services/core), but always installed and running.
+# core is a module too (apps/core), but always installed and running.
+#
+# Images build with the repo root as context (the npm/Turborepo monorepo),
+# so shared workspaces such as packages/ui need no copying before a build.
 
 # manifest_field FILE KEY - a string/number field of a module.json (the
 # manifests keep one key per line, so no JSON parser is needed on the host).
@@ -30,13 +33,13 @@ manifest_list() {
 
 # module_dirs SERVICE - the *_DIR variables the module bind-mounts.
 module_dirs() {
-  manifest_list "$ROOT_DIR/services/$1/module.json" dirs
+  manifest_list "$ROOT_DIR/apps/$1/module.json" dirs
 }
 
 # all_modules - optional modules (compose service names) by nav order.
 all_modules() {
   local f
-  for f in "$ROOT_DIR"/services/*/module.json; do
+  for f in "$ROOT_DIR"/apps/*/module.json; do
     [[ "$(manifest_field "$f" optional)" == true ]] || continue
     printf '%s %s\n' "$(manifest_field "$f" num)" "$(manifest_field "$f" service)"
   done | sort -n | awk '{print $2}'
@@ -44,7 +47,7 @@ all_modules() {
 
 # module_label SERVICE - human name from its manifest.
 module_label() {
-  manifest_field "$ROOT_DIR/services/$1/module.json" label
+  manifest_field "$ROOT_DIR/apps/$1/module.json" label
 }
 
 # installed_modules - the MODULES list from .env, one per line, only known ones.

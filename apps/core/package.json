@@ -1,0 +1,32 @@
+{
+  "name": "@offline-pi/core",
+  "version": "1.0.0",
+  "private": true,
+  "description": "offline-pi core: dashboard, module gateway and supervisor (NestJS + WebSockets)",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/main.js",
+    "dev": "tsc -p tsconfig.build.json && node dist/main.js",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@nestjs/common": "^12.4.2",
+    "@nestjs/core": "^12.4.2",
+    "@nestjs/platform-express": "^12.4.2",
+    "@nestjs/platform-socket.io": "^12.4.2",
+    "@nestjs/websockets": "^12.4.2",
+    "@offline-pi/ui": "*",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^22.18.0",
+    "typescript": "^5.9.2"
+  }
+}

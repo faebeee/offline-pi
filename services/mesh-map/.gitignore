@@ -1,9 +1,0 @@
-node_modules/
-dist/
-.env
-.env.*
-!.env.example
-*.log
-.DS_Store
-# copy of ../../ui, made by ui/sync.sh from install.sh/start.sh
-src/outpost-ui/

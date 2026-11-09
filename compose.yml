@@ -14,11 +14,16 @@
 #
 # Rules for every service (AGENTS.md): host networking, ${VAR:-default}
 # everywhere, relocatable *_DIR bind mounts, CMD-SHELL healthchecks.
+#
+# Every image builds with the repo root as context (the npm/Turborepo
+# monorepo: apps/<name>/Dockerfile, packages/*), see .dockerignore.
 
 services:
   # ------------------------------------------------------------------ core --
   core:
-    build: ./services/core
+    build:
+      context: .
+      dockerfile: apps/core/Dockerfile
     image: offline-pi-core
     container_name: offline-pi-core
     # Host networking and PID namespace so /proc/net/dev, /proc/1/mounts and
@@ -58,7 +63,9 @@ services:
 
   # ------------------------------------------------------------------ maps --
   maps:
-    build: ./services/maps
+    build:
+      context: .
+      dockerfile: apps/maps/Dockerfile
     image: offline-pi-maps
     container_name: offline-pi-maps
     # runs as node (uid 1000); keep-id maps the host user onto it so the bind
@@ -72,8 +79,8 @@ services:
       DATABASE_URL: ${MAPS_DATABASE_URL:-}
       DB_LOGGING: ${MAPS_DB_LOGGING:-false}
     volumes:
-      - ${MAPS_DATA_DIR:-./data/maps}:/app/data
-      - ${MAPS_ASSETS_DIR:-./data/maps-assets}:/app/assets
+      - ${MAPS_DATA_DIR:-./data/maps}:/app/apps/maps/data
+      - ${MAPS_ASSETS_DIR:-./data/maps-assets}:/app/apps/maps/assets
     restart: on-failure
     healthcheck:
       test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:' + (process.env.PORT || 8081) + '/api/status').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))\""]
@@ -84,7 +91,9 @@ services:
 
   # ------------------------------------------------------------- knowledge --
   knowledge:
-    build: ./services/knowledge
+    build:
+      context: .
+      dockerfile: apps/knowledge/Dockerfile
     image: offline-pi-knowledge
     container_name: offline-pi-knowledge
     # runs as user (uid 1001), see maps
@@ -108,7 +117,9 @@ services:
 
   # ------------------------------------------------------------------ mesh --
   mesh:
-    build: ./services/mesh
+    build:
+      context: .
+      dockerfile: apps/mesh/Dockerfile
     image: offline-pi-mesh
     container_name: offline-pi-mesh
     network_mode: host
@@ -138,7 +149,9 @@ services:
 
   # -------------------------------------------------------------- mesh-map --
   mesh-map:
-    build: ./services/mesh-map
+    build:
+      context: .
+      dockerfile: apps/mesh-map/Dockerfile
     image: offline-pi-mesh-map
     container_name: offline-pi-mesh-map
     network_mode: host

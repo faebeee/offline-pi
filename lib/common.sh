@@ -105,14 +105,3 @@ load_env() {
   # shellcheck disable=SC1090
   source "$ENV_FILE"
 }
-
-# sync_ui DEST - copy the shared Outpost UI package (ui/) into DEST, which a
-# service bundles or serves. Run before every build.
-sync_ui() {
-  local sync="$ROOT_DIR/ui/sync.sh"
-  if [[ ! -f "$sync" ]]; then
-    log_error "Shared UI package not found at $sync (run from a full offline-pi checkout)."
-    exit 1
-  fi
-  bash "$sync" "$1"
-}

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# lib/modules/mesh-map.sh - live map of the mesh nodes (services/mesh-map).
+# lib/modules/mesh-map.sh - live map of the mesh nodes (apps/mesh-map).
 # Reads the maps module's MAPS_DATA_DIR / MAPS_ASSETS_DIR read-only.
 
 mesh_map_configure() {
@@ -21,8 +21,4 @@ mesh_map_configure() {
   if ! is_installed mesh; then
     log_warn "Mesh map shows the nodes heard by the Mesh module, which is not installed."
   fi
-}
-
-mesh_map_prepare() {
-  sync_ui "$ROOT_DIR/services/mesh-map/src/outpost-ui"
 }

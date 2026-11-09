@@ -1,0 +1,47 @@
+# Every image builds with the repo root as its context (compose.yml), so the
+# monorepo's workspaces and packages/ are reachable. Keep the context small:
+# never send data, build output or dependencies.
+
+.git
+.turbo
+**/node_modules
+**/dist
+**/*.tsbuildinfo
+**/.DS_Store
+**/*.log
+**/__pycache__
+**/.pytest_cache
+**/.venv
+
+# local configuration and data (any *_DIR left at its default)
+.env
+.env.*
+!.env.example
+data
+apps/*/data
+apps/*/.env
+apps/*/.env.*
+
+# maps: host-specific binary, downloaded assets, staging
+apps/maps/bin
+apps/maps/assets
+apps/maps/.tmp
+
+# knowledge: ZIM files and downloads
+**/*.zim
+**/*.zim.meta4
+**/*.aria2
+
+# leftovers of the old per-app layout (lib/migrate.sh)
+apps/monitor
+apps/maps/apps
+apps/maps/packages
+
+# not needed by any image
+docs
+host
+lib
+*.sh
+
+# leftovers of the services/ layout
+services

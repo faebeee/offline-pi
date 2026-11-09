@@ -4,7 +4,9 @@ offline-pi is **one app** meant to run offline on a host like a Raspberry Pi:
 one Podman Compose project, one set of scripts, one `.env`, one port. It is
 made of **modules** (maps, library, mesh, ...), each a container behind
 **core**, which serves the dashboard and every module's UI under its own
-path. Read this before adding a module or touching the scripts.
+path. The code is a **Turborepo monorepo on npm workspaces**: every module
+is an app in `apps/`, shared code lives in `packages/`. Read this before
+adding a module or touching the scripts.
 
 ## Layout
 
@@ -16,18 +18,43 @@ install.sh               # choose + configure modules, build, then start.sh
 start.sh                 # rebuild, (re)create containers; core starts modules
 manage.sh                # status, start/stop, logs, module commands
 uninstall.sh             # remove containers/images; data only on confirmation
-lib/common.sh            # log helpers, compose wrapper, .env helpers, sync_ui
+lib/common.sh            # log helpers, compose wrapper, .env helpers
 lib/storage.sh           # prompt_dir / resync_dir (relocatable data)
 lib/serial.sh            # USB serial device picker (mesh)
 lib/modules.sh           # module registry for the scripts, hooks, core_api
 lib/migrate.sh           # adopts the old per-app layout (apps/*/.env)
 lib/modules/<name>.sh    # per-module hooks (configure, prepare, manage, ...)
-services/<name>/         # one module: Dockerfile, code, module.json, README
-services/core/           # dashboard + gateway + supervisor (always on)
+package.json             # npm workspaces root (apps/*, apps/maps/*, packages/*)
+package-lock.json        # the one lockfile of every JS workspace
+turbo.json               # Turborepo tasks: build, typecheck, dev
+tsconfig.base.json       # shared TypeScript base config
+.dockerignore            # images build with the repo root as context
+apps/<name>/             # one module: Dockerfile, code, module.json, README
+apps/core/               # dashboard + gateway + supervisor (always on)
+apps/maps/{backend,frontend}/  # a module made of several workspaces
+packages/ui/             # @offline-pi/ui: Outpost design system (DESIGN.md)
+packages/maps-shared/    # @offline-pi/maps-shared: maps API contract
 host/hotspot-pi/         # host-level utility, no container (see below)
-ui/                      # Outpost design system package (DESIGN.md)
 data/                    # gitignored default home of every *_DIR
 ```
+
+## Monorepo (npm workspaces + Turborepo)
+
+- JS workspaces are named `@offline-pi/<name>` and depend on each other with
+  `"*"` (e.g. `"@offline-pi/ui": "*"`). Install once at the root
+  (`npm install`); never add a lockfile inside a workspace.
+- Every workspace with code has `build` (output in `dist/`), `typecheck`
+  and, where it makes sense, `dev` scripts. `turbo.json` orders them
+  (`^build` first), so `npm run build`, `npm run typecheck` and
+  `npx turbo run dev --filter=<workspace>` work from the root.
+- Non-JS modules (mesh: Python, knowledge: kiwix) live in `apps/` without
+  a `package.json`; npm and turbo ignore them.
+- **Images build with the repo root as context** (`compose.yml`:
+  `context: .`, `dockerfile: apps/<name>/Dockerfile`), so they can use
+  `packages/*` directly. Node images start with a `prune` stage
+  (`turbo prune <workspace> --docker`), `npm ci` on the pruned
+  `out/json/`, then `turbo run build` on `out/full/`. Keep the root
+  `.dockerignore` excluding every data directory, `node_modules` and `dist`.
 
 Host-level utilities without a container (e.g. `host/hotspot-pi`, a systemd
 networking fallback) are documented on their own terms. One rule applies to
@@ -36,7 +63,7 @@ the "never silently delete user data" rules of `uninstall.sh`.
 
 ## How it fits together
 
-- **core** (`services/core`, NestJS) is the only service the LAN reaches, on
+- **core** (`apps/core`, NestJS) is the only service the LAN reaches, on
   `PORT` (8080). It serves:
   - `/`: the home page (module tiles and on/off switches),
   - `/system/`: the Pi dashboard (health, power, storage, containers),
@@ -60,9 +87,12 @@ the "never silently delete user data" rules of `uninstall.sh`.
 
 ## Adding a module
 
-1. `services/<name>/` with a `Dockerfile` and the code. `<name>` is the
-   compose service name, the container is `offline-pi-<name>`.
-2. `services/<name>/module.json`, **one key per line** (the shell scripts
+1. `apps/<name>/` with a `Dockerfile` and the code. `<name>` is the
+   compose service name, the container is `offline-pi-<name>`. A JS module
+   is a workspace (`package.json` named `@offline-pi/<name>`, or several
+   workspaces like `apps/maps/{backend,frontend}`, added to the root
+   `workspaces`); run `npm install` at the root to update the lockfile.
+2. `apps/<name>/module.json`, **one key per line** (the shell scripts
    read it with `sed`, arrays on one line):
 
    ```json
@@ -91,9 +121,10 @@ the "never silently delete user data" rules of `uninstall.sh`.
      `MESH_CONNECTION`, set by its configure hook). `dependsOn`: installed
      modules started with it.
    - `dirs`: its bind-mounted `*_DIR` vars (checked by `start.sh`).
-   - core picks up the manifest at the next build (`core_prepare` copies all
-     manifests into its image): home tile, nav entry and gateway route come
-     from it. Nothing in core needs code changes.
+   - core picks up the manifest at the next build (its Dockerfile copies
+     every `apps/*/module.json` into the image; in development it reads them
+     from the checkout): home tile, nav entry and gateway route come from
+     it. Nothing in core needs code changes.
 3. A service block in `compose.yml` (see "Compose rules").
 4. Its settings in `.env.example`, prefixed with the module name
    (`RADIO_PORT`, `RADIO_DATA_DIR`, ...), with the next free internal port.
@@ -101,13 +132,14 @@ the "never silently delete user data" rules of `uninstall.sh`.
    underscores, e.g. `mesh_map_configure`):
    - `<name>_configure`: install.sh, every run while installed: prompts,
      storage (`prompt_dir` + `resync_dir` + `set_env`), device checks.
-   - `<name>_prepare`: before every build (install.sh, start.sh), e.g.
-     `sync_ui` into a Vite app.
+   - `<name>_prepare`: before every build (install.sh, start.sh), for files
+     the build needs that are not in the checkout (shared code is not one of
+     them: images build from the repo root and use `packages/*` directly).
    - `<name>_post_build`: install.sh, after building (one-off setup).
    - `<name>_manage` / `<name>_usage`: `./manage.sh <name> <cmd>`; return 2
      for "unknown command" (prints the usage).
 6. Its UI under the module path (see "Web UI").
-7. A row in the root `README.md` module table and a `services/<name>/README.md`.
+7. A row in the root `README.md` module table and an `apps/<name>/README.md`.
 8. Images and `*_DIR` vars in `uninstall.sh`'s config block.
 
 ## Scripts
@@ -176,8 +208,11 @@ Plain `read -r -p` prompts with the default in brackets. Put logic in
 
 ### Compose rules (`compose.yml`)
 
-- `build: ./services/<name>`, `image: offline-pi-<name>`,
-  `container_name: offline-pi-<name>`; or a pinned upstream image.
+- `build: { context: ., dockerfile: apps/<name>/Dockerfile }`,
+  `image: offline-pi-<name>`, `container_name: offline-pi-<name>`; or a
+  pinned upstream image. The context is always the repo root (see
+  "Monorepo"), so `COPY` paths in a Dockerfile start at the root
+  (`COPY apps/<name>/app/ app/`).
 - Every value `${VAR:-default}`, so `.env` is the single source of truth.
 - `network_mode: host`, no `ports:`. The rootless bridge depends on a
   long-lived `aardvark-dns`/`pasta` pair that can get stuck after the host's
@@ -220,9 +255,10 @@ the SD card.
 
 ## Web UI: the Outpost design system
 
-Every UI follows [`DESIGN.md`](DESIGN.md) and builds on [`ui/`](ui/README.md)
+Every UI follows [`DESIGN.md`](DESIGN.md) and builds on
+[`packages/ui`](packages/ui/README.md) (`@offline-pi/ui`)
 (tokens, self-hosted fonts, icon sprite, frame and components, `outpost.js`).
-Don't restyle components per module; add missing ones to `ui/` with tokens
+Don't restyle components per module; add missing ones to `packages/ui` with tokens
 only and note them in the `DESIGN.md` changelog.
 
 - **Paths, not ports.** A module's UI is served under its path
@@ -233,14 +269,15 @@ only and note them in the `DESIGN.md` changelog.
   another module come from `MODULES` (`outpost.js`, filled from core's
   `/api/modules`), never a hardcoded port.
 - **Outpost package**: plain-JS modules load it from core at `/ui/`
-  (absolute, it's core's path); Vite apps bundle a copy made by their
-  prepare hook (`sync_ui "$ROOT_DIR/services/<name>/src/outpost-ui"`,
-  gitignored; the Dockerfile fails fast when it is missing).
+  (absolute, it's core's path; core serves the `@offline-pi/ui`
+  workspace there). Vite apps depend on `"@offline-pi/ui": "*"` and import
+  it (`import "@offline-pi/ui/outpost.css"`,
+  `from "@offline-pi/ui/outpost.js"`), so it is bundled. Never copy it.
 - Every screen uses the frame: status strip, header with theme toggle,
   module nav (`frame("<module id>")`). The nav is drawn from core's module
-  list, so a new module needs no change in `ui/`.
+  list, so a new module needs no change in `packages/ui`.
 - Load `theme-boot.js` in `<head>` before the CSS (Vite apps inline it), and
-  follow the status strip link rule in `ui/README.md`: the LED is the
+  follow the status strip link rule in `packages/ui/README.md`: the LED is the
   module's link to its own local data source, `<SOURCE> · <STATE>`.
 - No runtime network requests: no CDNs, web fonts or remote icons.
 
@@ -249,5 +286,5 @@ only and note them in the `DESIGN.md` changelog.
 - Root `README.md`: what offline-pi is, quick start (`git clone`,
   `./install.sh`), the module table (path, internal port, description), the
   `.env` table, `manage.sh` usage, uninstall.
-- `services/<name>/README.md`: what the module does, its settings and
+- `apps/<name>/README.md`: what the module does, its settings and
   `manage.sh <name>` commands, its architecture and development notes.

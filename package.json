@@ -1,0 +1,27 @@
+{
+  "name": "offline-pi",
+  "private": true,
+  "description": "offline-pi: one offline app for a Raspberry Pi, a dashboard (core) and modules behind it",
+  "packageManager": "npm@11.19.0",
+  "workspaces": [
+    "apps/*",
+    "apps/maps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "typecheck": "turbo run typecheck",
+    "dev:core": "turbo run dev --filter=@offline-pi/core",
+    "dev:maps": "turbo run dev --filter=@offline-pi/maps-backend --filter=@offline-pi/maps-frontend --filter=@offline-pi/maps-shared",
+    "dev:mesh-map": "turbo run dev --filter=@offline-pi/mesh-map",
+    "maps:setup": "turbo run build --filter=@offline-pi/maps-shared && npm run -w @offline-pi/maps-backend setup",
+    "maps:assets:fetch": "turbo run build --filter=@offline-pi/maps-shared && npm run -w @offline-pi/maps-backend assets:fetch"
+  },
+  "devDependencies": {
+    "turbo": "^2.6.0"
+  }
+}

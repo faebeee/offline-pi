@@ -381,7 +381,7 @@ The visual reference (foundations, components, Hub, Maps, Library and Mesh scree
 ## Changelog
 
 - 0.1 (2026-11): initial tokens, components, app frame, Hub / Maps / Library / Mesh patterns.
-- 0.2 (2026-11): shared implementation in `ui/` (see `ui/README.md`). Additions:
+- 0.2 (2026-11): shared implementation in `packages/ui` (see `packages/ui/README.md`). Additions:
   - **Dialog** (`.dialog`): modal sheet on `<dialog>`, `--s1` with `1px --line2`, head / body / actions split by 1 px lines.
   - **Table** (`.table`): dense mono table for system data, header in label style, 1 px row lines.
   - **Key/value list** (`.kv`): label-style keys, mono values; used in popups and detail panels.
@@ -399,6 +399,6 @@ The visual reference (foundations, components, Hub, Maps, Library and Mesh scree
   - **Map extras**: `.map-compass` (the compass icon rotates by `--map-bearing` so it points north), `.map-badge-text` (cache badge truncates with an ellipsis), round node markers `.mk-node` with age by stroke (`.is-fresh` `--ok`, `.is-old` `--cau`, `.is-stale` `--fg3` and dimmed; the label also states the age), popup content `.map-popup` whose head clears the 44 px close button.
   - **Icons** `fit` (frame all) and `list` (show the list panel).
 - 0.3 (2026-11): offline-pi becomes one app; every module is served under a path on one port.
-  - **Module nav** is path based: Home (`/`), Maps (`/maps/`), Mesh map (`/mesh-map/`), Mesh (`/mesh/`), Library (`/library/`), System (`/system/`). `frame()` draws the built-in list right away, then redraws it from core's `/api/modules` (installed modules only, from the module manifests), so a new module needs no change in `ui/`. Home has no number; its header label is just "Home". A module that is installed but stopped stays in the nav, dimmed (`.nav-item.is-off`, `--fg3`), and leads to its START on the home page.
+  - **Module nav** is path based: Home (`/`), Maps (`/maps/`), Mesh map (`/mesh-map/`), Mesh (`/mesh/`), Library (`/library/`), System (`/system/`). `frame()` draws the built-in list right away, then redraws it from core's `/api/modules` (installed modules only, from the module manifests), so a new module needs no change in `packages/ui`. Home has no number; its header label is just "Home". A module that is installed but stopped stays in the nav, dimmed (`.nav-item.is-off`, `--fg3`), and leads to its START on the home page.
   - **Hub** (home page, core): the module tiles from 0.1 (`a.tile`), each with a state badge, plus a card of `.switch-row`s to switch modules on and off. Opening a stopped or missing module shows an info banner there with its START button.
 

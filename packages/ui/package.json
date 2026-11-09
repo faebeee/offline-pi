@@ -1,0 +1,14 @@
+{
+  "name": "@offline-pi/ui",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Outpost: the offline-pi design system (tokens, fonts, icons, frame, components)",
+  "type": "module",
+  "exports": {
+    "./outpost.js": {
+      "types": "./outpost.d.ts",
+      "default": "./outpost.js"
+    },
+    "./*": "./*"
+  }
+}

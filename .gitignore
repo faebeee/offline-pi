@@ -5,6 +5,18 @@ data/
 *.log
 .DS_Store
 
+# workspaces (npm + Turborepo)
+node_modules/
+.turbo/
+dist/
+*.tsbuildinfo
+
 # leftovers of the old per-app layout (apps/<name>/.env.migrated, data);
 # install.sh adopts them, see lib/migrate.sh
-apps/
+apps/*/.env.migrated
+apps/monitor/
+apps/maps/apps/
+apps/maps/packages/
+
+# leftovers of the services/ layout (build copies, node_modules)
+services/

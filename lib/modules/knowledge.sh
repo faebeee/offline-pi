@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# lib/modules/knowledge.sh - Kiwix library (services/knowledge). The ZIM set
-# is defined in services/knowledge/zims.txt; downloads run in the container.
+# lib/modules/knowledge.sh - Kiwix library (apps/knowledge). The ZIM set
+# is defined in apps/knowledge/zims.txt; downloads run in the container.
 
 KNOWLEDGE_CONTAINER="offline-pi-knowledge"
 
@@ -11,11 +11,6 @@ knowledge_configure() {
   resync_dir "$old" "$new" "library content"
   set_env KNOWLEDGE_CONTENT_DIR "$new"
   mkdir -p "$new/zim"
-}
-
-knowledge_prepare() {
-  # the landing page is generated from the UI package at image build
-  sync_ui "$ROOT_DIR/services/knowledge/container/ui"
 }
 
 knowledge_usage() {

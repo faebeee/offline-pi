@@ -14,11 +14,11 @@ and off on the dashboard.
 | Module | Path | Internal port | Description |
 |---|---|---|---|
 | Home | `/` | | Every installed module as a tile, with on/off switches. |
-| [System](services/core/README.md) (core) | `/system/` | `8080` (public) | Realtime Pi dashboard: temperature, input voltage, throttling, PSU limits, CPU, memory, storage, network, containers and connections. Core also serves the other modules (gateway) and starts/stops them. |
-| [Maps](services/maps/README.md) | `/maps/` | `8081` | Self-hosted vector maps: download a region once, then pan, zoom and search with no internet connection. |
-| [Mesh map](services/mesh-map/README.md) | `/mesh-map/` | `8086` | Live map of the Meshtastic nodes heard by Mesh, on the regions downloaded in Maps (read-only). |
-| [Mesh](services/mesh/README.md) | `/mesh/` | `8084` | Web UI for a USB Meshtastic LoRa node: channel and direct messages, node list, history kept on the Pi. |
-| [Library](services/knowledge/README.md) | `/library/` | `8082` | Offline Wikipedia, medical and survival guides via `kiwix-serve`; the container downloads the ZIM set from `zims.txt` itself. |
+| [System](apps/core/README.md) (core) | `/system/` | `8080` (public) | Realtime Pi dashboard: temperature, input voltage, throttling, PSU limits, CPU, memory, storage, network, containers and connections. Core also serves the other modules (gateway) and starts/stops them. |
+| [Maps](apps/maps/README.md) | `/maps/` | `8081` | Self-hosted vector maps: download a region once, then pan, zoom and search with no internet connection. |
+| [Mesh map](apps/mesh-map/README.md) | `/mesh-map/` | `8086` | Live map of the Meshtastic nodes heard by Mesh, on the regions downloaded in Maps (read-only). |
+| [Mesh](apps/mesh/README.md) | `/mesh/` | `8084` | Web UI for a USB Meshtastic LoRa node: channel and direct messages, node list, history kept on the Pi. |
+| [Library](apps/knowledge/README.md) | `/library/` | `8082` | Offline Wikipedia, medical and survival guides via `kiwix-serve`; the container downloads the ZIM set from `zims.txt` itself. |
 
 Modules listen on `127.0.0.1` only; the LAN sees just `PORT` (8080), where
 core serves `/`, `/system/` and proxies every module under its path.
@@ -108,8 +108,20 @@ lingering and `podman.socket` are left alone.
 
 ## Design and development
 
+The code is a Turborepo monorepo on npm workspaces: every module is an app
+in `apps/`, shared code lives in `packages/`. For development, install once
+at the root and let Turborepo order the builds:
+
+```bash
+npm install            # every JS workspace, one package-lock.json
+npm run build          # turbo run build (packages first)
+npm run typecheck
+npm run dev:maps       # or dev:core, dev:mesh-map (turbo run dev --filter=...)
+```
+
 All UIs share the Outpost design system: [`DESIGN.md`](DESIGN.md) is the spec
-and [`ui/`](ui/README.md) the package every module builds from.
+and [`packages/ui`](packages/ui/README.md) (`@offline-pi/ui`) the package every
+module builds from.
 [`AGENTS.md`](AGENTS.md) describes the architecture and how to add a module
-(a `services/<name>/` directory with a `module.json` manifest, a compose
+(an `apps/<name>/` directory with a `module.json` manifest, a compose
 service and optional install hooks; core picks up the rest).
