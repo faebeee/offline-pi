@@ -2,9 +2,12 @@ services:
   mesh-map:
     build: .
     image: offline-pi-mesh-map
-    ports:
-      - "${BIND_ADDRESS:-0.0.0.0}:${PORT:-8086}:8086"
+    # Host networking: no bridge, no port mapping, no dependency on Podman's
+    # aardvark-dns (which has been flaky on this host).
+    network_mode: host
     environment:
+      PORT: ${PORT:-8086}
+      HOST: ${BIND_ADDRESS:-0.0.0.0}
       # apps/mesh on this host; the browser reads its node list directly
       MESH_PORT: ${MESH_PORT:-8084}
     volumes:
@@ -17,7 +20,7 @@ services:
     healthcheck:
       # CMD-SHELL string rather than a CMD array: podman-compose re-quotes CMD
       # arrays into a broken shell command.
-      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:8086/healthz').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))\""]
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:' + (process.env.PORT || 8086) + '/healthz').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))\""]
       interval: 30s
       timeout: 5s
       retries: 3

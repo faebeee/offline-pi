@@ -7,10 +7,13 @@ services:
     # map to an unprivileged sub-uid on the host and couldn't write the ZIMs
     # into CONTENT_DIR; keep-id maps the host user onto it.
     userns_mode: "keep-id:uid=1001,gid=1001"
+    # Host networking: no bridge, no port mapping, no dependency on Podman's
+    # aardvark-dns (which has been flaky on this host). kiwix-serve binds
+    # KIWIX_PORT directly on the host's interfaces.
+    network_mode: host
     restart: always
-    ports:
-      - "${KIWIX_PORT:-8082}:8080"
     environment:
+      PORT: ${KIWIX_PORT:-8082}
       BIND_ADDRESS: ${BIND_ADDRESS:-all}
       # false: don't download missing ZIMs on start (run ./manage.sh sync instead)
       AUTO_SYNC: ${AUTO_SYNC:-true}
@@ -19,7 +22,7 @@ services:
     healthcheck:
       # CMD-SHELL string rather than a CMD array: podman-compose re-quotes CMD
       # arrays into a broken shell command.
-      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://localhost:8080/ || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://localhost:$${PORT:-8082}/ || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3

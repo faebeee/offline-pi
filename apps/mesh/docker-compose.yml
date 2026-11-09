@@ -2,9 +2,12 @@ services:
   mesh:
     build: .
     image: offline-pi-mesh
-    ports:
-      - "${BIND_ADDRESS:-0.0.0.0}:${PORT:-8084}:8084"
+    # Host networking: no bridge, no port mapping, no dependency on Podman's
+    # aardvark-dns (which has been flaky on this host).
+    network_mode: host
     environment:
+      PORT: ${PORT:-8084}
+      HOST: ${BIND_ADDRESS:-0.0.0.0}
       MESH_CONNECTION: ${MESH_CONNECTION:-serial}
       MESH_HOST: ${MESH_HOST:-}
       SEND_PIN: ${SEND_PIN:-}
@@ -26,7 +29,7 @@ services:
       # CMD-SHELL string rather than a CMD array: podman-compose re-quotes CMD
       # arrays into a broken shell command. Checks the web server, not the
       # radio, so an unplugged node doesn't restart-loop the container.
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8084/api/status', timeout=4)\""]
+      test: ["CMD-SHELL", "python -c \"import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:' + os.environ.get('PORT', '8084') + '/api/status', timeout=4)\""]
       interval: 30s
       timeout: 5s
       retries: 3

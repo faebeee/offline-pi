@@ -122,7 +122,7 @@ stays on disk until you run `prune`. Only one sync/prune runs at a time.
 | Variable        | Description                                                        | Default  |
 |-----------------|--------------------------------------------------------------------|----------|
 | `CONTENT_DIR`   | ZIM files, partial downloads, catalog cache, `library.xml`. Point at your SSD. | `./data` |
-| `KIWIX_PORT`    | Host port for kiwix-serve (container port 8080).                   | `8082`   |
+| `KIWIX_PORT`    | Port kiwix-serve listens on directly (host networking, no mapping). | `8082`   |
 | `BIND_ADDRESS`  | `all` / `ipv4` / `ipv6`: address family kiwix-serve listens on.    | `all`    |
 | `AUTO_SYNC`     | `true`: download missing `zims.txt` entries on every start. `false`: only on `./manage.sh sync`. | `true` |
 
@@ -151,6 +151,11 @@ as the library does, so a later `./install.sh` picks it up again. Podman,
 
 ## How it works
 
+- The container uses `network_mode: host` (no port mapping, no Podman
+  bridge), so `kiwix-serve` binds `KIWIX_PORT` directly on the Pi's own
+  interfaces instead of going through Podman's bridge network and
+  `aardvark-dns`, which can get stuck after the host's network changes
+  (e.g. a Wi-Fi reconnect) and break ZIM sync's downloads.
 - The container entrypoint (`container/knowledge.sh serve`) builds
   `$CONTENT_DIR/library.xml` from the newest file of each entry in
   `$CONTENT_DIR/zim`, starts the sync in the background and runs

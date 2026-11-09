@@ -147,6 +147,18 @@ apps, so fix bugs in all copies.
   service exposes a cheap status endpoint.
 - Healthchecks: write `test:` as `["CMD-SHELL", "<command>"]`. podman-compose
   re-quotes `CMD` arrays into a broken shell string, so the check always fails.
+- Use `network_mode: host` (no `ports:` mapping) rather than the default
+  Podman bridge network: on a rootless setup the bridge depends on a shared,
+  long-lived `aardvark-dns`/`pasta` pair that can get stuck forwarding DNS
+  after the host's network changes (e.g. a Wi-Fi reconnect), breaking any
+  outbound request (`fetch failed`) until every rootless container is
+  stopped and restarted. Host networking skips that layer entirely — the
+  app's `PORT`/`BIND_ADDRESS` env vars become the actual address it binds to
+  on the Pi, so healthchecks and any hardcoded URLs must read the port from
+  the environment (e.g. `process.env.PORT`) rather than assume the
+  compose-file default, since a user may have changed it. Dockerfile `CMD`
+  must use the shell form (`CMD <command...>`, not the exec array form) if
+  it needs to expand `$PORT`/`$HOST` at container start.
 - Images that run as a non-root user (e.g. `USER node`, uid 1000): under
   rootless Podman that uid maps to an unprivileged host sub-uid and cannot
   write to bind mounts owned by the host user. Set

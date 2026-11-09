@@ -93,6 +93,11 @@ paths; there is no data of this app to move.
 
 ## Podman usage
 
+The container uses `network_mode: host` (no port mapping, no Podman bridge),
+so the app binds `PORT` directly on the Pi's own interfaces instead of going
+through Podman's bridge network and `aardvark-dns`, which can get stuck after
+the host's network changes (e.g. a Wi-Fi reconnect).
+
 ```sh
 ./start.sh                  # podman compose up -d --build --force-recreate
 podman compose logs -f      # follow logs

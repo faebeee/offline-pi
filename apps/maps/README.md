@@ -221,6 +221,12 @@ runs setup for you; the same thing by hand is:
 podman compose run --rm offline-maps node apps/backend/dist/cli/main.js setup
 ```
 
+The container uses `network_mode: host` (no port mapping, no Podman bridge),
+so it binds `PORT`/`BIND_ADDRESS` directly on the Pi's own interfaces instead
+of going through Podman's bridge network and `aardvark-dns`, which can get
+stuck forwarding DNS after the host's network changes (e.g. a Wi-Fi
+reconnect) and break the setup job's downloads with `fetch failed`.
+
 `/api` only answers the origin the page was served from, plus
 `http://localhost:8081` and `http://127.0.0.1:8081` (the server's own port).
 For unusual setups (reverse proxy, custom hostname) list the viewer's
@@ -233,15 +239,15 @@ this for you).
 |---|---|---|
 | `DATA_DIR` | `./data` | where regions, the POI db and the registry are stored; point at an external SSD mount for large catalogs |
 | `ASSETS_DIR` | `./assets` | where vendored fonts/sprites are stored; can also point at an SSD mount |
-| `PORT` | `8081` | host port mapped to the container (the container also listens on `8081` internally) |
-| `HOST` | `127.0.0.1` (`0.0.0.0` in the container, fixed by the Dockerfile) | address the server binds to; only relevant running `npm start` directly outside Docker |
+| `PORT` | `8081` | port the server listens on directly (host networking, no mapping) |
+| `BIND_ADDRESS` | `0.0.0.0` | address the server binds to |
 | `ALLOWED_ORIGINS` | — | extra origins allowed to call `/api` |
 | `DATABASE_URL` | — | unset uses sqlite in `$DATA_DIR`; set to a `postgres://` url to use Postgres |
 | `DB_LOGGING` | `false` | `true` logs every SQL statement |
 
-`DATA_DIR`, `ASSETS_DIR`, `PORT`, `ALLOWED_ORIGINS`, `DATABASE_URL` and
-`DB_LOGGING` are read from `.env` by `docker-compose.yml`; see `.env.example`
-for defaults and comments.
+`DATA_DIR`, `ASSETS_DIR`, `PORT`, `BIND_ADDRESS`, `ALLOWED_ORIGINS`,
+`DATABASE_URL` and `DB_LOGGING` are read from `.env` by `docker-compose.yml`;
+see `.env.example` for defaults and comments.
 
 ## Uninstall
 

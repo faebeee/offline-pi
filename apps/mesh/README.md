@@ -116,6 +116,10 @@ don't spam: `SEND_RATE_LIMIT` limits each browser.
 
 ## How it works
 
+- The container uses `network_mode: host` (no port mapping, no Podman
+  bridge), so the app binds `PORT` directly on the Pi's own interfaces
+  instead of going through Podman's bridge network and `aardvark-dns`, which
+  can get stuck after the host's network changes (e.g. a Wi-Fi reconnect).
 - Python: FastAPI + uvicorn, the official `meshtastic` library, SQLite.
   Static vanilla HTML/JS/CSS (no CDN, works offline).
 - The look (status strip, header, module nav, chat bubbles, lists, fonts,

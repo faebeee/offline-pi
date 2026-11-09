@@ -15,6 +15,8 @@ RUN test -f public/ui/outpost.css || (echo "public/ui missing: run ./start.sh, w
 # (unprivileged). That keeps the host user's `dialout` group (group_add:
 # keep-groups) for the serial device and lets it write DATA_DIR without uid
 # mapping (same approach as apps/monitor).
-ENV DATA_DIR=/app/data MESH_DEVICE_PATH=/dev/meshtastic
+ENV DATA_DIR=/app/data MESH_DEVICE_PATH=/dev/meshtastic PORT=8084 HOST=0.0.0.0
 EXPOSE 8084
-CMD ["uvicorn", "app.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8084", "--no-access-log"]
+# Shell form (not exec array) so PORT/HOST env vars (set via docker-compose,
+# e.g. for host networking) are expanded at container start.
+CMD uvicorn app.main:create_app --factory --host "$HOST" --port "$PORT" --no-access-log
