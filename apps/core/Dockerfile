@@ -22,6 +22,8 @@ WORKDIR /app
 COPY --from=prune /repo/out/json/ ./
 RUN npm ci --ignore-scripts
 COPY --from=prune /repo/out/full/ ./
+# root files are not part of the pruned output
+COPY tsconfig.base.json ./
 # core and, before it (^build), the web app
 RUN npx turbo run build --filter=@offline-pi/core
 
