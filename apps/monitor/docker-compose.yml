@@ -13,13 +13,18 @@ services:
       SAMPLE_INTERVAL_MS: ${SAMPLE_INTERVAL_MS:-2000}
       # host path of podman's storage (db.sql lives there); read via /hostfs
       PODMAN_GRAPH_ROOT: ${PODMAN_GRAPH_ROOT:-}
+      # opt-in start/stop of the other apps' containers from the dashboard,
+      # through the host user's podman.socket (host path, read via /hostfs)
+      CONTAINER_CONTROL: ${CONTAINER_CONTROL:-false}
+      PODMAN_SOCKET: ${PODMAN_SOCKET:-}
     volumes:
       - ${DATA_DIR:-./data}:/app/data
       # Host root, read-only: /sys (including the device tree, which podman
       # masks in the container's own /sys), /etc/os-release, every mounted
       # filesystem for the storage card, and podman's state DB and
-      # healthcheck logs for the containers card (no podman socket needed,
-      # so the dashboard can't control any container).
+      # healthcheck logs for the containers card. Read-only does not block
+      # connecting to a unix socket: with CONTAINER_CONTROL=true the app
+      # reaches podman.socket through this mount to start/stop containers.
       - /:/hostfs:ro,rslave
     devices:
       # Firmware mailbox for vcgencmd (tried first as /dev/vcio_gencmd).

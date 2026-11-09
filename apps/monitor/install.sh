@@ -76,9 +76,36 @@ if [[ -n "$graph_root" && ! -f "$graph_root/db.sql" ]]; then
   log_warn "No $graph_root/db.sql (Podman older than 4.8 or the boltdb backend?): the containers card will be empty."
 fi
 
+# ---------------------------------------------------------------- control --
+# Asked once (on first install, or when an older .env lacks the setting);
+# afterwards edit CONTAINER_CONTROL in .env and re-run ./install.sh.
+if ! grep -q '^CONTAINER_CONTROL=' "$ENV_FILE"; then
+  echo "The dashboard can start and stop the other offline-pi apps."
+  echo "Anyone who can open the dashboard can then use these controls."
+  read -r -p "Enable start/stop controls? [y/N] " answer
+  if [[ "$answer" =~ ^[Yy]$ ]]; then
+    set_env CONTAINER_CONTROL true
+  else
+    set_env CONTAINER_CONTROL false
+  fi
+fi
 # shellcheck disable=SC1090
 source "$ENV_FILE"
-log_ok "DATA_DIR=$DATA_DIR, PORT=$PORT, VCIO_DEVICE=$VCIO_DEVICE"
+if [[ "${CONTAINER_CONTROL:-false}" == "true" ]]; then
+  if has_cmd systemctl && systemctl --user enable --now podman.socket >/dev/null 2>&1; then
+    log_ok "podman.socket enabled (start/stop controls)"
+  else
+    log_warn "Could not enable podman.socket; start/stop controls will fail until it runs (systemctl --user enable --now podman.socket)."
+  fi
+  sock="$(podman info --format '{{.Host.RemoteSocket.Path}}' 2>/dev/null || true)"
+  set_env PODMAN_SOCKET "${sock#unix://}"
+else
+  set_env PODMAN_SOCKET ""
+fi
+
+# shellcheck disable=SC1090
+source "$ENV_FILE"
+log_ok "DATA_DIR=$DATA_DIR, PORT=$PORT, VCIO_DEVICE=$VCIO_DEVICE, CONTAINER_CONTROL=$CONTAINER_CONTROL"
 
 sync_ui
 log_info "Building the pi-monitor image (first build takes a few minutes on a Pi)..."

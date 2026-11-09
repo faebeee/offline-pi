@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { cpus } from 'node:os';
+import { ControlService } from './control.service';
 import { findPodmanDbs, PodmanContainer, readPodmanDb } from './podman-db';
 import { isLoopback, KNOWN_PORTS, readTcpSockets } from './proc-net';
 import { descendants, Proc, readProcs, readRss, socketOwners } from './procs';
@@ -25,10 +26,16 @@ export class RuntimeService implements OnModuleInit, OnModuleDestroy {
   /** last successful DB read, reused while podman holds a write lock */
   private lastPodman: PodmanContainer[] | null = null;
 
-  containers: ContainersInfo = { available: false, error: 'not sampled yet', list: [] };
+  containers: ContainersInfo = { available: false, error: 'not sampled yet', control: false, list: [] };
   connections: ConnectionsInfo | null = null;
+  /** full podman ids by container name, for the control endpoints */
+  readonly fullIds = new Map<string, string>();
+  private running?: Promise<void>;
+
+  constructor(private readonly control: ControlService) {}
 
   async onModuleInit() {
+    await this.control.ready;
     await this.refresh();
     this.timer = setInterval(() => void this.refresh(), INTERVAL_MS);
   }
@@ -37,7 +44,13 @@ export class RuntimeService implements OnModuleInit, OnModuleDestroy {
     clearInterval(this.timer);
   }
 
-  private async refresh() {
+  /** Re-sample now (e.g. right after a start/stop); joins a sample in flight. */
+  refresh(): Promise<void> {
+    this.running ??= this.sample().finally(() => (this.running = undefined));
+    return this.running;
+  }
+
+  private async sample() {
     try {
       const procs = await readProcs();
       const [fresh, sockets, owners] = await Promise.all([
@@ -56,9 +69,12 @@ export class RuntimeService implements OnModuleInit, OnModuleDestroy {
         for (const pid of descendants(procs, c.pid)) pidContainer.set(pid, c);
       }
 
+      const control = !this.control.unavailableReason;
       this.containers = podman
-        ? { available: true, error: null, list: await this.buildContainers(podman, procs, pidContainer, sockets, owners) }
-        : { available: false, error: this.dbError, list: [] };
+        ? { available: true, error: null, control, list: await this.buildContainers(podman, procs, pidContainer, sockets, owners) }
+        : { available: false, error: this.dbError, control, list: [] };
+      this.fullIds.clear();
+      for (const c of podman ?? []) this.fullIds.set(c.name, c.id);
       this.connections = await this.buildConnections(procs, pidContainer, sockets, owners, podman ?? []);
     } catch (err) {
       this.logger.warn(`runtime sampling failed: ${(err as Error).message}`);
@@ -142,6 +158,7 @@ export class RuntimeService implements OnModuleInit, OnModuleDestroy {
         cpuPercent,
         memoryBytes,
         processes: pids.length,
+        self: this.control.isSelf(c.id),
       });
     }
     for (const id of this.prevCpu.keys()) {

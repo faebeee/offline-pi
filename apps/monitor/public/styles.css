@@ -222,3 +222,7 @@
 .conn-cols h3 {
   margin: 0;
 }
+
+/* start/stop column of the containers table (CONTAINER_CONTROL=true) */
+#containers-table .ctl { text-align: right; white-space: nowrap; }
+#control-error { margin-bottom: 12px; }

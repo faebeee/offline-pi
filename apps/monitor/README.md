@@ -16,7 +16,7 @@ What it shows:
 | **Memory** | RAM used/available, swap |
 | **Storage** | Every mounted block device (SD card, SSD, boot partition) with free space, disk read/write throughput |
 | **Network** | Per-interface throughput, Wi-Fi signal, IP addresses |
-| **Apps & containers** | Every Podman container (running and stopped) with its offline-pi app (compose project), state, health check result, ports (linked), uptime, CPU and memory |
+| **Apps & containers** | Every Podman container (running and stopped) with its offline-pi app (compose project), state, health check result, ports (linked), uptime, CPU and memory; optional START/STOP buttons per app (`CONTAINER_CONTROL=true`) |
 | **Connections** | Ports open on the Pi and who listens on them, active TCP connections (direction, remote address, local port, app/process), counts per state; loopback hidden by default |
 | **System** | Hostname, model, OS, kernel, uptime, process count |
 | **Power events** | Log of when under-voltage/throttling started and ended |
@@ -57,7 +57,10 @@ Then open `http://<pi-ip>:8080`.
 5. Builds the image (compiles `vcgencmd` from
    [raspberrypi/utils](https://github.com/raspberrypi/utils), since it is not
    packaged in Debian).
-6. Enables `podman-restart.service` and lingering so the dashboard comes back
+6. Asks once whether the dashboard may start and stop the other apps
+   (`CONTAINER_CONTROL`); if yes, enables your `podman.socket` and records its
+   path (`PODMAN_SOCKET`) on every run.
+7. Enables `podman-restart.service` and lingering so the dashboard comes back
    after a reboot, then runs `start.sh`.
 
 ## Configuration (`.env`)
@@ -69,6 +72,8 @@ Then open `http://<pi-ip>:8080`.
 | `BIND_ADDRESS` | `0.0.0.0` | `0.0.0.0` for LAN access, `127.0.0.1` for this Pi only. |
 | `SAMPLE_INTERVAL_MS` | `2000` | How often the Pi is sampled and pushed to dashboards (min 500). Containers and connections refresh every 5 s. |
 | `PODMAN_GRAPH_ROOT` | from `podman info` | Host path of Podman's storage, whose `db.sql` lists the containers; set by `install.sh` on every run. Empty = search the default locations. |
+| `CONTAINER_CONTROL` | `false` | `true` shows START/STOP buttons in the apps card (see below). Asked once by `install.sh`; change it in `.env` and re-run `./install.sh`. |
+| `PODMAN_SOCKET` | from `podman info` | Host path of your Podman API socket, used when `CONTAINER_CONTROL=true`; set by `install.sh` on every run. |
 | `VCIO_DEVICE` | `/dev/vcio_gencmd` | Firmware mailbox for `vcgencmd`; set by `install.sh` on every run. |
 
 ## Podman usage
@@ -99,11 +104,33 @@ with:
 
 The containers card reads Podman's own state database (`db.sql`, read-only,
 Podman 4.8+) and each container's `healthcheck.log` through `/hostfs`, and
-CPU/memory from the container's process tree in `/proc`. The Podman socket is
-deliberately **not** mounted, so the dashboard can see containers but never
-start, stop or exec into them. Connections come from `/proc/net/tcp{,6}`;
+CPU/memory from the container's process tree in `/proc`. Connections come from `/proc/net/tcp{,6}`;
 sockets of root-owned daemons (e.g. sshd) can't be attributed to a process,
 so they are labelled by well-known port instead.
+
+### Starting and stopping apps
+
+With `CONTAINER_CONTROL=true` the apps card gets a START or STOP button per
+container (STOP needs a second click to confirm). The dashboard calls the
+Podman REST API on your user's `podman.socket`, reached through the read-only
+`/hostfs` mount (read-only doesn't block connecting to a socket), so no extra
+mount is needed. Notes:
+
+- It only starts containers that exist, i.e. apps installed with their
+  `install.sh`/`start.sh`; an app removed with `podman compose down` or
+  `uninstall.sh` has to be started from its directory again.
+- The dashboard's own container has no button.
+- A stopped app stays stopped until you start it, but comes back after a
+  reboot (`podman-restart.service` starts every `restart: always`
+  container).
+- There is no login: anyone who can open the dashboard can stop apps. Leave
+  it off, or set `BIND_ADDRESS=127.0.0.1`, on networks you don't trust. The
+  socket gives full control over your Podman containers, so the app only
+  exposes start and stop, and requires an `X-Pi-Monitor: 1` header so other
+  web pages can't trigger it.
+
+With `CONTAINER_CONTROL=false` (the default) nothing talks to the socket and
+the dashboard can see containers but never start, stop or exec into them.
 
 The container runs as its root user, which under rootless Podman is your own
 unprivileged user on the host.
@@ -128,6 +155,7 @@ the other apps.
 | `GET /api/status` | Healthcheck: 200 while samples are fresh |
 | `GET /api/snapshot` | Latest full reading as JSON |
 | `GET /api/history` | 24 h minute history and power events |
+| `POST /api/containers/:name/start` / `stop` | Start or stop a container by name (needs `CONTAINER_CONTROL=true` and the header `X-Pi-Monitor: 1`) |
 | Socket.IO `init` / `snapshot` | `init` on connect (snapshot, history, events), then `snapshot` on every sample |
 
 ## Development

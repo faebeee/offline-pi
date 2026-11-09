@@ -116,11 +116,15 @@ export interface ContainerInfo {
   cpuPercent: number | null; // share of the whole machine
   memoryBytes: number | null;
   processes: number;
+  /** the container this dashboard runs in (cannot be stopped from here) */
+  self: boolean;
 }
 
 export interface ContainersInfo {
   available: boolean;
   error: string | null;
+  /** start/stop from the dashboard is enabled and configured */
+  control: boolean;
   list: ContainerInfo[];
 }
 

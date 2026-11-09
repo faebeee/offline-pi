@@ -503,9 +503,15 @@ function renderFlags(s) {
 // --------------------------------------------------- containers & sockets
 const STATE_TONE = { running: 'ok', paused: 'cau', stopping: 'cau', exited: 'crit', stopped: 'crit' };
 
+/** Start/stop in flight per container name, and the stop button armed for a second click. */
+const control = { pending: new Map(), armed: null, armTimer: 0 };
+
 function renderContainers(info) {
   const body = $('containers');
   const err = $('containers-error');
+  const ctl = !!info?.control;
+  document.querySelector('#containers-table .ctl-col').hidden = !ctl;
+  const cols = ctl ? 8 : 7;
   if (!info || !info.available) {
     err.hidden = false;
     setHtml(err, `${iconHtml('info')}<div class="banner-text"><div class="banner-title">No container data</div><div class="banner-body">${esc(info?.error || 'Container information unavailable.')}</div></div>`);
@@ -521,7 +527,7 @@ function renderContainers(info) {
     (unhealthy ? ` · ${unhealthy} unhealthy` : '');
 
   if (!info.list.length) {
-    setHtml(body, '<tr><td colspan="7" class="fg3">No containers.</td></tr>');
+    setHtml(body, `<tr><td colspan="${cols}" class="fg3">No containers.</td></tr>`);
     return;
   }
   const host = location.hostname;
@@ -547,9 +553,71 @@ function renderContainers(info) {
       <td class="num">${c.cpuPercent == null ? '--' : `${fmtNum(c.cpuPercent, 1)}%`}</td>
       <td class="num">${c.memoryBytes == null ? '--' : fmtBytes(c.memoryBytes)}</td>
       <td class="fg2">${esc((c.image || '--').replace(/^localhost\//, ''))}</td>
+      ${ctl ? `<td class="ctl">${controlButton(c)}</td>` : ''}
     </tr>`;
   }).join(''));
 }
+
+/** START / STOP button for one row. Stop needs a second click within 4 s. */
+function controlButton(c) {
+  const label = c.app || c.name;
+  if (c.self) return '<span class="fg3 body-sm">This app</span>';
+  const pending = control.pending.get(c.name);
+  if (pending) {
+    return `<button type="button" class="btn btn-sm btn-ghost" disabled>${pending === 'stop' ? 'Stopping' : 'Starting'}…</button>`;
+  }
+  if (c.state === 'running' || c.state === 'paused') {
+    if (control.armed === c.name) {
+      return `<button type="button" class="btn btn-sm btn-crit" data-ctl="stop" data-name="${esc(c.name)}" aria-label="Confirm stop ${esc(label)}">Confirm stop</button>`;
+    }
+    return `<button type="button" class="btn btn-sm btn-ghost" data-ctl="arm" data-name="${esc(c.name)}" aria-label="Stop ${esc(label)}">Stop</button>`;
+  }
+  if (c.state === 'stopping') return '';
+  return `<button type="button" class="btn btn-sm" data-ctl="start" data-name="${esc(c.name)}" aria-label="Start ${esc(label)}">Start</button>`;
+}
+
+function rerenderContainers() {
+  if (state.snap) renderContainers(state.snap.containers);
+}
+
+// one delegated listener: the rows are re-rendered on every snapshot
+$('containers').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-ctl]');
+  if (!btn) return;
+  const { ctl, name } = btn.dataset;
+  clearTimeout(control.armTimer);
+  if (ctl === 'arm') {
+    control.armed = name;
+    control.armTimer = setTimeout(() => { control.armed = null; rerenderContainers(); }, 4000);
+    rerenderContainers();
+    document.querySelector(`#containers button[data-ctl="stop"][data-name="${CSS.escape(name)}"]`)?.focus();
+    return;
+  }
+  control.armed = null;
+  control.pending.set(name, ctl);
+  $('control-error').hidden = true;
+  rerenderContainers();
+  try {
+    const res = await fetch(`/api/containers/${encodeURIComponent(name)}/${ctl}`, {
+      method: 'POST',
+      headers: { 'X-Pi-Monitor': '1' },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
+    if (data.container && state.snap) {
+      const list = state.snap.containers.list;
+      const i = list.findIndex((c) => c.name === name);
+      if (i >= 0) list[i] = data.container;
+    }
+  } catch (err) {
+    const el = $('control-error');
+    el.hidden = false;
+    setHtml(el, `${iconHtml('critical')}<div class="banner-text"><div class="banner-title">Could not ${esc(ctl)} ${esc(name)}</div><div class="banner-body">${esc(err.message)}</div></div>`);
+  } finally {
+    control.pending.delete(name);
+    rerenderContainers();
+  }
+});
 
 let showLoopback = false;
 try { showLoopback = localStorage.getItem('pi-monitor-loopback') === '1'; } catch { /* ignore */ }
