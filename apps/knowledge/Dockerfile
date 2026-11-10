@@ -1,5 +1,6 @@
 # offline-knowledge: upstream kiwix-serve plus everything needed to fetch the
-# ZIMs listed in zims.txt from inside the container (no host tools needed).
+# ZIMs selected on the Library screen from inside the container (no host
+# tools needed). Nothing is downloaded until something is selected.
 FROM ghcr.io/kiwix/kiwix-serve:3.8.2
 
 USER root
@@ -10,7 +11,6 @@ RUN apk add --no-cache bash curl aria2 xmlstarlet
 # viewer for reading articles, reached through core's passthrough
 # (/svc/library/).
 COPY apps/knowledge/container/knowledge.sh /usr/local/bin/knowledge
-COPY apps/knowledge/zims.txt /etc/knowledge/zims.txt
 RUN chmod 0755 /usr/local/bin/knowledge
 
 # uid 1001 in the upstream image; compose.yml (repo root) maps the host user onto

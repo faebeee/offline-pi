@@ -1,6 +1,7 @@
 // The library domain: offline books (ZIM files) served by kiwix-serve in the
 // knowledge container. Articles themselves are read through core's
 // passthrough (/svc/library/...), kiwix renders them.
+import { ArrayMaxSize, IsArray, IsBoolean, IsOptional, IsString, Matches } from 'class-validator';
 
 export class Book {
   /** kiwix book id (uuid) */
@@ -47,7 +48,7 @@ export class SearchResponse {
   hits!: SearchHit[];
 }
 
-/** What the knowledge container's background sync (zims.txt downloads) is doing. */
+/** What the knowledge container's background sync (downloads of the selected books) is doing. */
 export class LibrarySync {
   /** running = downloading or checking now; unknown = no status yet (never synced, or not readable) */
   state!: 'running' | 'idle' | 'unknown';
@@ -59,9 +60,9 @@ export class LibrarySync {
   size!: number | null;
   /** bytes on disk so far (approximate: from the partial file), null when unknown */
   downloadedBytes!: number | null;
-  /** position of the current book in zims.txt (1-based), 0 when none */
+  /** position of the current book in the selection (1-based), 0 when none */
   index!: number;
-  /** books in zims.txt */
+  /** selected books */
   count!: number;
   /** books that failed in this run */
   failed!: number;
@@ -72,4 +73,53 @@ export class LibrarySync {
   startedAt!: number | null;
   /** unix seconds, last status change */
   updatedAt!: number | null;
+}
+
+/**
+ * A book offered for download. installed = on disk; downloading = the sync
+ * is fetching it now; queued = selected, the running sync gets to it;
+ * missing = selected but not on disk and no sync running (the last one
+ * failed or was interrupted); available = not selected.
+ */
+export class CatalogBook {
+  /** Kiwix name: the ZIM file name without date suffix and ".zim" */
+  key!: string;
+  title!: string;
+  description!: string;
+  /** bytes: the installed file's size, else the approximate download size; null when unknown */
+  size!: number | null;
+  /** ISO 639-3, when known */
+  language!: string | null;
+  selected!: boolean;
+  state!: 'installed' | 'downloading' | 'queued' | 'missing' | 'available';
+}
+
+export class CatalogGroup {
+  id!: string;
+  label!: string;
+  books!: CatalogBook[];
+}
+
+/** The books on offer, grouped, with what is selected and installed. */
+export class LibraryCatalog {
+  groups!: CatalogGroup[];
+  /** bytes free in KNOWLEDGE_CONTENT_DIR, null when unknown */
+  freeBytes!: number | null;
+}
+
+/** The complete new selection; books left out are deleted. */
+export class SelectionRequest {
+  /** Kiwix names, e.g. "wikipedia_en_medicine_maxi" */
+  @IsArray()
+  @ArrayMaxSize(500)
+  @IsString({ each: true })
+  @Matches(/^[A-Za-z0-9][A-Za-z0-9._-]{0,199}$/, { each: true, message: 'each key must be a Kiwix name like wikipedia_en_all_maxi' })
+  keys!: string[];
+}
+
+export class StartSyncRequest {
+  /** also download newer versions of installed books (old files stay until pruned) */
+  @IsOptional()
+  @IsBoolean()
+  update?: boolean;
 }

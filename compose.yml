@@ -108,6 +108,8 @@ services:
       # --urlRootLocation, so its links point there); the web app's Library
       # screen is /library
       URL_ROOT: /svc/library
+      # resume downloads of the books selected on the Library screen on start
+      # (nothing is downloaded before something is selected)
       AUTO_SYNC: ${KNOWLEDGE_AUTO_SYNC:-true}
     volumes:
       - ${KNOWLEDGE_CONTENT_DIR:-./data/knowledge}:/data

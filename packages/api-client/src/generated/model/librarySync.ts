@@ -32,9 +32,9 @@ export interface LibrarySync {
      * @nullable
      */
   downloadedBytes: number | null;
-  /** position of the current book in zims.txt (1-based), 0 when none */
+  /** position of the current book in the selection (1-based), 0 when none */
   index: number;
-  /** books in zims.txt */
+  /** selected books */
   count: number;
   /** books that failed in this run */
   failed: number;

@@ -800,7 +800,91 @@
             }
           }
         },
-        "summary": "Whether books from zims.txt are being downloaded in the background, and how far.",
+        "summary": "Whether selected books are being downloaded in the background, and how far.",
+        "tags": [
+          "library"
+        ]
+      },
+      "post": {
+        "operationId": "libraryStartSync",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartSyncRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibrarySync"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Download missing selected books now (update: also newer versions). Runs in the background.",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/library/catalog": {
+      "get": {
+        "operationId": "libraryCatalog",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryCatalog"
+                }
+              }
+            }
+          }
+        },
+        "summary": "The books on offer, which are selected and which are installed.",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/library/selection": {
+      "put": {
+        "operationId": "librarySelect",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelectionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryCatalog"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Replace the selection: books no longer selected are deleted, newly\nselected ones download in the background (a running sync restarts).",
         "tags": [
           "library"
         ]
@@ -2948,23 +3032,23 @@
         "type": "object",
         "properties": {
           "state": {
-            "type": "string",
             "description": "running = downloading or checking now; unknown = no status yet (never synced, or not readable)",
             "enum": [
               "running",
               "idle",
               "unknown"
-            ]
+            ],
+            "type": "string"
           },
           "phase": {
-            "type": "string",
             "nullable": true,
             "description": "while running: checking what's missing, fetching the Kiwix catalog, downloading a book",
             "enum": [
               "checking",
               "catalog",
               "downloading"
-            ]
+            ],
+            "type": "string"
           },
           "file": {
             "type": "string",
@@ -2983,25 +3067,25 @@
           },
           "index": {
             "type": "number",
-            "description": "position of the current book in zims.txt (1-based), 0 when none"
+            "description": "position of the current book in the selection (1-based), 0 when none"
           },
           "count": {
             "type": "number",
-            "description": "books in zims.txt"
+            "description": "selected books"
           },
           "failed": {
             "type": "number",
             "description": "books that failed in this run"
           },
           "result": {
-            "type": "string",
             "nullable": true,
             "description": "last finished run: ok, problems or interrupted",
             "enum": [
               "ok",
               "problems",
               "interrupted"
-            ]
+            ],
+            "type": "string"
           },
           "message": {
             "type": "string",
@@ -3031,6 +3115,121 @@
           "message",
           "startedAt",
           "updatedAt"
+        ]
+      },
+      "StartSyncRequest": {
+        "type": "object",
+        "properties": {
+          "update": {
+            "type": "boolean",
+            "description": "also download newer versions of installed books (old files stay until pruned)"
+          }
+        }
+      },
+      "CatalogBook": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Kiwix name: the ZIM file name without date suffix and \".zim\""
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "size": {
+            "type": "number",
+            "nullable": true,
+            "description": "bytes: the installed file's size, else the approximate download size; null when unknown"
+          },
+          "language": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO 639-3, when known"
+          },
+          "selected": {
+            "type": "boolean"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "downloading",
+              "installed",
+              "queued",
+              "missing",
+              "available"
+            ]
+          }
+        },
+        "required": [
+          "key",
+          "title",
+          "description",
+          "size",
+          "language",
+          "selected",
+          "state"
+        ]
+      },
+      "CatalogGroup": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "books": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogBook"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "books"
+        ]
+      },
+      "LibraryCatalog": {
+        "type": "object",
+        "properties": {
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogGroup"
+            }
+          },
+          "freeBytes": {
+            "type": "number",
+            "nullable": true,
+            "description": "bytes free in KNOWLEDGE_CONTENT_DIR, null when unknown"
+          }
+        },
+        "required": [
+          "groups",
+          "freeBytes"
+        ]
+      },
+      "SelectionRequest": {
+        "type": "object",
+        "properties": {
+          "keys": {
+            "description": "Kiwix names, e.g. \"wikipedia_en_medicine_maxi\"",
+            "maxItems": 500,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,199}$"
+            }
+          }
+        },
+        "required": [
+          "keys"
         ]
       },
       "SearchHit": {

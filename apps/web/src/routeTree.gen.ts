@@ -16,6 +16,7 @@ import { Route as MeshRouteImport } from './routes/mesh'
 import { Route as MeshMapRouteImport } from './routes/mesh-map'
 import { Route as SystemRouteImport } from './routes/system'
 import { Route as LibraryIndexRouteImport } from './routes/library.index'
+import { Route as LibraryCatalogRouteImport } from './routes/library.catalog'
 import { Route as LibraryReadRouteImport } from './routes/library.read'
 import { Route as MeshIndexRouteImport } from './routes/mesh.index'
 import { Route as MeshNodesRouteImport } from './routes/mesh.nodes'
@@ -55,6 +56,11 @@ const LibraryIndexRoute = LibraryIndexRouteImport.update({
   path: '/library/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LibraryCatalogRoute = LibraryCatalogRouteImport.update({
+  id: '/library/catalog',
+  path: '/library/catalog',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LibraryReadRoute = LibraryReadRouteImport.update({
   id: '/library/read',
   path: '/library/read',
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/mesh': typeof MeshRouteWithChildren
   '/mesh-map': typeof MeshMapRoute
   '/system': typeof SystemRoute
+  '/library/catalog': typeof LibraryCatalogRoute
   '/library/read': typeof LibraryReadRoute
   '/mesh/nodes': typeof MeshNodesRoute
   '/library/': typeof LibraryIndexRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByTo {
   '/maps': typeof MapsRoute
   '/mesh-map': typeof MeshMapRoute
   '/system': typeof SystemRoute
+  '/library/catalog': typeof LibraryCatalogRoute
   '/library/read': typeof LibraryReadRoute
   '/mesh/nodes': typeof MeshNodesRoute
   '/library': typeof LibraryIndexRoute
@@ -102,6 +110,7 @@ export interface FileRoutesById {
   '/mesh': typeof MeshRouteWithChildren
   '/mesh-map': typeof MeshMapRoute
   '/system': typeof SystemRoute
+  '/library/catalog': typeof LibraryCatalogRoute
   '/library/read': typeof LibraryReadRoute
   '/mesh/nodes': typeof MeshNodesRoute
   '/library/': typeof LibraryIndexRoute
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/mesh'
     | '/mesh-map'
     | '/system'
+    | '/library/catalog'
     | '/library/read'
     | '/mesh/nodes'
     | '/library/'
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/maps'
     | '/mesh-map'
     | '/system'
+    | '/library/catalog'
     | '/library/read'
     | '/mesh/nodes'
     | '/library'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/mesh'
     | '/mesh-map'
     | '/system'
+    | '/library/catalog'
     | '/library/read'
     | '/mesh/nodes'
     | '/library/'
@@ -152,6 +164,7 @@ export interface RootRouteChildren {
   MeshRoute: typeof MeshRouteWithChildren
   MeshMapRoute: typeof MeshMapRoute
   SystemRoute: typeof SystemRoute
+  LibraryCatalogRoute: typeof LibraryCatalogRoute
   LibraryReadRoute: typeof LibraryReadRoute
   LibraryIndexRoute: typeof LibraryIndexRoute
 }
@@ -207,6 +220,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibraryIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/library/catalog': {
+      id: '/library/catalog'
+      path: '/library/catalog'
+      fullPath: '/library/catalog'
+      preLoaderRoute: typeof LibraryCatalogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/library/read': {
       id: '/library/read'
       path: '/library/read'
@@ -250,6 +270,7 @@ const rootRouteChildren: RootRouteChildren = {
   MeshRoute: MeshRouteWithChildren,
   MeshMapRoute: MeshMapRoute,
   SystemRoute: SystemRoute,
+  LibraryCatalogRoute: LibraryCatalogRoute,
   LibraryReadRoute: LibraryReadRoute,
   LibraryIndexRoute: LibraryIndexRoute,
 }

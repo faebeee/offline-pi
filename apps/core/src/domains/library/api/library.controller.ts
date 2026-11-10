@@ -1,7 +1,16 @@
-import { BadRequestException, Controller, DefaultValuePipe, Get, ParseIntPipe, Query } from '@nestjs/common';
+import { BadRequestException, Body, Controller, DefaultValuePipe, Get, HttpCode, ParseIntPipe, Post, Put, Query } from '@nestjs/common';
 import { ApiQuery, ApiTags } from '@nestjs/swagger';
-import { BooksResponse, LibrarySync, SearchResponse } from '../domain/library.dto';
+import { CatalogService } from '../application/catalog.service';
+import {
+  BooksResponse,
+  LibraryCatalog,
+  LibrarySync,
+  SearchResponse,
+  SelectionRequest,
+  StartSyncRequest,
+} from '../domain/library.dto';
 import { KiwixClient } from '../infrastructure/kiwix.client';
+import { KnowledgeCommands } from '../infrastructure/knowledge.commands';
 import { SyncStatusReader } from '../infrastructure/sync-status.reader';
 
 /**
@@ -15,6 +24,8 @@ export class LibraryController {
   constructor(
     private readonly kiwix: KiwixClient,
     private readonly syncStatus: SyncStatusReader,
+    private readonly catalogs: CatalogService,
+    private readonly commands: KnowledgeCommands,
   ) {}
 
   /** Every installed book, by title. */
@@ -23,10 +34,33 @@ export class LibraryController {
     return { books: await this.kiwix.books() };
   }
 
-  /** Whether books from zims.txt are being downloaded in the background, and how far. */
+  /** Whether selected books are being downloaded in the background, and how far. */
   @Get('sync')
   sync(): Promise<LibrarySync> {
     return this.syncStatus.read();
+  }
+
+  /** Download missing selected books now (update: also newer versions). Runs in the background. */
+  @Post('sync')
+  @HttpCode(202)
+  async startSync(@Body() body: StartSyncRequest): Promise<LibrarySync> {
+    await this.commands.sync(body.update ?? false);
+    return this.syncStatus.read();
+  }
+
+  /** The books on offer, which are selected and which are installed. */
+  @Get('catalog')
+  catalog(): Promise<LibraryCatalog> {
+    return this.catalogs.catalog();
+  }
+
+  /**
+   * Replace the selection: books no longer selected are deleted, newly
+   * selected ones download in the background (a running sync restarts).
+   */
+  @Put('selection')
+  select(@Body() body: SelectionRequest): Promise<LibraryCatalog> {
+    return this.catalogs.select(body.keys);
   }
 
   /**

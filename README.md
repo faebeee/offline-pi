@@ -19,7 +19,7 @@ and off on the dashboard.
 | [Maps](apps/maps/README.md) | `/maps` | `/api/maps` | `8081` | Self-hosted vector maps: download a region once, then pan, zoom and search with no internet connection. |
 | [Mesh map](apps/mesh-map/README.md) | `/mesh-map` | `/api/mesh-map` | `8086` | Live map of the Meshtastic nodes heard by Mesh, on the regions downloaded in Maps (read-only). |
 | [Mesh](apps/mesh/README.md) | `/mesh` | `/api/mesh` | `8084` | Messaging over a USB Meshtastic LoRa node: channel and direct messages, node list, history kept on the Pi. |
-| [Library](apps/knowledge/README.md) | `/library` | `/api/library` | `8082` | Offline Wikipedia, medical and survival guides via `kiwix-serve`; the container downloads the ZIM set from `zims.txt` itself. |
+| [Library](apps/knowledge/README.md) | `/library` | `/api/library` | `8082` | Offline Wikipedia, medical and survival guides via `kiwix-serve`; you choose the books on the Library screen, the container downloads them itself. |
 
 Modules listen on `127.0.0.1` only; the LAN sees just `PORT` (8080), where
 core serves the one web app ([`apps/web`](apps/web/README.md)), the one API
@@ -101,7 +101,7 @@ documents every variable. The main ones:
 | `CORE_DATA_DIR` | `./data/core` | Dashboard history, power events, module on/off state. |
 | `MAPS_DATA_DIR` | `./data/maps` | Map regions (GBs) and POIs. Point at the SSD. |
 | `MAPS_ASSETS_DIR` | `./data/maps-assets` | Map fonts and sprites (~100 MB). |
-| `KNOWLEDGE_CONTENT_DIR` | `./data/knowledge` | ZIM files (tens of GB). Point at the SSD. |
+| `KNOWLEDGE_CONTENT_DIR` | `./data/knowledge` | ZIM files chosen on the Library screen (MB to hundreds of GB). Point at the SSD. |
 | `MESH_DATA_DIR` | `./data/mesh` | Message history. |
 | `MESH_CONNECTION` / `MESH_DEVICE` / `MESH_HOST` | | How Mesh reaches the node (set by `install.sh`). |
 | `*_PORT` | `8081`... | Internal (loopback) port of each module. |

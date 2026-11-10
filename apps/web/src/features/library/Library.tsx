@@ -193,6 +193,10 @@ function BookList({
             </Badge>
           )}
           <span className="label">{books.length} installed</span>
+          <Link to="/library/catalog" className="btn btn-sm">
+            <Icon name="download" />
+            Choose books
+          </Link>
         </span>
       </div>
       {books.length ? (
@@ -227,10 +231,16 @@ function BookList({
           <Icon name="library" />
           <h3 className="empty-title">{syncing ? "Downloading the first books" : "No books yet"}</h3>
           <p>
-            Books from <code>zims.txt</code> download on container start when <code>AUTO_SYNC=true</code> and appear here as
-            each one finishes. Otherwise run <code>./manage.sh knowledge sync</code> on the host. Follow progress with{" "}
-            <code>./manage.sh logs</code>.
+            {syncing
+              ? "Each book appears here as soon as its download is complete."
+              : "Choose which books to download: medical guides, repair manuals, Wikipedia and more. Nothing is downloaded until you do."}
           </p>
+          {!syncing && (
+            <Link to="/library/catalog" className="btn btn-primary">
+              <Icon name="download" />
+              Choose books
+            </Link>
+          )}
         </div>
       )}
     </section>
