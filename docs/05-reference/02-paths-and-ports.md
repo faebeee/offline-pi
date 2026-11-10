@@ -105,8 +105,10 @@ are relative to the project folder.
 
 Core also mounts the host's `/` read-only at `/hostfs` (for `/sys`, the
 mounted disks, Podman's state database and its API socket) and maps
-`VCIO_DEVICE` to `/dev/vcio_gencmd`. Mesh maps `MESH_DEVICE` to
-`/dev/meshtastic`.
+`VCIO_DEVICE` to `/dev/vcio_gencmd`. Mesh bind-mounts the host's `/dev`
+read-only (so replugging the radio into a new `/dev/ttyACM*`/`/dev/ttyUSB*`
+node keeps working) and reads the stable `/dev/serial/by-id/` path from
+`MESH_DEVICE` directly.
 
 ## Log files
 

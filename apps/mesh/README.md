@@ -135,9 +135,6 @@ don't spam: `MESH_SEND_RATE_LIMIT` limits each browser.
 
 ### Known limitations
 
-- Podman maps the serial device when the container is created. The node
-  must be plugged in when the app starts . If it comes back under a different
-  device after replugging, re-run `./install.sh` to pick it.
 - Messages typed on the node itself (e.g. canned messages on a Wio
   Tracker's buttons) probably don't appear in the web UI, since the node
   only reports received packets over serial. Not verified yet.

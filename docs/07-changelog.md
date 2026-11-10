@@ -26,6 +26,13 @@ under **Unreleased**.
 
 - `./update.sh` and `./start.sh --pull` failed with podman-compose
   (`argument --pull: invalid choice: 'core'`).
+- Mesh: unplugging and replugging the radio stopped working after the
+  first connection, since Podman mapped the USB device to a fixed
+  major:minor at container creation and a replug usually gets a new
+  `/dev/ttyACM*`/`/dev/ttyUSB*` node. The container now bind-mounts `/dev`
+  read-only instead, so it always sees the current device behind the
+  stable `/dev/serial/by-id/` path.
+
 
 ### Removed
 

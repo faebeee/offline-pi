@@ -133,16 +133,22 @@ services:
       PORT: ${MESH_PORT:-8084}
       HOST: ${MODULES_BIND_ADDRESS:-127.0.0.1}
       MESH_CONNECTION: ${MESH_CONNECTION:-serial}
+      MESH_DEVICE_PATH: ${MESH_DEVICE:-/dev/null}
       MESH_HOST: ${MESH_HOST:-}
       SEND_PIN: ${MESH_SEND_PIN:-}
       SEND_RATE_LIMIT: ${MESH_SEND_RATE_LIMIT:-5/min}
     volumes:
       - ${MESH_DATA_DIR:-./data/mesh}:/app/data
-    devices:
-      # The USB node (install.sh writes its stable /dev/serial/by-id/ path).
-      # Podman resolves it when the container is created, so the node must be
-      # plugged in when start.sh runs; /dev/null for MESH_CONNECTION=tcp.
-      - ${MESH_DEVICE:-/dev/null}:/dev/meshtastic
+      # The whole host /dev, read-only, instead of mapping the USB node with
+      # `devices:` (install.sh writes its stable /dev/serial/by-id/ path to
+      # MESH_DEVICE_PATH above). `devices:` resolves the symlink to a fixed
+      # major:minor when the container is created and never updates it, so
+      # unplugging and replugging the node (which usually gets a new
+      # /dev/ttyACM*/ttyUSB* node) left the container stuck on the stale,
+      # now-dead device. Bind-mounting /dev keeps the container's view of it
+      # live, so the by-id symlink (and the node behind it) always resolves
+      # to whatever is currently plugged in.
+      - /dev:/dev:ro
     group_add:
       - keep-groups
     restart: on-failure

@@ -41,7 +41,7 @@ class Settings:
         return cls(
             data_dir=Path(os.environ.get("DATA_DIR", "/app/data")),
             connection=connection,
-            device=os.environ.get("MESH_DEVICE_PATH", "/dev/meshtastic"),
+            device=os.environ.get("MESH_DEVICE_PATH", "/dev/null"),
             host=os.environ.get("MESH_HOST", "").strip(),
             send_pin=os.environ.get("SEND_PIN", ""),
             rate_count=count,

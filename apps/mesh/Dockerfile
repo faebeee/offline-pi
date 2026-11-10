@@ -15,7 +15,7 @@ COPY apps/mesh/app/ app/
 # (unprivileged). That keeps the host user's `dialout` group (group_add:
 # keep-groups) for the serial device and lets it write DATA_DIR without uid
 # mapping (same approach as core).
-ENV DATA_DIR=/app/data MESH_DEVICE_PATH=/dev/meshtastic PORT=8084 HOST=127.0.0.1
+ENV DATA_DIR=/app/data MESH_DEVICE_PATH=/dev/null PORT=8084 HOST=127.0.0.1
 EXPOSE 8084
 # Shell form (not exec array) so PORT/HOST env vars (set via compose.yml,
 # host networking) are expanded at container start.

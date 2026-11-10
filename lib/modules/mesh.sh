@@ -92,8 +92,11 @@ mesh_cli() {
       log_error "Meshtastic node not found at ${MESH_DEVICE}. Is it plugged in?"
       exit 1
     fi
-    run_opts+=(--device "${MESH_DEVICE}:/dev/meshtastic")
-    target=(--port /dev/meshtastic)
+    # Bind the whole host /dev read-only (see compose.yml) rather than
+    # `--device`, which would resolve the by-id symlink to a fixed
+    # major:minor that a replug could leave stale.
+    run_opts+=(--volume /dev:/dev:ro)
+    target=(--port "$MESH_DEVICE")
   fi
   [[ -t 1 ]] && run_opts+=(-t)
   if ! podman image exists "$MESH_IMAGE"; then
