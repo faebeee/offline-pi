@@ -18,6 +18,7 @@ docs/
     README.md
     01-install.md
     ...
+  07-changelog.md              # the changelog (see Releases)
 ```
 
 - **A folder is a chapter.** Its `README.md` is the chapter page: a short
@@ -28,6 +29,8 @@ docs/
   `docs/02-installation/01-install.md` is `/info/installation/install`.
 - **The first `# ` heading is the title.** It names the page in the app's
   navigation, so keep it short. One H1 per file, on the first line.
+- `docs/07-changelog.md` is the changelog, a single page instead of a
+  chapter. How it is kept is described in [Releases](10-releases.md).
 - `docs/06-development/plans/` holds historical plans. They are kept as
   they are.
 

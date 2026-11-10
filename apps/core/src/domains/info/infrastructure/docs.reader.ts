@@ -10,6 +10,15 @@ import type { InfoEntry } from '../domain/info.dto';
  */
 export const DOCS_DIR = process.env.INFO_DOCS_DIR ?? join(__dirname, '..', '..', '..', '..', '..', '..', 'docs');
 
+/**
+ * The root package.json, whose `version` is the app's version: next to
+ * docs/ in the checkout and in the image (/app/package.json).
+ */
+export const PACKAGE_JSON = process.env.INFO_PACKAGE_JSON ?? join(DOCS_DIR, '..', 'package.json');
+
+/** The changelog, a page of docs/ like any other. */
+export const CHANGELOG_FILE = '07-changelog.md';
+
 const README = 'README.md';
 
 /** "02-installation" -> "installation", "01-install.md" -> "install" */
@@ -43,6 +52,17 @@ export class DocsReader {
   private readonly log = new Logger(DocsReader.name);
 
   readonly root = DOCS_DIR;
+
+  /** The app's version from the root package.json, null if unreadable. */
+  async version(): Promise<string | null> {
+    try {
+      const pkg = JSON.parse(await readFile(PACKAGE_JSON, 'utf8')) as { version?: unknown };
+      return typeof pkg.version === 'string' ? pkg.version : null;
+    } catch {
+      this.log.warn(`no version in ${PACKAGE_JSON}`);
+      return null;
+    }
+  }
 
   /** Every Markdown file in reading order. Empty when docs/ is missing. */
   async files(): Promise<DocFile[]> {

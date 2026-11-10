@@ -51,6 +51,7 @@ if [[ -n "$apply_from" ]]; then
     log_ok "Updated $(version "$apply_from") -> $(version HEAD)"
     echo "  Something wrong with the new version? Go back with:"
     echo "    git reset --hard $(git rev-parse --short "$apply_from") && ./start.sh"
+    echo "  What's new: docs/07-changelog.md, or Info > Changelog in the app."
   fi
   if [[ ${#new_settings[@]} -gt 0 ]]; then
     log_info "New settings in this version, using their defaults (see .env.example):"

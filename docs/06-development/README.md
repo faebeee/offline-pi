@@ -34,5 +34,7 @@ short version for coding agents. When the two disagree, fix one of them.
   other shell scripts, prompts and portability.
 - [Documentation](09-documentation.md): how these docs are organised, shown
   in the app and written.
+- [Releases](10-releases.md): the version number, keeping the changelog
+  and making a release.
 - [Plans](plans/README.md): historical implementation plans (portal, mesh,
   radio), written before outpost became one app. Kept for reference.

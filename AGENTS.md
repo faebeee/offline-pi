@@ -30,7 +30,7 @@ lib/storage.sh           # prompt_dir / resync_dir (relocatable data)
 lib/serial.sh            # USB serial device picker (mesh)
 lib/modules.sh           # module registry for the scripts, hooks, core_api
 lib/migrate.sh           # adopts the old per-app layout, offline-pi -> outpost
-lib/update.sh            # update.sh: git checks, incoming changes, new settings
+lib/update.sh            # update.sh: git checks, versions, incoming changes, new settings
 lib/modules/<name>.sh    # per-module hooks (configure, prepare, manage, ...)
 package.json             # npm workspaces root (apps/*, apps/maps/*, packages/*)
 package-lock.json        # the one lockfile of every JS workspace
@@ -449,8 +449,33 @@ apps/web/src/
   links to other `.md` files in `docs/` only, one `# ` title per file, no
   raw HTML. A change to a feature, setting, command or module updates its
   page here too (see `docs/06-development/09-documentation.md`).
+- `docs/07-changelog.md`: the changelog (see "Versioning & changelog").
 - Root `README.md`: what outpost is, quick start (`git clone`,
   `./install.sh`), the module table (path, internal port, description), the
   `.env` table, `manage.sh` usage, uninstall.
 - `apps/<name>/README.md`: what the module does, its settings and
   `manage.sh <name>` commands, its architecture and development notes.
+
+## Versioning & changelog
+
+One version for the whole app: `version` in the root `package.json`
+(SemVer). The changelog is `docs/07-changelog.md` (shown by Info, linked
+from the root README). Details: `docs/06-development/10-releases.md`.
+
+- **Every change keeps the changelog current.** Add one line per notable
+  change under `## Unreleased`, in `### Added` / `### Changed` /
+  `### Fixed` / `### Removed`, in the same change as the code. Write for
+  the person running outpost (what changed, what they must do); no commit
+  hashes. Pure refactorings and docs-only edits need no line.
+- **Never make a release on your own.** No version bump, no dated
+  changelog section, no tag, unless the maintainer explicitly asks for a
+  new version. Collecting lines under `## Unreleased` is not a release.
+- **When asked for a release**: pick the version from the unreleased
+  changes (or use the one given), rename `## Unreleased` to
+  `## <version> (<YYYY-MM-DD>)` and add a fresh empty `## Unreleased`
+  ("Nothing yet.") above it, check the list against
+  `git log v<last>..HEAD`, set `version` in the root `package.json`, run
+  `npm install` (lockfile), commit as `Release <version>`. Tag
+  (`git tag -a v<version>`) and push only when asked.
+- Workspace `package.json` versions (`apps/*`, `packages/*`) are not the
+  app's version; leave them alone.

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InfoEntry, InfoIndex, InfoPage, InfoSearchHit, InfoSearchResult } from '../domain/info.dto';
-import { DocFile, DocsReader, plainText } from '../infrastructure/docs.reader';
+import { CHANGELOG_FILE, DocFile, DocsReader, plainText } from '../infrastructure/docs.reader';
 
 const entry = ({ slug, title, depth, file }: DocFile): InfoEntry => ({ slug, title, depth, file });
 
@@ -11,8 +11,9 @@ export class InfoService {
   constructor(private readonly docs: DocsReader) {}
 
   async index(): Promise<InfoIndex> {
-    const files = await this.docs.files();
-    return { entries: files.map(entry), root: 'docs/' };
+    const [files, version] = await Promise.all([this.docs.files(), this.docs.version()]);
+    const changelog = files.find((f) => f.file === CHANGELOG_FILE)?.slug ?? null;
+    return { entries: files.map(entry), root: 'docs/', version, changelog };
   }
 
   async page(slug = ''): Promise<InfoPage> {

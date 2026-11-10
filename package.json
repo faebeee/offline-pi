@@ -1,5 +1,6 @@
 {
   "name": "outpost",
+  "version": "0.1.0",
   "private": true,
   "description": "outpost: one offline app for a Raspberry Pi, a dashboard (core) and modules behind it",
   "packageManager": "npm@11.19.0",

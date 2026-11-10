@@ -36,6 +36,9 @@ navigation it is called `Start`.
   because they are plain relative links between the files. Links to
   websites open in a new tab and need internet. Mentions of other project
   files (such as `install.sh`) are not links in the app.
+- **Version and changelog**: the end of the chapter navigation shows the
+  version of outpost you run and links to the
+  [Changelog](../07-changelog.md), what changed in each version.
 
 ## Search
 

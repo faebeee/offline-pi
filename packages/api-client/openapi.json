@@ -3548,11 +3548,23 @@
           "root": {
             "type": "string",
             "description": "where the files are, for \"read them without the app\" hints"
+          },
+          "version": {
+            "type": "string",
+            "nullable": true,
+            "description": "the app's version (root package.json), e.g. \"0.1.0\"; null if unknown"
+          },
+          "changelog": {
+            "type": "string",
+            "nullable": true,
+            "description": "slug of the changelog page (docs/07-changelog.md), null if missing"
           }
         },
         "required": [
           "entries",
-          "root"
+          "root",
+          "version",
+          "changelog"
         ]
       },
       "InfoPage": {

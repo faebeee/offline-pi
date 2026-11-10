@@ -3,6 +3,9 @@
 > **Documentation:** [`docs/`](docs/README.md), plain Markdown in chapters,
 > also shown in the app under **Info** (`/info`). Start there; it works
 > without the app too.
+>
+> **Version:** see `version` in `package.json`; what changed is in the
+> [changelog](docs/07-changelog.md) (also under **Info**).
 
 One self-hosted app for a Raspberry Pi that keeps working without internet:
 offline maps, an emergency-knowledge library, Meshtastic messaging and a live
@@ -114,6 +117,7 @@ refuses when tracked files have local changes, and prints the command to go
 back to the previous version. `--clean` rebuilds without the layer cache,
 `--rebuild` rebuilds even when up to date, `--yes` doesn't ask. A failed
 build leaves the running containers on their old images.
+What a new version changes is in the [changelog](docs/07-changelog.md).
 
 Switching a module off on the dashboard stops its container; it stays off
 after a reboot until it is switched on again. A crashed module is restarted

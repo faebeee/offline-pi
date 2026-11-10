@@ -26,6 +26,10 @@ export class InfoIndex {
   entries!: InfoEntry[];
   /** where the files are, for "read them without the app" hints */
   root!: string;
+  /** the app's version (root package.json), e.g. "0.1.0"; null if unknown */
+  version!: string | null;
+  /** slug of the changelog page (docs/07-changelog.md), null if missing */
+  changelog!: string | null;
 }
 
 export class InfoPage {

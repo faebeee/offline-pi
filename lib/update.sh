@@ -44,9 +44,23 @@ fetch_upstream() {
   AHEAD="$(git -C "$ROOT_DIR" rev-list --count "$UPSTREAM..HEAD")"
 }
 
-# version [REF] - short description of a commit: "a1b2c3d (2026-11-09)".
+# app_version [REF] - the app's version at a commit (root package.json),
+# empty for commits from before versioning.
+app_version() {
+  { git -C "$ROOT_DIR" show "${1:-HEAD}:package.json" 2>/dev/null || true; } \
+    | sed -n 's/^  "version": *"\([^"]*\)".*/\1/p'
+}
+
+# version [REF] - short description of a commit: "0.1.0 (a1b2c3d, 2026-11-09)",
+# or "a1b2c3d (2026-11-09)" before versioning.
 version() {
-  git -C "$ROOT_DIR" log -1 --format='%h (%cs)' "${1:-HEAD}"
+  local ref="${1:-HEAD}" v
+  v="$(app_version "$ref")"
+  if [[ -n "$v" ]]; then
+    git -C "$ROOT_DIR" log -1 --format="$v (%h, %cs)" "$ref"
+  else
+    git -C "$ROOT_DIR" log -1 --format='%h (%cs)' "$ref"
+  fi
 }
 
 # show_incoming - the commits the update brings, and the modules it touches.

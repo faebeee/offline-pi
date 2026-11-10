@@ -33,7 +33,12 @@ export function InfoScreen({ slug }: { slug: string }) {
     <Screen module="info" title={page.data?.title ?? "Info"}>
       <div className="docs">
         <aside className="docs-side" aria-label="Documentation">
-          <Toc entries={entries} current={page.data?.slug ?? slug} />
+          <Toc
+            entries={entries}
+            current={page.data?.slug ?? slug}
+            version={index.data?.version ?? null}
+            changelog={index.data?.changelog ?? null}
+          />
         </aside>
 
         <article className="docs-main" ref={article}>
@@ -97,7 +102,17 @@ function Pager({ entry, dir }: { entry: InfoEntry; dir: "prev" | "next" }) {
  * Chapter navigation plus search. On phones it folds into one line above
  * the page; on wide screens it is a column next to it.
  */
-function Toc({ entries, current }: { entries: InfoEntry[]; current: string }) {
+function Toc({
+  entries,
+  current,
+  version,
+  changelog,
+}: {
+  entries: InfoEntry[];
+  current: string;
+  version: string | null;
+  changelog: string | null;
+}) {
   const [query, setQuery] = useState("");
   const q = useDeferredValue(query.trim());
   const searching = q.length >= 2;
@@ -160,6 +175,17 @@ function Toc({ entries, current }: { entries: InfoEntry[]; current: string }) {
               </li>
             ))}
           </ul>
+        )}
+
+        {version && (
+          <p className="docs-version label">
+            <span>outpost {version}</span>
+            {changelog && (
+              <Link to="/info/$" params={{ _splat: changelog }}>
+                Changelog
+              </Link>
+            )}
+          </p>
         )}
       </div>
     </details>

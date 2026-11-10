@@ -25,6 +25,7 @@ Read it wherever is easiest:
 | [4. Operations](04-operations/README.md) | Everyday commands, updates, backups, uninstalling, troubleshooting |
 | [5. Reference](05-reference/README.md) | Every setting, ports and paths, the API, a glossary |
 | [6. Development](06-development/README.md) | Architecture, the monorepo, adding features and modules, these docs |
+| [7. Changelog](07-changelog.md) | What changed in each version |
 
 ## When outpost does not start
 

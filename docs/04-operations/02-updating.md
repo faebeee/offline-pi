@@ -27,8 +27,10 @@ internet access for the update.
    changes to tracked files. Otherwise it stops and tells you what to do
    (`git stash`, `git checkout main`, `git branch -u origin/main`).
 2. **Fetches** the new commits without applying them yet.
-3. **Shows what is coming**: the installed and the available version, up
-   to 15 of the new commits and which modules they touch.
+3. **Shows what is coming**: the installed and the available version
+   (for example `0.2.0 (a1b2c3d, 2026-12-01)`), up to 15 of the new
+   commits and which modules they touch. What a version changes is in the
+   [Changelog](../07-changelog.md).
 4. **Asks** (default yes). While the update runs, the modules are
    unavailable for a few minutes.
 5. **Applies** the new version with a fast-forward merge
