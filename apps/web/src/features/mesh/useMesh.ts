@@ -85,7 +85,8 @@ export function upsertMessage(qc: QueryClient, m: MeshMessage) {
   if (m.direction === "out") meshUi.markRead(m.conv, m.id);
 }
 
-function upsertNodes(qc: QueryClient, list: MeshNode[]) {
+/** Live node updates into the cached node list (Mesh screen and the map layer). */
+export function upsertNodes(qc: QueryClient, list: MeshNode[]) {
   qc.setQueryData<MeshNode[]>(getMeshNodesQueryKey(), (old) => {
     if (!old) return old;
     const byNum = new Map(old.map((n) => [n.num, n]));

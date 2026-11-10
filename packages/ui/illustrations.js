@@ -159,21 +159,6 @@ const MESH = svg(
   `,
 );
 
-const MESH_MAP = svg(
-  "0 0 200 120",
-  `
-  <path class="l" d="M20 80C20 50 60 30 100 34S180 48 180 76S140 108 100 106S20 104 20 80Z"/>
-  <path class="l" d="M50 78C50 62 74 52 100 54S150 62 150 76S126 94 100 92S50 90 50 78Z"/>
-  <path class="o march" d="M100 72L42 46M100 72L160 40M100 72L150 98M100 72L56 100M42 46L160 40"/>
-  <circle class="o g" cx="42" cy="46" r="5"/>
-  <circle class="o g" cx="160" cy="40" r="5"/>
-  <circle class="o g" cx="150" cy="98" r="5"/>
-  <circle class="f g" cx="56" cy="100" r="5"/>
-  <circle class="a pulse" style="animation-duration:2.8s" cx="100" cy="72" r="14"/>
-  <path class="af" d="M100 64L106 78L100 75L94 78Z"/>
-  `,
-);
-
 const SYSTEM = svg(
   "0 0 200 120",
   `
@@ -258,7 +243,6 @@ const SCENES = {
   library: LIBRARY,
   knowledge: LIBRARY,
   mesh: MESH,
-  "mesh-map": MESH_MAP,
   system: SYSTEM,
   logs: LOGS,
   info: INFO,

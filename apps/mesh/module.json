@@ -1,6 +1,6 @@
 {
   "id": "mesh",
-  "num": 3,
+  "num": 2,
   "label": "Mesh",
   "icon": "mesh",
   "description": "Text messages over a Meshtastic LoRa node, no internet or phone network needed.",

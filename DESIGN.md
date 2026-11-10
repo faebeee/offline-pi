@@ -333,7 +333,7 @@ Row min 60 px (72 px with avatar/monogram), 1 px bottom line, structure: LED or 
 - Own position: amber heading arrow + accuracy circle (`--acc-soft` fill, `--acc` stroke). Only the user's position and active route are amber.
 - Waypoints: diamond (route target, amber stroke) or square (saved place, info stroke) with mono uppercase label and a halo (`paint-order: stroke`, stroke `--map`).
 - Alerts (SOS nodes): crit octagon with dashed ring.
-- Controls: right column of 44 px icon buttons (layers, zoom group, compass), a 52 px amber locate button above the bottom sheet, scale bar bottom left.
+- Controls: right column of 44 px icon buttons (panel, zoom group, compass, layer switches such as mesh nodes), a 52 px amber locate button above the bottom sheet, scale bar bottom left.
 - Show a cache badge (`TILES CACHED · <REGION>`) so users know what works offline.
 - Night map style must be dark; never show a bright map in `.t-dark`.
 
@@ -440,3 +440,7 @@ The visual reference (foundations, components, Hub, Maps, Library and Mesh scree
 - 0.7 (2026-11): Info module (`/info`, served by core, number 07): the project documentation, rendered from `docs/*.md`.
   - **Document** (`.doc`): long-form text rendered from Markdown, max 76 ch. H1 display 28 px uppercase, its first paragraph as a lead in `--fg2`; H2 display 21 px with a 1 px `--line` rule above; H3 display 17 px; H4 in label style. Links `--acc-ink`, underlined. Inline code mono on `--s2` with a `--line` border; code blocks on `--s2` with a 2 px `--line2` left edge. Blockquotes as an info note (`--info-soft`, `--info` border). Tables use `.table` in `.table-wrap`, in body font. A link to a project file outside the docs (`.doc-file`) is plain `--fg2` text with a dashed underline, since the app can't open it. Prose is the one place siblings are spaced with margins (`.doc > * + *`), because the Markdown decides the children.
   - **Icon** `manual` (a bound field manual with text lines), the Info module's nav and tile icon. **Illustration** `info`: the open field manual with the mast's schematic and a bookmark.
+- 0.8 (2026-11): Mesh map merged into Maps. The Meshtastic nodes are a layer of the offline map, not a module of their own.
+  - **Layer switch**: an icon button `nodes` in the map's control column (`.map-ctrls`, `aria-pressed` while shown), only when Mesh is installed. The choice is remembered per browser.
+  - **Nodes tab** in the map panel next to Regions and Places while the layer is shown: one row per positioned node (monogram, name, heard/hops, age LED), "Show all nodes" fits them in view. Node markers (`.mk-node`, `.is-fresh/.is-old/.is-stale`) and the node popup (`.map-popup` + `.kv`) are unchanged.
+  - **Module numbers**: Maps 01, Mesh 02, Library 03, System 04, Logs 05, Info 06. The `mesh-map` illustration is gone.

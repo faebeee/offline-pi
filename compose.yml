@@ -3,7 +3,7 @@
 # core is the only service reachable from the LAN: on PORT it serves the web
 # app (/), the one API (/api/<domain>/, a NestJS domain module per feature,
 # which talks to the module containers) and a passthrough for the modules'
-# raw files (/svc/maps/, /svc/library/, /svc/mesh/, /svc/mesh-map/). Modules
+# raw files (/svc/maps/, /svc/library/, /svc/mesh/). Modules
 # bind MODULES_BIND_ADDRESS (127.0.0.1) on their own internal port.
 #
 # Only core has restart: always (podman-restart.service brings it back after
@@ -152,29 +152,6 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
-
-  # -------------------------------------------------------------- mesh-map --
-  mesh-map:
-    build:
-      context: .
-      dockerfile: apps/mesh-map/Dockerfile
-    image: outpost-mesh-map
-    container_name: outpost-mesh-map
-    network_mode: host
-    environment:
-      PORT: ${MESH_MAP_PORT:-8086}
-      HOST: ${MODULES_BIND_ADDRESS:-127.0.0.1}
-    volumes:
-      # the maps module's data, read-only: region archives, fonts, sprites
-      - ${MAPS_DATA_DIR:-./data/maps}:/maps/data:ro
-      - ${MAPS_ASSETS_DIR:-./data/maps-assets}:/maps/assets:ro
-    restart: on-failure
-    healthcheck:
-      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:' + (process.env.PORT || 8086) + '/healthz').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))\""]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
 
 # userns_mode keep-id cannot be combined with a pod.
 x-podman:

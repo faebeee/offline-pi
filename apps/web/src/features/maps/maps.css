@@ -60,3 +60,9 @@
 .poi-mk:active {
   cursor: grabbing;
 }
+
+/* node popup: <dl class="kv"><div class="node-kv-row"><dt/><dd/></div>,
+   the rows join the kv grid */
+.node-kv-row {
+  display: contents;
+}

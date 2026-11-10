@@ -64,6 +64,29 @@ installed_modules() {
   return 0
 }
 
+# retired_modules - modules that no longer exist (merged into another), one
+# per line as "SERVICE:REPLACEMENT". start.sh removes their containers and
+# images, install.sh says where they went.
+retired_modules() {
+  printf '%s\n' "mesh-map:maps"
+}
+
+# remove_retired_modules - containers and images of retired modules.
+remove_retired_modules() {
+  local entry m
+  has_cmd podman || return 0
+  for entry in $(retired_modules); do
+    m="${entry%%:*}"
+    if podman container exists "outpost-$m" 2>/dev/null; then
+      podman rm -f "outpost-$m" >/dev/null && log_ok "Removed outpost-$m (retired module)"
+    fi
+    if podman image exists "localhost/outpost-$m:latest" 2>/dev/null; then
+      podman rmi "localhost/outpost-$m:latest" >/dev/null 2>&1 && log_ok "Removed image outpost-$m (retired module)"
+    fi
+  done
+  return 0
+}
+
 # is_module SERVICE - one of the optional modules.
 is_module() {
   [[ " $(all_modules | tr '\n' ' ') " == *" $1 "* ]]

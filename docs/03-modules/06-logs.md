@@ -8,7 +8,7 @@ Logs in the module nav (`/logs`).
 ## Sources
 
 The chips at the top choose whose lines you see: core, and every installed
-module (Maps, Library, Mesh, Mesh map). Each chip has an LED for the state
+module (Maps, Library, Mesh). Each chip has an LED for the state
 of that module's container. The header title is the chosen source.
 
 - **core** shows the lines of the app itself (module start and stop, API
@@ -37,7 +37,7 @@ many lines are shown, for example `LIVE · 120 / 500`. At most the newest
 
 From most to least severe: `FATAL`, `ERROR`, `WARN`, `LOG` (normal
 information), `DEBUG` and `VERBOSE`. Lines from modules that do not write a
-level (Library, Mesh map) count as `LOG`. Lines of a stack trace keep the
+level (Library) count as `LOG`. Lines of a stack trace keep the
 level of the error above them.
 
 ## Filters

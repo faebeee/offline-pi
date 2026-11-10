@@ -58,7 +58,7 @@ reports under-voltage or throttling, now or since boot. The Power card
 shows the input voltage, the current the supply negotiated and the USB
 current limit (600 mA or 1.6 A). The Power events list records when
 under-voltage or throttling started and ended. See
-[System](../03-modules/06-system.md).
+[System](../03-modules/05-system.md).
 
 If the voltage and throttle readings are missing, your user is probably not
 allowed to open the Pi's firmware device. `install.sh` prints the fix (add

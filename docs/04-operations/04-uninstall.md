@@ -25,8 +25,8 @@ It works with or without `.env` and even when Podman is already gone.
    `outpost-*` container left over, for example of a module you removed
    from `MODULES`).
 4. It removes the images (`outpost-core`, `outpost-maps`,
-   `outpost-knowledge`, `outpost-mesh`, `outpost-mesh-map` and the
-   Kiwix base image).
+   `outpost-knowledge`, `outpost-mesh`, the `outpost-mesh-map` image of
+   older versions if it is still there, and the Kiwix base image).
 5. For each data directory, it shows the path and size and asks whether to
    delete it (default no). With `--purge` it deletes without asking each
    one.

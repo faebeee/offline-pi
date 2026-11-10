@@ -75,12 +75,6 @@ when `CONTROL_PIN` is set (see [Control headers](#control-headers)).
 
 Sending needs the header `X-Send-PIN` when `MESH_SEND_PIN` is set.
 
-## mesh-map
-
-| Method | Path | What it does |
-|---|---|---|
-| `GET` | `mesh-map/overview` | Regions to draw, map assets and every node with a position |
-
 ## library
 
 | Method | Path | What it does |
@@ -114,7 +108,7 @@ same DTOs as in the OpenAPI document.
 | `/mesh` | `link` (core's connection to the mesh container), `status`, `message` (new or changed), `node`, `nodes` | |
 | `/logs` | `entries` (new lines of a followed source, in batches), `followError` (the stream failed or ended) | `follow` / `unfollow` with a source (`core` or a module id) |
 
-Mesh map has no namespace of its own; its screen uses `/mesh`.
+The mesh nodes layer of Maps has no namespace of its own; it uses `/mesh`.
 
 ## Errors
 

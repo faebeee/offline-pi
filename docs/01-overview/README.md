@@ -42,8 +42,7 @@ on the home page.
 | Module | Screen | What it does |
 |---|---|---|
 | Home | `/` | Every installed module as a tile, with on/off switches. |
-| Maps | `/maps` | Self-hosted vector maps: download a region once, then pan, zoom and search without internet. |
-| Mesh map | `/mesh-map` | Live map of the Meshtastic nodes heard by Mesh, drawn on the regions downloaded in Maps. |
+| Maps | `/maps` | Self-hosted vector maps: download a region once, then pan, zoom and search without internet. With Mesh installed, the Meshtastic nodes are a layer you can switch on and off. |
 | Mesh | `/mesh` | Messaging over a USB Meshtastic LoRa node: channel and direct messages, node list, history kept on the Pi. |
 | Library | `/library` | Offline Wikipedia, medical and survival guides (Kiwix). You choose the books on the Library screen. |
 | System | `/system` | Pi health: temperature, input voltage, throttling, CPU, memory, storage, network, containers. |

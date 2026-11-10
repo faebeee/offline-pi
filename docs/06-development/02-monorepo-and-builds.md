@@ -24,8 +24,8 @@ Rules:
   `"@outpost/ui": "*"`.
 - Run `npm install` once at the root. Never add a lockfile inside a
   workspace; `package-lock.json` at the root is the only one.
-- Modules without a JS build (mesh: Python; knowledge: kiwix; mesh-map: a
-  dependency-free `server.mjs`) live in `apps/` without a `package.json`.
+- Modules without a JS build (mesh: Python; knowledge: kiwix) live in
+  `apps/` without a `package.json`.
   npm and Turborepo ignore them.
 - Core depends on the web app, so building core builds the web app first.
   The web app's packages are all `devDependencies` (Vite bundles them), so
@@ -80,7 +80,7 @@ Node images follow the same stages (see `apps/core/Dockerfile`):
 
 Core's image also copies every `apps/*/module.json` (the module manifests)
 and the built web app. Other images use a pinned upstream base (kiwix-serve
-for knowledge, Python for mesh, plain Node for mesh-map).
+for knowledge, Python for mesh).
 
 ### .dockerignore
 

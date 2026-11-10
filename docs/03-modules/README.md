@@ -81,15 +81,14 @@ starts or stops a module. See [Home](01-home.md#the-control-pin).
 - [Home](01-home.md): the module tiles, their state badges and the switches
   to start and stop modules.
 - [Maps](02-maps.md): download map regions once, then use them offline,
-  with saved places.
+  with saved places and, with Mesh installed, the Meshtastic nodes as a
+  layer you can switch on and off.
 - [Library](03-library.md): choose, download, read and search offline
   books such as medical guides and Wikipedia.
 - [Mesh](04-mesh.md): text messages over a Meshtastic LoRa radio, without
   internet or phone network.
-- [Mesh map](05-mesh-map.md): the Meshtastic nodes on the offline map,
-  updated live.
-- [System](06-system.md): temperature, power, CPU, memory, storage,
+- [System](05-system.md): temperature, power, CPU, memory, storage,
   network, containers and connections of the Pi.
-- [Logs](07-logs.md): the log lines of core and every module, for finding
+- [Logs](06-logs.md): the log lines of core and every module, for finding
   problems.
-- [Info](08-info.md): this documentation inside the app.
+- [Info](07-info.md): this documentation inside the app.

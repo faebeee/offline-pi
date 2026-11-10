@@ -40,7 +40,7 @@ connection and send PIN are asked while mesh is not configured yet.
 | `PORT` | `8080` | The one port the network sees: the web app, the API and every module under its path. Host networking, so this is the port on the Pi itself. |
 | `BIND_ADDRESS` | `0.0.0.0` | `0.0.0.0` for access from the LAN or hotspot, `127.0.0.1` for this machine only. |
 | `MODULES_BIND_ADDRESS` | `127.0.0.1` | Address the modules listen on. Keep `127.0.0.1`: modules are reached through core and must not be exposed on their own. |
-| `MODULES` | `maps,knowledge,mesh-map` | Installed modules, comma separated. Available: `maps`, `knowledge`, `mesh`, `mesh-map`. Only these are built and get a container. |
+| `MODULES` | `maps,knowledge` | Installed modules, comma separated. Available: `maps`, `knowledge`, `mesh`. Only these are built and get a container. |
 | `CORE_DATA_DIR` | `./data/core` | Dashboard data: 24 h metric history and power events (`history.json`), and `modules.json` (the modules switched off). Small; the SD card is fine. |
 | `SAMPLE_INTERVAL_MS` | `2000` | How often the Pi is sampled and pushed to open dashboards, in milliseconds (minimum 500). |
 | `CORE_LOG_LEVEL` | `log` | Least severe level core logs: `verbose`, `debug`, `log`, `warn`, `error`, `fatal`. The Logs screen shows core's lines from this level up. |
@@ -79,12 +79,6 @@ connection and send PIN are asked while mesh is not configured yet.
 | `MESH_HOST` | empty | For `tcp`: hostname or IP address of the node. |
 | `MESH_SEND_PIN` | empty | PIN for sending messages from the web app. Empty: no PIN. |
 | `MESH_SEND_RATE_LIMIT` | `5/min` | How many messages the web app may send. |
-
-## Mesh map
-
-| Variable | Default | Meaning |
-|---|---|---|
-| `MESH_MAP_PORT` | `8086` | Internal port. Mesh map reads the maps module's `MAPS_DATA_DIR` and `MAPS_ASSETS_DIR` read-only; it has no directory of its own. |
 
 ## Development only
 

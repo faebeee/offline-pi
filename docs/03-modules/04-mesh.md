@@ -99,9 +99,9 @@ position and hardware. For the Pi's node it also shows firmware and radio
 settings.
 
 - **MESSAGE** opens a direct message to that node.
-- **SHOW ON MAP** opens the node on the [Mesh map](05-mesh-map.md), or on
-  [Maps](02-maps.md) if Mesh map is not installed. It only appears for
-  nodes that share a position.
+- **SHOW ON MAP** opens [Maps](02-maps.md) with the mesh nodes layer on,
+  centred on that node with its details open. It only appears for nodes
+  that share a position, and only when Maps is installed.
 
 New nodes can take a few minutes to appear after the radio starts.
 

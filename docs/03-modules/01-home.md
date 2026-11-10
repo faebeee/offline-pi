@@ -33,15 +33,15 @@ The same badges appear on the tiles and in the switch list.
 | `STARTING` | Amber, striped | Core is starting it, or its health check has not passed yet | Wait a few seconds |
 | `STOPPING` | Amber, striped | Core is stopping it | Wait |
 | `OFF` | Grey | Switched off on purpose | Switch it on if you need it |
-| `STOPPED` | Red | Switched on, but not running. The line shows the error, or `Switched on but not running` | Check [Logs](07-logs.md), then switch it off and on again |
-| `UNHEALTHY` | Red | Running, but its health check fails | Check [Logs](07-logs.md) |
+| `STOPPED` | Red | Switched on, but not running. The line shows the error, or `Switched on but not running` | Check [Logs](06-logs.md), then switch it off and on again |
+| `UNHEALTHY` | Red | Running, but its health check fails | Check [Logs](06-logs.md) |
 | `NO CONTAINER` | Red | Installed, but its container is missing | Run `./start.sh` on the Pi |
 | `NOT CONFIGURED` | Amber | A required setting is missing (Mesh needs its radio connection) | Run `./install.sh` on the Pi |
 | `NOT INSTALLED` | Grey | Not chosen during installation | Run `./install.sh` on the Pi and select it |
 
 ## Modules on this Pi
 
-The card at the bottom lists every optional module (Maps, Mesh map, Mesh,
+The card at the bottom lists every optional module (Maps, Mesh,
 Library) with its badge, a short status line and an on/off switch. The card
 head shows how many installed modules are running, for example
 `2 OF 3 RUNNING`.
@@ -53,9 +53,7 @@ head shows how many installed modules are running, for example
   says why.
 - If starting or stopping fails, a red banner `Could not start <module>`
   or `Could not stop <module>` shows the error.
-- Mesh map needs Mesh to show nodes. Switching Mesh map on does not
-  switch Mesh on; do that too. When the Pi boots, core starts Mesh before
-  Mesh map.
+- The mesh nodes on the map in Maps need Mesh running as well as Maps.
 
 You can do the same from a terminal on the Pi with
 `./manage.sh start <module>` and `./manage.sh stop <module>`. See
@@ -87,4 +85,4 @@ With a PIN set, the browser asks `Control PIN` the first time you start or
 stop a module in a tab. The PIN is kept for that browser tab only. If it is
 wrong, you are asked again. Cancel the prompt to leave the module as it is.
 The same PIN is asked for the START and STOP buttons on the module gate and
-on the [System](06-system.md) screen.
+on the [System](05-system.md) screen.

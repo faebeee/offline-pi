@@ -99,11 +99,22 @@ install_basics() {
 
 # install_choose_modules - the modules to build and create (MODULES).
 install_choose_modules() {
-  local m f state desc
+  local m f state desc entry old
   local -a items=()
+  # modules merged into another: say where they went (the old name drops out
+  # of MODULES below, installed_modules already ignores it)
+  # and preselect their replacement
+  local merged=" "
+  old="$(get_env MODULES)"
+  for entry in $(retired_modules); do
+    if [[ ",$old," == *",${entry%%:*},"* ]]; then
+      ui_note "The ${entry%%:*} module is now part of ${entry#*:}; keep ${entry#*:} selected to use it."
+      merged+="${entry#*:} "
+    fi
+  done
   for m in $(all_modules); do
     f="$ROOT_DIR/apps/$m/module.json"
-    if is_installed "$m"; then state=on; else state=off; fi
+    if is_installed "$m" || [[ "$merged" == *" $m "* ]]; then state=on; else state=off; fi
     desc="$(manifest_field "$f" description)"
     if is_macos && [[ "$m" == mesh ]]; then
       desc="Node over the network only on macOS. $desc"
@@ -113,12 +124,6 @@ install_choose_modules() {
   ui_note "The dashboard is always installed. Installed modules are switched on and off in the web app."
   ui_multiselect "Which modules should be installed?" "${items[@]}"
   set_env MODULES "$UI_REPLY"
-
-  # modules that build on others
-  if [[ ",$UI_REPLY," == *",mesh-map,"* ]]; then
-    [[ ",$UI_REPLY," == *",mesh,"* ]] || ui_note "Mesh map shows the nodes the Mesh module hears; without Mesh it stays empty."
-    [[ ",$UI_REPLY," == *",maps,"* ]] || ui_note "Mesh map draws on the regions of the Maps module; without Maps you'll be asked for its directories."
-  fi
 }
 
 # --------------------------------------------------------------- summary --
@@ -136,7 +141,7 @@ install_summary() {
   printf '  %-18s %s\n' "Modules" "${MODULES:-none}" >&2
   for m in core "$@"; do
     for var in $(module_dirs "$m"); do
-      # mesh-map lists the maps dirs too
+      # skip a dir listed by two modules
       [[ "$seen" == *" $var "* ]] && continue
       seen+="$var "
       printf '  %-18s %s\n' "$(printf '%s' "${var%_DIR}" | tr 'A-Z_' 'a-z ')" "${!var:-}" >&2

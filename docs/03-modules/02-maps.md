@@ -25,6 +25,9 @@ places sits next to it. On a phone it is a sheet at the bottom.
 - **Panel button** (list icon, top right): show or hide the panel.
 - **Zoom**: the plus and minus buttons, or pinch and scroll.
 - **Compass**: points north. Tap it to turn the map back to north up.
+- **Mesh nodes** (nodes icon, below the compass): shows or hides the
+  Meshtastic nodes on the map. Only there when the Mesh module is
+  installed. See [Mesh nodes](#mesh-nodes) below.
 - **Locate** (bottom right): shows your own position and follows it. The
   browser only allows this on HTTPS or on `localhost`, so on a phone
   connected over the network it usually shows a message instead. The status
@@ -106,6 +109,46 @@ point. They are stored on the Pi and work offline.
 The PLACES tab lists only the places in the current map view and says how
 many more are saved elsewhere. Places do not belong to a region: deleting
 a region keeps them.
+
+## Mesh nodes
+
+When the [Mesh](04-mesh.md) module is installed, Maps can show the
+Meshtastic nodes around you on the offline map, updated live as the radio
+hears them. Switch the layer on or off with the mesh nodes button (nodes
+icon) in the map controls. It is on by default; the browser remembers your
+choice. While it is on, the panel has a third tab, NODES, and the status
+strip shows the number of nodes on the map (`NODES`).
+
+Mesh must be running for nodes to appear (starting Maps does not start
+Mesh). If it is stopped, the NODES tab says so; start it on
+[Home](01-home.md). If Mesh does not answer, the map keeps the last nodes
+it knew and retries by itself.
+
+Each node that shares its position is a round marker with its short name
+(or the last 4 characters of its id). The Pi's own node is labelled
+`BASE`. The colour of the ring shows how old the position is:
+
+| Marker | Age | Label |
+|---|---|---|
+| Green ring | Heard in the last 2 hours | `FRESH` |
+| Amber ring | Heard within the last day | `OLD`, plus the age, for example `ABCD · 5 H` |
+| Grey, faded | Older than a day, or never heard | `STALE`, plus the age |
+
+Positions are the last ones the radio heard, not live tracking. Many nodes
+share only an approximate position: on the public `LongFast` channel the
+position is rounded to about 1 to 2 km. Nodes whose owners do not share a
+position are not on the map; the NODES tab counts them as
+`WITHOUT POSITION`.
+
+- **Details**: tap a marker for status, when it was last heard (UTC),
+  hops, SNR, battery, altitude, position and hardware. MESSAGE IN MESH
+  opens a direct message to that node in [Mesh](04-mesh.md) (OPEN MESH for
+  the Pi's own node).
+- **NODES tab**: the nodes on the map, the Pi's own node first, then the
+  most recently heard. Tap a node to fly to it. SHOW ALL NODES fits every
+  node into view.
+- **From Mesh**: SHOW ON MAP on Mesh's NODES tab opens Maps with the layer
+  on, centred on that node with its details open.
 
 ## Search
 

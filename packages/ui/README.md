@@ -46,7 +46,7 @@ Every screen (DESIGN.md section 6):
     <div data-strip></div>                      <!-- status strip -->
     <header class="header">
       <div class="header-title">
-        <span class="label" data-module-label>Module 03 · Mesh</span>
+        <span class="label" data-module-label>Module 02 · Mesh</span>
         <h1 class="h1">Channels</h1>              <!-- the current view / title -->
       </div>
       <div class="header-actions">
@@ -69,7 +69,7 @@ Every screen (DESIGN.md section 6):
 
 `frame()` applies the stored theme (`outpost.theme`, default dark), builds the
 strip with a UTC clock, fills the module nav, wires the theme toggle and writes
-`moduleLabel(id)` ("Module 03 · Mesh", numbered by `MODULES[].num`) into every
+`moduleLabel(id)` ("Module 02 · Mesh", numbered by `MODULES[].num`) into every
 `[data-module-label]`. The nav links are paths on the same origin (core serves
 every module under its path, e.g. `/mesh/`): drawn from the built-in
 `MODULES` first, then redrawn from core's `/api/modules` (installed modules,

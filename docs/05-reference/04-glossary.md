@@ -9,7 +9,7 @@ Terms used across these docs and in the project, in alphabetical order.
 | **Compose project** | The set of containers defined in `compose.yml`, always named `outpost`. Run through Podman Compose (`podman compose` or `podman-compose`). |
 | **Core** | The part of outpost that always runs (`apps/core`, NestJS). The only service the network reaches: it serves the web app, the API, live updates and the passthrough, and starts and stops the modules. |
 | **Domain** | One feature of core's API, a folder in `apps/core/src/domains/<name>/` with its routes under `/api/<name>/`. Usually one per module. |
-| **dependsOn** | A manifest field: installed modules started together with this one (mesh map depends on mesh). |
+| **dependsOn** | A manifest field: installed modules started together with this one (for example a module that needs another one to work). |
 | **Installed** | A module listed in `MODULES` in `.env`. It is built and has a container. Chosen with `./install.sh`. |
 | **kiwix** | The open-source reader for ZIM files. The Library module runs `kiwix-serve`, which serves the books and their search. |
 | **Lingering** | A systemd setting (`loginctl enable-linger`) that starts a user's services at boot without a login. Needed so rootless Podman brings core back after a reboot. |
@@ -17,10 +17,10 @@ Terms used across these docs and in the project, in alphabetical order.
 | **LoRa region** | The frequency band a Meshtastic node may use by law, for example `EU_868` or `US`. Set on the node; every node of a mesh must use the same one. |
 | **Manifest** | A module's `apps/<name>/module.json`: id, label, path, port variable, health check, data directories, requirements. Core and the scripts read it. |
 | **Meshtastic** | Open-source firmware for small LoRa radios that relay text messages for each other, with no internet or phone network. |
-| **Mesh map** | The module that draws the Meshtastic nodes heard by Mesh on the map regions of Maps. |
-| **Module** | One feature of outpost with its own container behind core (maps, knowledge, mesh, mesh-map), or a screen core serves itself (System, Logs, Info). |
+| **Mesh nodes layer** | The Meshtastic nodes heard by Mesh, drawn on the map in Maps; switched on and off with a map control. |
+| **Module** | One feature of outpost with its own container behind core (maps, knowledge, mesh), or a screen core serves itself (System, Logs, Info). |
 | **Module gate** | The part of a screen that shows "not installed", "not configured" or "not running, START" instead of the screen while its module is not running. |
-| **Node** | One Meshtastic radio. The node connected to the Pi is the own node; every other node it hears shows up in the node list and, with a position, on the mesh map. |
+| **Node** | One Meshtastic radio. The node connected to the Pi is the own node; every other node it hears shows up in the node list and, with a position, on the map in Maps. |
 | **Outpost** | outpost's design system: tokens, fonts, icons, components, motion and illustrations in `packages/ui`, specified in `DESIGN.md`. |
 | **Passthrough** | Core's streaming forwarder from `/svc/<module>/` to a module's container, for raw files the API doesn't wrap: map tiles, `.pmtiles` ranges, kiwix articles. |
 | **PMTiles** | A single-file archive of map tiles that is read with HTTP range requests. Each map region is one `.pmtiles` file. |

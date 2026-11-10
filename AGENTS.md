@@ -60,9 +60,8 @@ data/                    # gitignored default home of every *_DIR
   and, where it makes sense, `dev` scripts. `turbo.json` orders them
   (`^build` first), so `npm run build`, `npm run typecheck` and
   `npx turbo run dev --filter=<workspace>` work from the root.
-- Modules without a JS build (mesh: Python, knowledge: kiwix, mesh-map: a
-  dependency-free `server.mjs`) live in `apps/` without a `package.json`;
-  npm and turbo ignore them.
+- Modules without a JS build (mesh: Python, knowledge: kiwix) live in
+  `apps/` without a `package.json`; npm and turbo ignore them.
 - `@outpost/core` depends on `@outpost/web`, so `turbo prune
   @outpost/core` and `turbo run build --filter=@outpost/core` include
   the web app; core's image serves its `dist/`. The web app's packages are
@@ -90,7 +89,7 @@ browser ──> core :8080
             ├─ /socket.io        live updates, one namespace per domain
             ├─ /ui/              @outpost/ui
             └─ /svc/<module>/*   passthrough to a module's raw files
-core ──HTTP/WS──> maps :8081 · knowledge :8082 · mesh :8084 · mesh-map :8086
+core ──HTTP/WS──> maps :8081 · knowledge :8082 · mesh :8084
 ```
 
 - **core** (`apps/core`, NestJS) is the only service the LAN reaches, on
@@ -176,10 +175,10 @@ apps/core/src/domains/<name>/
    `@outpost/api-client`) in `src/features/<name>/`, and a route in
    `src/routes/` if it is a new screen.
 
-A feature may combine domains (e.g. mesh-map's overview uses the mesh
-domain's client): import the other domain's Nest module and inject its
-exported client or service. Never call another module's container from the
-browser.
+A feature may combine domains: import the other domain's Nest module and
+inject its exported client or service. A screen may also use another
+domain's hooks (Maps' mesh nodes layer uses `useMeshNodes()` and the `/mesh`
+namespace). Never call another module's container from the browser.
 
 ## Adding a module
 
@@ -230,7 +229,7 @@ browser.
 4. Its settings in `.env.example`, prefixed with the module name
    (`RADIO_PORT`, `RADIO_DATA_DIR`, ...), with the next free internal port.
 5. Optional `lib/modules/<name>.sh` with hooks (dashes in the name become
-   underscores, e.g. `mesh_map_configure`):
+   underscores, e.g. `field_radio_configure`):
    - `<name>_configure`: install.sh, every run while installed: prompts,
      storage (`prompt_dir` + `resync_dir` + `set_env`), device checks.
    - `<name>_prepare`: before every build (install.sh, start.sh), for files
@@ -275,7 +274,9 @@ then sources `lib/common.sh` (and what else it needs).
 - **`start.sh`**: requires `.env` (`log_error "Run ./install.sh first."`,
   never prompts). Checks every `*_DIR` exists, runs prepare hooks, builds,
   `compose up -d --no-start --force-recreate <modules>`, removes containers
-  of modules no longer installed, then `compose up -d --force-recreate core`
+  of modules no longer installed and the containers and images of retired
+  modules (`retired_modules` in `lib/modules.sh`, e.g. mesh-map, merged
+  into maps), then `compose up -d --force-recreate core`
   (core starts the modules). `--force-recreate` is required: podman-compose
   only replaces a container when the compose config changed, not the image.
   On macOS it starts the Podman machine if needed and forwards `PORT` from

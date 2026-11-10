@@ -141,7 +141,7 @@ export class ModulesService implements OnModuleInit {
 
   /**
    * Brings every installed module to its desired (switched on/off) state,
-   * dependsOn first so e.g. mesh-map doesn't come up before mesh.
+   * dependsOn first, so a module never comes up before one it needs.
    */
   async reconcile(): Promise<void> {
     await this.podman.ready;

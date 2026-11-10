@@ -156,5 +156,5 @@ up by `start.sh` on every start and is lost when the machine restarts.
 ## See also
 
 - [Everyday commands](01-everyday-commands.md)
-- [Logs](../03-modules/07-logs.md)
-- [System](../03-modules/06-system.md)
+- [Logs](../03-modules/06-logs.md)
+- [System](../03-modules/05-system.md)

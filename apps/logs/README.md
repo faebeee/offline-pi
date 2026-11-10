@@ -27,7 +27,7 @@ its own**: like System it is served by core (`"service": "core"` in
 
 Container lines are parsed into levels: Nest's console and JSON output
 (maps backend), Python logging (mesh), `LEVEL:` prefixes (uvicorn). Other
-lines (kiwix, mesh-map) are level `log`. Stack traces and indented lines
+lines (kiwix) are level `log`. Stack traces and indented lines
 take the level of the line before them, so an error keeps its stack when
 filtering.
 

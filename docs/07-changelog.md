@@ -11,7 +11,21 @@ under **Unreleased**.
 
 ## Unreleased
 
-Nothing yet.
+### Changed
+
+- Mesh map is now part of Maps: the Meshtastic nodes are a layer of the
+  offline map that you switch on and off with the nodes button in the map
+  controls (remembered per browser), with a NODES tab in the panel. Mesh's
+  SHOW ON MAP opens Maps on that node. Keep Maps (and Mesh) installed to
+  see nodes; `./update.sh` or `./start.sh` removes the old mesh-map
+  container and image by itself, `./install.sh` drops it from `MODULES`.
+- Module numbers in the headers follow the new list: Maps 01, Mesh 02,
+  Library 03, System 04, Logs 05, Info 06.
+
+### Removed
+
+- The `mesh-map` module (container, `/mesh-map` screen,
+  `/api/mesh-map/overview`) and the `MESH_MAP_PORT` setting.
 
 ## 0.1.0 (2026-11-10)
 

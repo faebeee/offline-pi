@@ -25,8 +25,7 @@ app.
 | Screen | Path | Module id | Data from |
 |---|---|---|---|
 | Home | `/` | | core |
-| Maps | `/maps` | `maps` | maps container |
-| Mesh map | `/mesh-map` | `mesh-map` | mesh-map container |
+| Maps | `/maps` | `maps` | maps container; the mesh nodes layer from the mesh container |
 | Mesh | `/mesh`, `/mesh/nodes` | `mesh` | mesh container |
 | Library | `/library`, `/library/catalog`, `/library/read` | `knowledge` | knowledge container |
 | System | `/system` | `system` | core |
@@ -48,7 +47,6 @@ server-sent events, WebSockets and large downloads pass through unbuffered.
 | `/svc/maps/x` | `http://127.0.0.1:8081/x` | Tiles, fonts, sprites, `.pmtiles` range requests |
 | `/svc/library/x` | `http://127.0.0.1:8082/svc/library/x` | kiwix articles and its viewer |
 | `/svc/mesh/x` | `http://127.0.0.1:8084/x` | Raw files of the mesh container |
-| `/svc/mesh-map/x` | `http://127.0.0.1:8086/x` | Map files of the mesh-map container |
 
 The library keeps its prefix (`stripPrefix: false` in its manifest), because
 `kiwix-serve` runs with `--urlRootLocation=/svc/library` and its links point
@@ -78,7 +76,6 @@ network.
 | `maps` | `outpost-maps` | `outpost-maps` | `MAPS_PORT` | `8081` | `127.0.0.1` |
 | `knowledge` | `outpost-knowledge` | `outpost-knowledge` | `KNOWLEDGE_PORT` | `8082` | `127.0.0.1` |
 | `mesh` | `outpost-mesh` | `outpost-mesh` | `MESH_PORT` | `8084` | `127.0.0.1` |
-| `mesh-map` | `outpost-mesh-map` | `outpost-mesh-map` | `MESH_MAP_PORT` | `8086` | `127.0.0.1` |
 
 The Compose project is always called `outpost`, whatever the folder of
 the checkout is called. Only core has `restart: always`; the modules have
@@ -92,7 +89,6 @@ the checkout is called. Only core has `restart: always`; the modules have
 | maps | `GET /api/status` |
 | knowledge | `GET /svc/library/` |
 | mesh | `GET /api/status` |
-| mesh-map | `GET /healthz` |
 
 ## Data directories
 
@@ -102,8 +98,8 @@ are relative to the project folder.
 | Variable | Host default | Inside the container |
 |---|---|---|
 | `CORE_DATA_DIR` | `./data/core` | core: `/app/data` |
-| `MAPS_DATA_DIR` | `./data/maps` | maps: `/app/apps/maps/data`; mesh-map: `/maps/data` (read-only) |
-| `MAPS_ASSETS_DIR` | `./data/maps-assets` | maps: `/app/apps/maps/assets`; mesh-map: `/maps/assets` (read-only) |
+| `MAPS_DATA_DIR` | `./data/maps` | maps: `/app/apps/maps/data` |
+| `MAPS_ASSETS_DIR` | `./data/maps-assets` | maps: `/app/apps/maps/assets` |
 | `KNOWLEDGE_CONTENT_DIR` | `./data/knowledge` | knowledge: `/data` |
 | `MESH_DATA_DIR` | `./data/mesh` | mesh: `/app/data` |
 

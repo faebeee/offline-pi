@@ -20,7 +20,7 @@ to. On `PORT` (8080 by default) it serves:
 Core also shows the System and Logs screens itself, and it starts and stops
 the other modules.
 
-**Modules** (Maps, Library, Mesh, Mesh map) are one container each, named
+**Modules** (Maps, Library, Mesh) are one container each, named
 `outpost-<name>`. They have no user interface of their own: just an API,
 their data and background jobs. Each listens only on `127.0.0.1` (the Pi
 itself) on an internal port, so nobody on the network can reach a module
@@ -31,7 +31,6 @@ directly. Core forwards to them.
 | Maps | `outpost-maps` | `8081` |
 | Library | `outpost-knowledge` | `8082` |
 | Mesh | `outpost-mesh` | `8084` |
-| Mesh map | `outpost-mesh-map` | `8086` |
 
 ## One port, one origin
 
@@ -66,7 +65,7 @@ the module as "Not configured" and core does not start it.
   `podman-restart.service` brings it back. `install.sh` enables that service
   and "lingering" for your user, so this works without anybody logging in.
 - When core starts, it brings every installed module to the state you
-  chose: it starts the ones switched on (Mesh before Mesh map) and stops the
+  chose: it starts the ones switched on (a module after the ones it needs) and stops the
   ones switched off.
 - Modules have the restart policy `on-failure`. Podman restarts a module
   that crashed, but not one you stopped. A module you switched off stays off

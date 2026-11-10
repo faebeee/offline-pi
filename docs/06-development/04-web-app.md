@@ -30,13 +30,13 @@ apps/web/src/
 ## A screen
 
 ```tsx
-export const Route = createFileRoute("/mesh-map")({ component: MeshMapScreen });
+export const Route = createFileRoute("/radio")({ component: RadioScreen });
 
-function MeshMapScreen() {
+function RadioScreen() {
   return (
-    <Screen module="mesh-map" title="Node map" bleed>
-      <ModuleGate id="mesh-map">
-        <MeshMap />
+    <Screen module="radio" title="Radio" bleed>
+      <ModuleGate id="radio">
+        <RadioView />
       </ModuleGate>
     </Screen>
   );

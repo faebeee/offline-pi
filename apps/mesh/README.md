@@ -9,11 +9,9 @@ LAN to:
 - send and receive direct messages to/from individual nodes, with delivery
   state (sending, sent to mesh, delivered, failed),
 - see which nodes are around: last heard, hops, signal, battery, distance,
-  and "Show on map": to the Mesh map screen (`/mesh-map`,
-  [`apps/mesh-map`](../mesh-map/README.md)) when installed, which shows
-  every node with a position on an offline map (updated live), otherwise to
-  Maps (`/maps`). Which one comes from core's module list; without either
-  the links are hidden.
+  and "Show on map": to Maps (`/maps?node=<id>`), which turns on its mesh
+  nodes layer (every node with a position, updated live) and opens that
+  node. Without Maps installed the links are hidden.
 
 The message history and node list are kept on the Pi (SQLite), so they
 survive restarts and are readable even while the radio is unplugged.

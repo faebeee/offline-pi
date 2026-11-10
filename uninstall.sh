@@ -15,6 +15,7 @@ IMAGES=(
   localhost/outpost-knowledge:latest
   ghcr.io/kiwix/kiwix-serve:3.8.2
   localhost/outpost-mesh:latest
+  # retired module (now part of maps), still on older installs
   localhost/outpost-mesh-map:latest
 )
 # Persistent data directories as VAR=default (same vars as .env).

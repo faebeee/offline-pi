@@ -131,7 +131,7 @@ Add its data paths to `.dockerignore` if they can be inside the checkout.
 ## 5. Hooks
 
 Optional: `lib/modules/radio.sh` with functions named after the service
-(dashes become underscores, for example `mesh_map_configure`):
+(dashes become underscores, for example `field_radio_configure` for `field-radio`):
 
 | Hook | When it runs | For |
 |---|---|---|

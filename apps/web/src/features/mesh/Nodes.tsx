@@ -15,15 +15,13 @@ export function Nodes() {
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   useTick();
 
-  // the Mesh map module (all nodes, this one opened) if installed, else Maps
-  // centred on the position; the hash is the map camera in both
+  // Maps with the mesh nodes layer on and this node opened; the hash is the
+  // map camera
   const mapLink = (n: MeshNode): string | null => {
     if (n.latitude == null || n.longitude == null) return null;
     const camera = `#14/${n.latitude.toFixed(5)}/${n.longitude.toFixed(5)}`;
-    const meshMap = modules.find((m) => m.id === "mesh-map");
-    if (meshMap) return `${meshMap.path}?node=${encodeURIComponent(n.nodeId || hex(n.num))}${camera}`;
     const maps = modules.find((m) => m.id === "maps");
-    return maps ? `${maps.path}${camera}` : null;
+    return maps ? `${maps.path}?node=${encodeURIComponent(n.nodeId || hex(n.num))}${camera}` : null;
   };
 
   const me = mesh.status.nodeNum != null ? mesh.nodes.get(mesh.status.nodeNum) : undefined;

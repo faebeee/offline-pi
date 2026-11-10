@@ -20,7 +20,8 @@ seems stuck. It:
    [Storage and SSD](../02-installation/02-storage.md#when-the-drive-is-not-there)),
 2. builds the images (only what changed, unless `--no-cache`),
 3. recreates the container of every installed module without starting it,
-4. removes containers of modules no longer in `MODULES`,
+4. removes containers of modules no longer in `MODULES` (and the old
+   Mesh map container and image, now part of Maps),
 5. recreates and starts core, which then starts the modules that are
    switched on,
 6. waits until the web app answers and prints its address.
@@ -41,8 +42,8 @@ listed as "Not available" at the end. The full output goes to `start.log`.
 | `./manage.sh logs <module>` | Follows a module's log. |
 | `./manage.sh help` | Prints the usage with every module command. |
 
-Module names are the ones in `MODULES`: `maps`, `knowledge`, `mesh`,
-`mesh-map`. Note that the Library module is called `knowledge` here.
+Module names are the ones in `MODULES`: `maps`, `knowledge`, `mesh`.
+Note that the Library module is called `knowledge` here.
 
 `start` and `stop` go through core's API, so the home page shows the same
 state and core remembers it at the next boot. They send `CONTROL_PIN` for
@@ -55,7 +56,6 @@ Example output of `status`:
 MODULE       INSTALLED  STATE
 core         yes        Up 2 hours (healthy)
 maps         yes        Up 2 hours (healthy)
-mesh-map     yes        Exited (0) 1 hour ago
 mesh         no         -
 knowledge    yes        Up 2 hours (healthy)
 ```
@@ -101,7 +101,7 @@ need Mesh to be configured, and for a USB node the node must be plugged in.
 ./manage.sh mesh share
 ```
 
-Maps and Mesh map have no commands of their own; everything happens in the
+Maps has no commands of their own; everything happens in the
 web app.
 
 ## Changing settings
@@ -119,4 +119,4 @@ web app.
 - [Updating](02-updating.md)
 - [Troubleshooting](05-troubleshooting.md)
 - [Settings](../05-reference/01-settings.md)
-- [Logs](../03-modules/07-logs.md)
+- [Logs](../03-modules/06-logs.md)

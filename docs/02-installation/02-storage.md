@@ -15,10 +15,6 @@ an SSD mounted at `/mnt/ssd`.
 | `KNOWLEDGE_CONTENT_DIR` | `./data/knowledge` | Library books (ZIM files in `zim/`), partial downloads, your book selection (`selection.txt`) | MB to hundreds of GB |
 | `MESH_DATA_DIR` | `./data/mesh` | Message history and node list (`mesh.db`) | small |
 
-Mesh map has no data of its own. It reads `MAPS_DATA_DIR` and
-`MAPS_ASSETS_DIR` read-only. If Maps is not installed, `install.sh` asks for
-these two directories for Mesh map instead.
-
 The two that grow are `MAPS_DATA_DIR` and `KNOWLEDGE_CONTENT_DIR`. Put those
 on an SSD if you plan to download large regions or many books. The others
 are fine on the SD card.

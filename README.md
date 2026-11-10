@@ -24,8 +24,7 @@ and off on the dashboard.
 | [System](apps/core/README.md) (core) | `/system` | `/api/system` | `8080` (public) | Realtime Pi dashboard: temperature, input voltage, throttling, PSU limits, CPU, memory, storage, network, containers and connections. Core is also the API of every module and starts/stops them. |
 | [Logs](apps/logs/README.md) (core) | `/logs` | `/api/logs` | | Log lines of core and every installed module, live, filterable by level and text, downloadable, for debugging. |
 | [Info](apps/info/README.md) (core) | `/info` | `/api/info` | | This project's documentation ([`docs/`](docs/README.md)), rendered from the Markdown files, with chapters and search. |
-| [Maps](apps/maps/README.md) | `/maps` | `/api/maps` | `8081` | Self-hosted vector maps: download a region once, then pan, zoom and search with no internet connection. |
-| [Mesh map](apps/mesh-map/README.md) | `/mesh-map` | `/api/mesh-map` | `8086` | Live map of the Meshtastic nodes heard by Mesh, on the regions downloaded in Maps (read-only). |
+| [Maps](apps/maps/README.md) | `/maps` | `/api/maps` | `8081` | Self-hosted vector maps: download a region once, then pan, zoom and search with no internet connection. With Mesh installed, the Meshtastic nodes are a layer that can be switched on and off. |
 | [Mesh](apps/mesh/README.md) | `/mesh` | `/api/mesh` | `8084` | Messaging over a USB Meshtastic LoRa node: channel and direct messages, node list, history kept on the Pi. |
 | [Library](apps/knowledge/README.md) | `/library` | `/api/library` | `8082` | Offline Wikipedia, medical and survival guides via `kiwix-serve`; you choose the books on the Library screen, the container downloads them itself. |
 
@@ -132,7 +131,7 @@ documents every variable. The main ones:
 |---|---|---|
 | `PORT` | `8080` | The one port on the LAN: dashboard and all modules. |
 | `BIND_ADDRESS` | `0.0.0.0` | `0.0.0.0` for LAN/hotspot, `127.0.0.1` for this Pi only. |
-| `MODULES` | `maps,knowledge,mesh-map` | Installed modules (set by `install.sh`). |
+| `MODULES` | `maps,knowledge` | Installed modules (set by `install.sh`). |
 | `CORE_LOG_LEVEL` | `log` | Least severe level core logs and the Logs screen shows for core (`debug` for more detail). |
 | `CONTROL_PIN` | empty | PIN asked before starting/stopping modules on the dashboard. |
 | `CORE_DATA_DIR` | `./data/core` | Dashboard history, power events, module on/off state. |

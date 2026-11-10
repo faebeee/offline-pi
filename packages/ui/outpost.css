@@ -1553,7 +1553,7 @@ a {
 
 /* ================================================================= map === */
 
-/* Map stage: a map view plus a panel (Maps, Mesh map).
+/* Map stage: a map view plus a panel (Maps).
    <div class="map-stage">
      <aside class="map-panel"> .map-panel-head + .map-panel-body + .map-panel-actions
      <div class="map-view"> .map-canvas + .map-badge + .map-ctrls + .map-locate

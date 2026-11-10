@@ -101,6 +101,7 @@ for m in $(all_modules); do
     podman rm -f "outpost-$m" >/dev/null && log_ok "Removed $(module_label "$m") (no longer in MODULES)"
   fi
 done
+remove_retired_modules
 
 ui_run "Starting core" compose up -d --force-recreate core
 

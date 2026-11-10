@@ -740,28 +740,6 @@
         ]
       }
     },
-    "/api/mesh-map/overview": {
-      "get": {
-        "operationId": "meshMapOverview",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MeshMapOverview"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Regions to draw, map assets and every node with a position.",
-        "tags": [
-          "mesh-map"
-        ]
-      }
-    },
     "/api/library/books": {
       "get": {
         "operationId": "libraryBooks",
@@ -2951,96 +2929,6 @@
         "required": [
           "conv",
           "text"
-        ]
-      },
-      "MapRegion": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "label": {
-            "type": "string"
-          },
-          "bbox": {
-            "description": "[minLon, minLat, maxLon, maxLat]",
-            "type": "array",
-            "items": {
-              "type": "number"
-            }
-          },
-          "minzoom": {
-            "type": "number"
-          },
-          "maxzoom": {
-            "type": "number"
-          },
-          "pmtilesUrl": {
-            "type": "string",
-            "description": "archive for the pmtiles:// protocol, under core's passthrough"
-          }
-        },
-        "required": [
-          "name",
-          "label",
-          "bbox",
-          "minzoom",
-          "maxzoom",
-          "pmtilesUrl"
-        ]
-      },
-      "MapAssets": {
-        "type": "object",
-        "properties": {
-          "glyphs": {
-            "type": "string",
-            "description": "MapLibre glyphs template, e.g. /svc/mesh-map/fonts/{fontstack}/{range}.pbf"
-          },
-          "spriteBase": {
-            "type": "string",
-            "description": "sprite base without theme, e.g. /svc/mesh-map/sprites/ (append \"light\" or \"dark\")"
-          }
-        },
-        "required": [
-          "glyphs",
-          "spriteBase"
-        ]
-      },
-      "MeshMapOverview": {
-        "type": "object",
-        "properties": {
-          "regions": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MapRegion"
-            }
-          },
-          "assets": {
-            "$ref": "#/components/schemas/MapAssets"
-          },
-          "meshRunning": {
-            "type": "boolean",
-            "description": "the mesh module runs; nodes is empty otherwise"
-          },
-          "ownNum": {
-            "type": "number",
-            "nullable": true,
-            "description": "our own node number (marks \"you\"), when the radio is connected"
-          },
-          "nodes": {
-            "description": "nodes with a position only",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MeshNode"
-            }
-          }
-        },
-        "required": [
-          "regions",
-          "assets",
-          "meshRunning",
-          "ownNum",
-          "nodes"
         ]
       },
       "Book": {

@@ -18,6 +18,7 @@
 migrate_module() {
   case "$1" in
     monitor) echo "" ;;
+    mesh-map) echo "maps" ;;  # the node map is a layer of Maps now
     *) echo "$1" ;;
   esac
 }
@@ -117,8 +118,8 @@ migrate_old_apps() {
   if [[ "$found" == true ]]; then
     for app in "${MIGRATE_ORDER[@]}"; do
       for value in $(migrate_images "$app"); do
-        # mesh and mesh-map keep their image names; they are rebuilt anyway
-        [[ "$value" == *offline-pi-mesh* ]] && continue
+        # mesh keeps its image name; it is rebuilt anyway
+        [[ "$value" == *offline-pi-mesh:* ]] && continue
         if podman image exists "$value" 2>/dev/null && podman rmi "$value" >/dev/null 2>&1; then
           log_ok "Removed old image $value"
         fi

@@ -53,6 +53,10 @@ type Props = {
   panelOpen: boolean;
   onTogglePanel: () => void;
   onFix: (fix: Fix | null) => void;
+  /** the map instance once loaded (null when gone), for layers drawn by the screen */
+  onMap?: (map: MapLibreMap | null) => void;
+  /** the mesh node layer switch; absent when Mesh is not installed */
+  meshNodes?: { on: boolean; onToggle: () => void };
 };
 
 /** A token's current value (the map paints with real colours, not var()). */
@@ -76,6 +80,8 @@ export function MapView({
   panelOpen,
   onTogglePanel,
   onFix,
+  onMap,
+  meshNodes,
 }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<MapLibreMap | null>(null);
@@ -89,8 +95,8 @@ export function MapView({
   const follow = useRef(false);
   // The map is created once, so its listeners read the latest props from here
   // instead of closing over the first render's values.
-  const handlers = useRef({ onPoiCreate, onPoiMove, onPoiSelect, onBounds, onCursor, onFix });
-  handlers.current = { onPoiCreate, onPoiMove, onPoiSelect, onBounds, onCursor, onFix };
+  const handlers = useRef({ onPoiCreate, onPoiMove, onPoiSelect, onBounds, onCursor, onFix, onMap });
+  handlers.current = { onPoiCreate, onPoiMove, onPoiSelect, onBounds, onCursor, onFix, onMap };
 
   // Identity of the region set: changes when one is added, removed or rebuilt.
   const regionsKey = toRegionsKey(regions);
@@ -139,6 +145,7 @@ export function MapView({
     });
     instance.on("load", () => {
       setReady(true);
+      handlers.current.onMap?.(instance);
       report();
       settle();
     });
@@ -203,6 +210,7 @@ export function MapView({
       own.current = null;
       if (watch.current !== null) navigator.geolocation.clearWatch(watch.current);
       watch.current = null;
+      handlers.current.onMap?.(null);
       instance.remove();
       map.current = null;
     };
@@ -484,6 +492,18 @@ export function MapView({
         >
           <Icon name="compass" />
         </button>
+        {meshNodes && (
+          <button
+            type="button"
+            className="btn btn-icon"
+            aria-label={meshNodes.on ? "Hide mesh nodes" : "Show mesh nodes"}
+            title={meshNodes.on ? "Hide mesh nodes" : "Show mesh nodes"}
+            aria-pressed={meshNodes.on}
+            onClick={meshNodes.onToggle}
+          >
+            <Icon name="nodes" />
+          </button>
+        )}
       </div>
 
       <button type="button" className="map-locate" aria-label="Show my position" onClick={locate}>

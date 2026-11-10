@@ -15,7 +15,7 @@ browser ──> core :8080
             ├─ /socket.io        live updates, one namespace per domain
             ├─ /ui/              @outpost/ui
             └─ /svc/<module>/*   passthrough to a module's raw files
-core ──HTTP/WS──> maps :8081 · knowledge :8082 · mesh :8084 · mesh-map :8086
+core ──HTTP/WS──> maps :8081 · knowledge :8082 · mesh :8084
 core ──libpod REST──> the user's podman.socket (start/stop)
 ```
 
@@ -35,7 +35,7 @@ Core (`apps/core`, NestJS) has two parts:
 | Part | Folder | What it holds |
 |---|---|---|
 | Platform | `src/platform/` | The shared kernel, no feature logic: module registry, `ModulesService` and `PodmanService` (start/stop), `RuntimeService` (container state), `UpstreamService` (calling a container), passthrough, OpenAPI, Socket.IO options, error filter, logging, serving the web app |
-| Domains | `src/domains/<name>/` | One folder per feature: `modules`, `system`, `logs`, `info`, `maps`, `mesh`, `mesh-map`, `library`. Each has its routes under `/api/<name>/` |
+| Domains | `src/domains/<name>/` | One folder per feature: `modules`, `system`, `logs`, `info`, `maps`, `mesh`, `library`. Each has its routes under `/api/<name>/` |
 
 `src/app.module.ts` imports the platform and every domain module. How a
 domain is laid out is in [Core API](03-core-api.md).

@@ -39,8 +39,8 @@ cd outpost
    stopping modules. Asked on the first run; later it shows the current
    values and asks only if you want to change them. See
    [Network and hotspot](03-network-and-hotspot.md).
-3. **Modules.** A checkbox list of the modules to install: Maps, Mesh map,
-   Mesh, Library. The current choice is the default. Core (home, System,
+3. **Modules.** A checkbox list of the modules to install: Maps, Mesh,
+   Library. The current choice is the default. Core (home, System,
    Logs) is always installed.
 4. **Storage and settings.** Where each module keeps its data, one question
    per directory, plus module specifics. For Mesh: how the node is connected

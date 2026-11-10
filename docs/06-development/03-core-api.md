@@ -20,7 +20,7 @@ apps/core/src/domains/<name>/
 | Folder | Put here | Example |
 |---|---|---|
 | `api/` | Controllers only: routes, parameters, headers | `maps.controller.ts` |
-| `application/` | Logic: combining calls, watching jobs, keeping state | `job-watcher.service.ts`, `mesh-map.service.ts` |
+| `application/` | Logic: combining calls, watching jobs, keeping state | `job-watcher.service.ts`, `mesh-feed.service.ts` |
 | `infrastructure/` | The container client, mappers from the container's shapes | `mesh.client.ts`, `mesh.mappers.ts` |
 | `domain/` | DTO classes: what the API accepts and returns | `mesh.dto.ts` |
 
@@ -114,8 +114,9 @@ export class MapsEvents {
 
 ## Using another domain
 
-A feature may combine domains. Mesh map's overview uses the mesh domain:
-`MeshMapModule` imports `MeshModule` and injects its exported client.
+A feature may combine domains: import the other domain's Nest module and
+inject its exported client or service (for example `MeshModule` exports
+`MeshClient`).
 Never call another module's container from the browser.
 
 ## Generating the client
