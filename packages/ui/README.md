@@ -8,7 +8,9 @@ use the same files. Nothing here loads from the network.
 |---|---|
 | `tokens.css` | Design tokens, verbatim from `DESIGN.md` section 3 |
 | `fonts.css`, `fonts/` | Chakra Petch, IBM Plex Sans, JetBrains Mono (WOFF2, latin + latin-ext, SIL OFL 1.1) |
-| `outpost.css` | Base, app frame and components. Imports `tokens.css` and `fonts.css`; load only this one |
+| `outpost.css` | Base, app frame and components. Imports `tokens.css`, `fonts.css`, `illustrations.css` and `motion.css`; load only this one |
+| `motion.css` | Motion (DESIGN.md 0.6): entrances, signal sweep, live LEDs, control feedback, boot screen. Owns every transition |
+| `illustrations.js`, `illustrations.css` | Line-art scenes (`illustration(name)` -> SVG markup), animated by CSS, coloured by tokens |
 | `icons.svg` | Icon sprite (24 px, stroke 1.75, square caps) |
 | `outpost.js` | Theme, status strip, module nav, formatters, toast, hold-to-confirm, indicators |
 | `theme-boot.js` | Classic script for `<head>`: applies the stored theme before first paint |

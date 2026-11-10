@@ -15,7 +15,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { Screen } from "../../app/Screen";
 import { useStripItems, useStripLink } from "../../app/strip";
-import { Banner, HoldButton, Icon, useTheme } from "../../ui/outpost";
+import { Banner, HoldButton, Icon, Illustration, useTheme } from "../../ui/outpost";
 import { ModuleGate } from "../modules/ModuleGate";
 import { isRunning, useModule } from "../modules/useModules";
 import { AddRegion, JobBadge } from "./AddRegion";
@@ -274,7 +274,7 @@ export function MapsScreen() {
 
                   {regions.length === 0 ? (
                     <div className="empty">
-                      <Icon name="map" />
+                      <Illustration name="maps" />
                       <p className="empty-title">No regions yet</p>
                       <p>Download a city, state or country once. It then works with no internet.</p>
                     </div>

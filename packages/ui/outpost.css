@@ -4,6 +4,10 @@
 
 @import "./tokens.css";
 @import "./fonts.css";
+/* 0.6: illustrations and motion. Imports come first, so motion.css only
+   adds properties the components below don't set (transitions live there). */
+@import "./illustrations.css";
+@import "./motion.css";
 
 /* ================================================================ base === */
 
@@ -469,7 +473,6 @@ a {
   text-decoration: none;
   text-transform: uppercase;
   cursor: pointer;
-  transition: background-color 120ms, border-color 120ms;
 }
 
 .btn:hover:not(:disabled) {
@@ -684,7 +687,6 @@ a {
   border-radius: var(--radius);
   background: var(--fg3);
   content: "";
-  transition: transform 120ms;
 }
 
 .switch[aria-checked="true"] {

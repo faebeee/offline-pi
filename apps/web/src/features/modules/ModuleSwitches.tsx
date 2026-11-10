@@ -47,7 +47,7 @@ export function ModuleSwitches() {
               <div className="row-main">
                 <div className="row-title">
                   {m.label}{" "}
-                  <Badge state={d.tone} className="badge-sm">
+                  <Badge key={d.badge} state={d.tone} className={`badge-sm${busy || (d.tone === "cau" && /ing$/.test(d.badge)) ? " is-busy" : ""}`}>
                     {d.badge}
                   </Badge>
                 </div>

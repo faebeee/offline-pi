@@ -2,7 +2,7 @@ import type { MeshNode } from "@offline-pi/api-client";
 import { ago, coords, distance } from "@offline-pi/ui/outpost.js";
 import { Link, useRouter } from "@tanstack/react-router";
 import { Fragment, useState, type ReactNode } from "react";
-import { Icon } from "../../ui/outpost";
+import { Icon, Illustration } from "../../ui/outpost";
 import { useModules } from "../modules/useModules";
 import { batteryText, distanceM, hex, hopsText } from "./format";
 import { useMesh, useTick } from "./useMesh";
@@ -43,7 +43,7 @@ export function Nodes() {
     <section className="mesh-nodes grid-bg" role="tabpanel" aria-labelledby="mesh-tab-nodes">
       {nodes.length === 0 ? (
         <div className="empty">
-          <Icon name="nodes" />
+          <Illustration name="mesh" />
           <p className="empty-title">No nodes heard yet</p>
           <p>Nodes appear here as soon as the radio hears them. That can take a few minutes after start-up.</p>
         </div>

@@ -233,7 +233,7 @@ export function LogsScreen({ source }: { source: string }) {
           <div className="card-head">
             <h2 className="h2">Lines</h2>
             <span className="status label">
-              <span className={`led led-${LINK[logs.state] === "ok" ? "ok" : "cau"}`} aria-hidden="true" />
+              <span className={`led led-${LINK[logs.state] === "ok" ? "ok" : "cau"} is-live`} aria-hidden="true" />
               <span>
                 {WORD[logs.state]} · {shown.length === logs.entries.length ? shown.length : `${shown.length} / ${logs.entries.length}`}
                 {shown.length > MAX_DRAWN && ` · newest ${MAX_DRAWN} shown`}

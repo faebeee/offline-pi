@@ -9,6 +9,10 @@
       "types": "./outpost.d.ts",
       "default": "./outpost.js"
     },
+    "./illustrations.js": {
+      "types": "./illustrations.d.ts",
+      "default": "./illustrations.js"
+    },
     "./*": "./*"
   }
 }

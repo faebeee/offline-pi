@@ -1,0 +1,257 @@
+/* Outpost illustrations (illustrations.js, DESIGN.md changelog 0.6). Strokes
+   by token class; the ground colour (--il-bg) hides what is behind a shape,
+   so set it to the surface the art sits on (.card / .tile: --s1). */
+
+/* React wrapper (apps/web Illustration): layout as if the <svg> were direct */
+.il-wrap {
+  display: contents;
+}
+
+.il {
+  --il-bg: var(--bg);
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  color: var(--fg3);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.25;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+
+.il .l { stroke: var(--line2); }
+.il .f { stroke: var(--fg3); }
+.il .a { stroke: var(--acc); }
+.il .i { stroke: var(--info); }
+.il .o { stroke: var(--ok); }
+.il .c { stroke: var(--crit); }
+.il .g { fill: var(--il-bg); }
+.il .af { fill: var(--acc); stroke: none; }
+.il .cf { fill: var(--crit); stroke: none; }
+.il .faint { opacity: 0.5; }
+.il .sun { opacity: 0.55; }
+
+/* glow on the lights (dark theme only, via the token) */
+.il .af,
+.il .a.pulse,
+.il .o.pulse {
+  filter: drop-shadow(var(--glow-acc));
+}
+
+/* ---------------------------------------------------------- motion --- */
+
+@keyframes il-pulse {
+  0% { opacity: 0; transform: scale(0.7); }
+  30% { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.12); }
+}
+
+@keyframes il-blink {
+  50% { opacity: 0.15; }
+}
+
+@keyframes il-march {
+  to { stroke-dashoffset: -14; }
+}
+
+@keyframes il-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes il-draw-loop {
+  0% { stroke-dashoffset: 1; opacity: 1; }
+  60% { stroke-dashoffset: 0; opacity: 1; }
+  85%, 100% { stroke-dashoffset: 0; opacity: 0; }
+}
+
+@keyframes il-type {
+  0%, 10% { stroke-dashoffset: 1; }
+  40%, 85% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: 0; opacity: 0.4; }
+}
+
+@keyframes il-scan {
+  0% { opacity: 0; transform: translateY(0); }
+  10% { opacity: 0.5; }
+  70% { opacity: 0.35; transform: translateY(var(--d, 120px)); }
+  71%, 100% { opacity: 0; transform: translateY(var(--d, 120px)); }
+}
+
+@keyframes il-float {
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes il-flicker {
+  0%, 100% { opacity: 1; }
+  92% { opacity: 1; }
+  94% { opacity: 0.2; }
+  96% { opacity: 0.9; }
+  98% { opacity: 0.3; }
+}
+
+@keyframes il-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes il-reticle {
+  0%, 100% { transform: translate(0, 0); }
+  30% { transform: translate(-22px, 10px); }
+  60% { transform: translate(18px, -14px); }
+}
+
+.il .pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: il-pulse 2.4s ease-out infinite;
+}
+
+.il .blink { animation: il-blink 1.6s steps(1, end) infinite; }
+
+.il .march {
+  stroke-dasharray: 3 4;
+  animation: il-march 1.4s linear infinite;
+}
+
+.il .draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: il-draw 1.6s var(--ease-out) forwards;
+}
+
+.il .draw.loop { animation: il-draw-loop 3s ease-in-out infinite; }
+
+.il .type {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: il-type 4s steps(8, end) infinite;
+}
+
+.il .scan {
+  stroke-width: 1;
+  animation: il-scan 7s ease-in-out infinite;
+}
+
+.il .float { animation: il-float 4s ease-in-out infinite; }
+.il .flicker { animation: il-flicker 5s steps(1, end) infinite; }
+.il .spin { animation: il-spin 3s linear infinite; }
+.il .reticle { animation: il-reticle 9s var(--ease-out) infinite; }
+
+/* a module that is off: everything grey and still */
+.il.is-off .a,
+.il.is-off .i,
+.il.is-off .o,
+.il.is-off .c { stroke: var(--fg3); }
+.il.is-off .af,
+.il.is-off .cf { fill: var(--fg3); filter: none; }
+.il.is-off,
+.il.is-off * { animation-play-state: paused !important; }
+.il.is-off .pulse,
+.il.is-off .scan { opacity: 0; }
+
+/* -------------------------------------------------------- placements --- */
+
+/* Home hero: the outpost at dusk, with what is running written over it.
+   The scene is 960 x 220: a phone shows its middle, wide screens all of it. */
+.hero {
+  position: relative;
+  display: flex;
+  height: 180px;
+  flex: none;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.hero .il {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: auto;
+  height: 100%;
+  max-width: none;
+  transform: translateX(-50%);
+}
+
+.hero-text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-left: 2px solid var(--acc);
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+}
+
+.hero-title {
+  margin: 0;
+  font: 700 22px/26px var(--font-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  animation: op-glitch 700ms steps(1, end) 300ms both;
+}
+
+@media (min-width: 720px) {
+  .hero {
+    height: auto;
+    aspect-ratio: 960 / 220;
+    max-height: 300px;
+  }
+
+  .hero-text {
+    margin: var(--space-4);
+  }
+}
+
+/* module tiles: the module's scene, faint, behind the text */
+.tile-art {
+  --il-bg: var(--s1);
+  position: absolute;
+  z-index: -1;
+  right: -8px;
+  bottom: -6px;
+  width: 58%;
+  max-width: 180px;
+  opacity: 0.22;
+  transition: opacity var(--dur), transform var(--dur-slow) var(--ease-out);
+}
+
+.tile:hover .tile-art,
+.tile:focus-visible .tile-art {
+  --il-bg: var(--s2);
+  opacity: 0.75;
+  transform: translate(-4px, -4px);
+}
+
+.tile.is-off .tile-art {
+  opacity: 0.18;
+}
+
+/* module gates and empty states */
+.gate-art,
+.empty .il {
+  width: min(100%, 240px);
+  align-self: center;
+}
+
+.empty .il {
+  --il-bg: var(--bg);
+}
+
+/* no motion: show the finished drawing, hide what only exists in motion */
+@media (prefers-reduced-motion: reduce) {
+  .il .draw,
+  .il .type { stroke-dashoffset: 0; }
+  .il .scan { opacity: 0; }
+}
+
+html.motion-off .il .draw,
+html.motion-off .il .type { stroke-dashoffset: 0; }
+html.motion-off .il .scan { opacity: 0; }
