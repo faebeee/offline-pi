@@ -22,6 +22,11 @@ under **Unreleased**.
 - Module numbers in the headers follow the new list: Maps 01, Mesh 02,
   Library 03, System 04, Logs 05, Info 06.
 
+### Fixed
+
+- `./update.sh` and `./start.sh --pull` failed with podman-compose
+  (`argument --pull: invalid choice: 'core'`).
+
 ### Removed
 
 - The `mesh-map` module (container, `/mesh-map` screen,

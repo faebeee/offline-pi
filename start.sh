@@ -66,9 +66,11 @@ for m in core ${MODS[@]+"${MODS[@]}"}; do
 done
 
 prepare_builds core ${MODS[@]+"${MODS[@]}"}
-# a failed build stops here: the running containers keep their old images
+# a failed build stops here: the running containers keep their old images.
+# The flags go after the services: podman-compose's --pull takes an optional
+# value and would read the first service name as it.
 if ! ui_run "Building images${BUILD_FLAGS[*]:+ (${BUILD_FLAGS[*]})}" \
-  compose build ${BUILD_FLAGS[@]+"${BUILD_FLAGS[@]}"} core ${MODS[@]+"${MODS[@]}"}; then
+  compose build core ${MODS[@]+"${MODS[@]}"} ${BUILD_FLAGS[@]+"${BUILD_FLAGS[@]}"}; then
   log_error "Build failed; the running containers keep their old images."
   exit 1
 fi
