@@ -1016,6 +1016,95 @@
           "logs"
         ]
       }
+    },
+    "/api/info": {
+      "get": {
+        "operationId": "infoIndex",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfoIndex"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Every page in reading order, for the chapter navigation.",
+        "tags": [
+          "info"
+        ]
+      }
+    },
+    "/api/info/page": {
+      "get": {
+        "operationId": "infoPage",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": false,
+            "in": "query",
+            "description": "the page's slug; empty or missing = docs/README.md",
+            "schema": {
+              "maxLength": 300,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfoPage"
+                }
+              }
+            }
+          }
+        },
+        "summary": "One page's Markdown, with the pages before and after it.",
+        "tags": [
+          "info"
+        ]
+      }
+    },
+    "/api/info/search": {
+      "get": {
+        "operationId": "infoSearch",
+        "parameters": [
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "description": "at least 2 characters, case-insensitive, over titles and text",
+            "schema": {
+              "minLength": 2,
+              "maxLength": 100,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfoSearchResult"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Pages whose title or text contains every word of the query.",
+        "tags": [
+          "info"
+        ]
+      }
     }
   },
   "info": {
@@ -3418,6 +3507,147 @@
           "available",
           "error",
           "entries"
+        ]
+      },
+      "InfoEntry": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "description": "URL path of the page: the file path without numeric prefixes, \".md\" and\n\"README\" (\"02-installation/01-install.md\" -> \"installation/install\",\n\"README.md\" -> \"\")"
+          },
+          "title": {
+            "type": "string",
+            "description": "the first \"# \" heading, else the file name"
+          },
+          "depth": {
+            "type": "number",
+            "description": "0 = docs/README.md, 1 = a chapter, 2 = a page of a chapter, ..."
+          },
+          "file": {
+            "type": "string",
+            "description": "path relative to docs/, e.g. \"02-installation/01-install.md\""
+          }
+        },
+        "required": [
+          "slug",
+          "title",
+          "depth",
+          "file"
+        ]
+      },
+      "InfoIndex": {
+        "type": "object",
+        "properties": {
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InfoEntry"
+            }
+          },
+          "root": {
+            "type": "string",
+            "description": "where the files are, for \"read them without the app\" hints"
+          }
+        },
+        "required": [
+          "entries",
+          "root"
+        ]
+      },
+      "InfoPage": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string"
+          },
+          "markdown": {
+            "type": "string",
+            "description": "the file's Markdown, unchanged"
+          },
+          "prev": {
+            "nullable": true,
+            "description": "the pages before and after in reading order",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InfoEntry"
+              }
+            ]
+          },
+          "next": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InfoEntry"
+              }
+            ]
+          },
+          "trail": {
+            "description": "the chapters above this page, outermost first (no docs/README.md)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InfoEntry"
+            }
+          }
+        },
+        "required": [
+          "slug",
+          "title",
+          "file",
+          "markdown",
+          "prev",
+          "next",
+          "trail"
+        ]
+      },
+      "InfoSearchHit": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string"
+          },
+          "snippet": {
+            "type": "string",
+            "description": "the first line that matches, as plain text"
+          }
+        },
+        "required": [
+          "slug",
+          "title",
+          "file",
+          "snippet"
+        ]
+      },
+      "InfoSearchResult": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          },
+          "hits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InfoSearchHit"
+            }
+          }
+        },
+        "required": [
+          "query",
+          "hits"
         ]
       },
       "LogBatch": {

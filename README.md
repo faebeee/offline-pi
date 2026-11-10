@@ -1,5 +1,9 @@
 # offline-pi
 
+> **Documentation:** [`docs/`](docs/README.md), plain Markdown in chapters,
+> also shown in the app under **Info** (`/info`). Start there; it works
+> without the app too.
+
 One self-hosted app for a Raspberry Pi that keeps working without internet:
 offline maps, an emergency-knowledge library, Meshtastic messaging and a live
 map of the mesh, plus a dashboard for the Pi itself. Everything is reached on
@@ -16,6 +20,7 @@ and off on the dashboard.
 | Home | `/` | `/api/modules` | | Every installed module as a tile, with on/off switches. |
 | [System](apps/core/README.md) (core) | `/system` | `/api/system` | `8080` (public) | Realtime Pi dashboard: temperature, input voltage, throttling, PSU limits, CPU, memory, storage, network, containers and connections. Core is also the API of every module and starts/stops them. |
 | [Logs](apps/logs/README.md) (core) | `/logs` | `/api/logs` | | Log lines of core and every installed module, live, filterable by level and text, downloadable, for debugging. |
+| [Info](apps/info/README.md) (core) | `/info` | `/api/info` | | This project's documentation ([`docs/`](docs/README.md)), rendered from the Markdown files, with chapters and search. |
 | [Maps](apps/maps/README.md) | `/maps` | `/api/maps` | `8081` | Self-hosted vector maps: download a region once, then pan, zoom and search with no internet connection. |
 | [Mesh map](apps/mesh-map/README.md) | `/mesh-map` | `/api/mesh-map` | `8086` | Live map of the Meshtastic nodes heard by Mesh, on the regions downloaded in Maps (read-only). |
 | [Mesh](apps/mesh/README.md) | `/mesh` | `/api/mesh` | `8084` | Messaging over a USB Meshtastic LoRa node: channel and direct messages, node list, history kept on the Pi. |

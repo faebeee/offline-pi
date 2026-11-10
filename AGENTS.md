@@ -40,12 +40,14 @@ tsconfig.base.json       # shared TypeScript base config
 apps/<name>/             # one module: Dockerfile, code, module.json, README
 apps/core/               # the API (domains), passthrough, supervisor (always on)
 apps/logs/               # a screen served by core: module.json + README only
+apps/info/               # the docs screen, served by core (reads docs/)
 apps/web/                # the web app: every screen of every module
 apps/maps/backend/       # a module's container code (API, data, jobs)
 packages/ui/             # @offline-pi/ui: Outpost design system (DESIGN.md)
 packages/api-client/     # @offline-pi/api-client: generated from core's OpenAPI
 packages/maps-shared/    # @offline-pi/maps-shared: maps container contract
 host/hotspot-pi/         # host-level utility, no container (see below)
+docs/                    # the documentation (Markdown chapters), shown by Info
 data/                    # gitignored default home of every *_DIR
 ```
 
@@ -241,7 +243,9 @@ browser.
    domains") and its screen in the web app (`apps/web/src/routes/<path>.tsx`
    + `src/features/<name>/`, see "Web UI"). The container itself serves no
    UI.
-7. A row in the root `README.md` module table and an `apps/<name>/README.md`.
+7. A row in the root `README.md` module table and an `apps/<name>/README.md`,
+   plus its user page in `docs/03-modules/` and a row in the module table
+   of `docs/01-overview/README.md`.
 8. Images and `*_DIR` vars in `uninstall.sh`'s config block.
 
 ## Scripts
@@ -439,6 +443,12 @@ apps/web/src/
 
 ## Documentation
 
+- `docs/`: the project documentation, for users and developers, in
+  chapters (`docs/NN-chapter/README.md` + `NN-page.md`). Plain Markdown
+  that reads well without the app; the Info module renders it. Relative
+  links to other `.md` files in `docs/` only, one `# ` title per file, no
+  raw HTML. A change to a feature, setting, command or module updates its
+  page here too (see `docs/06-development/09-documentation.md`).
 - Root `README.md`: what offline-pi is, quick start (`git clone`,
   `./install.sh`), the module table (path, internal port, description), the
   `.env` table, `manage.sh` usage, uninstall.

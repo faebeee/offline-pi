@@ -4,12 +4,12 @@
 > is now one app (a Turborepo monorepo): modules live in `apps/<name>/` with
 > a `module.json`, are served by core under a path on one port, and are
 > configured through `lib/modules/<name>.sh` hooks (see
-> [`AGENTS.md`](../../AGENTS.md)). Read "default port" as the module's
+> [`AGENTS.md`](../../../AGENTS.md)). Read "default port" as the module's
 > internal loopback port, and "a tile in the portal" as the home page tile
 > core draws from the manifest. Mesh is implemented.
 
 Plans for three new apps, split into sessions that can each be done (and
-tested on the Pi) on their own. Every app follows [`AGENTS.md`](../../AGENTS.md);
+tested on the Pi) on their own. Every app follows [`AGENTS.md`](../../../AGENTS.md);
 these plans only spell out what is specific to each app.
 
 | Plan | App dir | Default port | Hardware needed |
@@ -31,7 +31,7 @@ Mesh and radio are independent of each other; only their last session
 
 ## How to use these plans in a session
 
-- Start a session with: "Implement session `<ID>` from `docs/plans/<file>.md`".
+- Start a session with: "Implement session `<ID>` from `docs/06-development/plans/<file>.md`".
 - Each session lists **Goal**, **Tasks** and **Done when**. Only tick the
   checkboxes once "Done when" was verified on the Pi, not just on the Mac.
 - If a session changes a decision in the plan (e.g. a spike picks the other

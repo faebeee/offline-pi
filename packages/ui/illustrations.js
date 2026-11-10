@@ -206,6 +206,28 @@ const LOGS = svg(
   `,
 );
 
+const INFO = svg(
+  "0 0 200 120",
+  `
+  <path class="l" d="M10 108H190"/>
+  <!-- manuals on the shelf -->
+  <path class="f g" d="M22 108V94H72V108Z"/>
+  <path class="f g" d="M26 94V82H68V94Z"/>
+  <path class="l" d="M30 88h22M26 101h34"/>
+  <!-- the open field manual -->
+  <path class="f g" d="M82 100L130 92L178 100V46L130 38L82 46Z"/>
+  <path class="f" d="M130 38V92"/>
+  <path class="l type" pathLength="1" d="M90 54L122 49M90 62L122 57M90 70L114 66M90 78L122 73"/>
+  <!-- its schematic: the mast and its signal -->
+  <path class="i" d="M154 84V60M149 84h10M151 74l3-8 3 8"/>
+  <path class="i pulse" d="M147 54a9 9 0 0 0 0 10M161 54a9 9 0 0 1 0 10"/>
+  <circle class="af blink" cx="154" cy="58" r="1.8"/>
+  <!-- bookmark and tabs -->
+  <path class="a" d="M166 44V60L170 56L174 60V45"/>
+  <path class="f" d="M178 54h6v8h-6M178 66h6v8h-6"/>
+  `,
+);
+
 const LOST = svg(
   "0 0 200 120",
   `
@@ -239,6 +261,7 @@ const SCENES = {
   "mesh-map": MESH_MAP,
   system: SYSTEM,
   logs: LOGS,
+  info: INFO,
   lost: LOST,
   generic: GENERIC,
 };

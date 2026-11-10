@@ -52,6 +52,8 @@ COPY --from=prune /manifests/apps/ apps/
 COPY --from=build /app/apps/core/dist apps/core/dist
 # the built web app (node_modules/@offline-pi/web links to apps/web)
 COPY --from=build /app/apps/web/dist apps/web/dist
+# the documentation (docs/*.md), read by the Info screen (domain "info")
+COPY --from=prune /repo/docs /app/docs
 COPY --from=vcgencmd /usr/local/bin/vcgencmd /usr/local/bin/vcgencmd
 
 # Runs as the container's root, which under rootless Podman is the host user

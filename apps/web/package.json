@@ -26,6 +26,8 @@
     "pmtiles": "^4.5.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "socket.io-client": "^4.8.4",
     "typescript": "^5.9.2",
     "vite": "^8.3.7"
