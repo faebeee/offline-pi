@@ -1,4 +1,4 @@
-import { statusStrip, type LinkState, type Strip, type StripItem } from "@offline-pi/ui/outpost.js";
+import { statusStrip, type LinkState, type Strip, type StripItem } from "@outpost/ui/outpost.js";
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 
 const StripContext = createContext<Strip | null>(null);

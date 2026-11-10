@@ -1,4 +1,4 @@
-// Thin React bindings for the Outpost design system (@offline-pi/ui,
+// Thin React bindings for the Outpost design system (@outpost/ui,
 // packages/ui). Markup and behaviour come from the package; these only
 // adapt it to React's lifecycle.
 import { useEffect, useRef, useState } from "react";
@@ -11,8 +11,8 @@ import {
   type StatusState,
   type Theme,
   themeToggle,
-} from "@offline-pi/ui/outpost.js";
-import { illustration } from "@offline-pi/ui/illustrations.js";
+} from "@outpost/ui/outpost.js";
+import { illustration } from "@outpost/ui/illustrations.js";
 
 /** Sprite icon, decorative unless the parent labels it. */
 export function Icon({ name, className = "" }: { name: string; className?: string }) {

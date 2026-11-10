@@ -10,7 +10,7 @@
 
 One page that every device on the hotspot lands on. It shows:
 
-- a tile per offline-pi app (name, description, online/offline dot), linked
+- a tile per outpost app (name, description, online/offline dot), linked
   with the hostname the visitor used, so links work via hotspot IP, LAN IP
   or `<hostname>.local`;
 - a short "read this first" emergency section (emergency numbers, what this
@@ -37,16 +37,16 @@ When a phone joins the hotspot, it should open this page by itself
   build time, no CDN). `install.sh` seeds `CONTENT_DIR` with default pages
   on first run and never overwrites existing ones.
 - **Captive portal (host level, optional):**
-  1. DNS: `/etc/NetworkManager/dnsmasq-shared.d/offline-pi-portal.conf`
+  1. DNS: `/etc/NetworkManager/dnsmasq-shared.d/outpost-portal.conf`
      with `address=/#/10.42.0.1`. This only affects the dnsmasq that
      NetworkManager starts for the hotspot (`ipv4.method shared` in
      `apps/hotspot-pi`), so it does nothing when the Pi is on the home WLAN.
      Read the actual hotspot IP from `nmcli` rather than assuming
      `10.42.0.1`.
-  2. Port 80: an nftables table `offline_pi_portal` that redirects
+  2. Port 80: an nftables table `outpost_portal` that redirects
      `tcp dport 80` to `${PORT}`, installed as
-     `/etc/nftables.d/offline-pi-portal.nft` plus a oneshot systemd unit
-     `offline-pi-portal-redirect.service`. Chosen over lowering
+     `/etc/nftables.d/outpost-portal.nft` plus a oneshot systemd unit
+     `outpost-portal-redirect.service`. Chosen over lowering
      `net.ipv4.ip_unprivileged_port_start`, which would open all low ports
      to every user.
   3. nginx answers the OS connectivity checks:

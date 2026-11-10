@@ -1,5 +1,5 @@
 /* Mesh map: layout only. The map stage, panel, markers and popup come from
-   @offline-pi/ui/outpost.css; tokens only here. */
+   @outpost/ui/outpost.css; tokens only here. */
 
 /* the bleed content holds the notices and the stage */
 .mm-notices {

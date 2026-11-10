@@ -20,7 +20,7 @@ export class ApiError extends Error {
   }
 }
 
-const PIN_KEY = "offline-pi-control-pin";
+const PIN_KEY = "outpost-control-pin";
 
 /** Control PIN for start/stop (CONTROL_PIN), kept for this browser tab. */
 export const controlPin = {

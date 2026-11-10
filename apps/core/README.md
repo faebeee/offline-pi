@@ -1,7 +1,7 @@
 # core: the API, the passthrough and the module supervisor
 
-core is the part of offline-pi that always runs and the only one the LAN
-reaches (`PORT`, 8080). It is **the one API** of offline-pi: one NestJS
+core is the part of outpost that always runs and the only one the LAN
+reaches (`PORT`, 8080). It is **the one API** of outpost: one NestJS
 domain module per feature, each talking to its module's container. It
 serves:
 
@@ -72,7 +72,7 @@ Set in the root `.env` (see the root README); the ones specific to core:
 
 | Variable | Default | Description |
 |---|---|---|
-| `PORT` / `BIND_ADDRESS` | `8080` / `0.0.0.0` | Where offline-pi is reachable. |
+| `PORT` / `BIND_ADDRESS` | `8080` / `0.0.0.0` | Where outpost is reachable. |
 | `CORE_DATA_DIR` | `./data/core` | `history.json` (24 h history + power events, < 1 MB) and `modules.json`. |
 | `SAMPLE_INTERVAL_MS` | `2000` | How often the Pi is sampled and pushed to dashboards (min 500). Containers and connections refresh every 5 s. |
 | `CORE_LOG_LEVEL` | `log` | Least severe level core logs: `verbose`, `debug`, `log`, `warn`, `error`, `fatal`. |
@@ -130,7 +130,7 @@ not installed `404`.
 
 ## Development
 
-From the repo root (core is the workspace `@offline-pi/core`):
+From the repo root (core is the workspace `@outpost/core`):
 
 ```sh
 npm install         # once, every workspace
@@ -165,6 +165,6 @@ Code layout (domain-driven; how to add a domain: root `AGENTS.md`):
     `vcgencmd`; `history.service.ts` keeps the ring buffers and the event
     log.
 - `src/openapi-emit.ts`: writes the OpenAPI document without starting core.
-- `/ui/` is the workspace [`@offline-pi/ui`](../../packages/ui/README.md)
+- `/ui/` is the workspace [`@outpost/ui`](../../packages/ui/README.md)
   (`packages/ui`), a dependency of core, served straight from where it
   resolves (`src/main.ts`).

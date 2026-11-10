@@ -11,7 +11,7 @@ import {
   type MeshMessage,
   type MeshNode,
   type RadioStatus,
-} from "@offline-pi/api-client";
+} from "@outpost/api-client";
 import { useInfiniteQuery, useQueryClient, type InfiniteData, type QueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { useSocketEvent } from "../../app/realtime";

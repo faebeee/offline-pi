@@ -1,4 +1,4 @@
-import { getMapsStyleUrl, type GeoPolygon, type Job, type MapsStyleTheme, type Region } from "@offline-pi/api-client";
+import { getMapsStyleUrl, type GeoPolygon, type Job, type MapsStyleTheme, type Region } from "@outpost/api-client";
 
 /** [minLon, minLat, maxLon, maxLat]; the API types it as number[]. */
 export type Bbox = [minLon: number, minLat: number, maxLon: number, maxLat: number];

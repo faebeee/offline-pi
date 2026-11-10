@@ -1,4 +1,4 @@
-// The maps domain's contract. It mirrors @offline-pi/maps-shared (the maps
+// The maps domain's contract. It mirrors @outpost/maps-shared (the maps
 // container's own types); infrastructure/maps.mappers.ts checks at compile
 // time that the container's shapes fit these classes.
 import { Type } from 'class-transformer';

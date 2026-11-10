@@ -1108,8 +1108,8 @@
     }
   },
   "info": {
-    "title": "offline-pi",
-    "description": "The API of offline-pi: one domain per feature, under /api/<domain>/.",
+    "title": "outpost",
+    "description": "The API of outpost: one domain per feature, under /api/<domain>/.",
     "version": "1",
     "contact": {}
   },
@@ -1144,7 +1144,7 @@
           },
           "container": {
             "type": "string",
-            "description": "podman container name, offline-pi-<service>"
+            "description": "podman container name, outpost-<service>"
           },
           "installed": {
             "type": "boolean"
@@ -1677,7 +1677,7 @@
           "app": {
             "type": "string",
             "nullable": true,
-            "description": "compose project, i.e. the offline-pi app directory"
+            "description": "compose project, i.e. the outpost app directory"
           },
           "service": {
             "type": "string",

@@ -5,7 +5,7 @@ import {
   modulesControl,
   useModulesList,
   type ModuleStatus,
-} from "@offline-pi/api-client";
+} from "@outpost/api-client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 /** Installed modules and their state, refreshed every few seconds. */

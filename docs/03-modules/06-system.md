@@ -1,7 +1,7 @@
 # System
 
 System shows the health of the Pi itself: temperature, power, CPU, memory,
-storage, network, the containers of offline-pi and the network connections.
+storage, network, the containers of outpost and the network connections.
 It is part of core, so it is always on. Open it with System in the module
 nav (`/system`).
 
@@ -68,7 +68,7 @@ show as unavailable.
 
 The state badge is green for running, amber for paused or stopping and red
 for exited or stopped (with the exit code). A second badge shows the health
-check: healthy, starting or unhealthy. Rows of offline-pi modules link to
+check: healthy, starting or unhealthy. Rows of outpost modules link to
 their screen.
 
 Optional modules have START and STOP buttons. STOP asks for a second press

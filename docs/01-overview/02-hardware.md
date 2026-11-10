@@ -1,12 +1,12 @@
 # Hardware
 
-offline-pi runs on a Raspberry Pi or any Linux machine with Podman. A Mac
+outpost runs on a Raspberry Pi or any Linux machine with Podman. A Mac
 works for development, see [macOS](../02-installation/04-macos.md). This page
 covers what to plan for on a Pi.
 
 ## Raspberry Pi
 
-A Raspberry Pi 5 gets the most out of offline-pi. Other models and other
+A Raspberry Pi 5 gets the most out of outpost. Other models and other
 Linux machines work too, but the System screen shows fewer readings there: the
 input voltage, the power supply's negotiated current and the RP1 chip
 temperature come from Pi 5 hardware. On a machine that is not a Pi, the
@@ -17,7 +17,7 @@ Later builds reuse the cache and are much faster.
 
 ## SD card or SSD
 
-The system and offline-pi itself live on the SD card. The question is where
+The system and outpost itself live on the SD card. The question is where
 the data goes:
 
 | Data | Size | Where |
@@ -86,7 +86,7 @@ A node on the network (Wi-Fi or Ethernet, by hostname or IP) works as well.
 
 ## Wi-Fi and hotspot
 
-Phones and laptops reach offline-pi over the network the Pi is on: your
+Phones and laptops reach outpost over the network the Pi is on: your
 home Wi-Fi, Ethernet, or a hotspot the Pi opens itself. When there is no
 known Wi-Fi around (outdoors, during an outage), the optional
 `host/hotspot-pi` utility makes the Pi open its own Wi-Fi hotspot at boot.

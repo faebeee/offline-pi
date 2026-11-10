@@ -1,6 +1,6 @@
 # Modules
 
-offline-pi is one web app. Open `http://<pi>:8080` in any browser on the
+outpost is one web app. Open `http://<pi>:8080` in any browser on the
 same network or hotspot as the Pi (the port is `PORT` in `.env`, 8080 by
 default). Every module is a screen of that app: Maps, Library, Mesh, Mesh
 map, plus System, Logs and Info, which are always there. This chapter

@@ -104,7 +104,7 @@ def create_app(settings: Settings | None = None, interface_factory=None, start_r
         radio.stop()
         store.close()
 
-    app = FastAPI(title="offline-pi mesh", lifespan=lifespan, docs_url=None, redoc_url=None)
+    app = FastAPI(title="outpost mesh", lifespan=lifespan, docs_url=None, redoc_url=None)
     app.state.radio, app.state.store, app.state.hub = radio, store, hub
 
     def ui_config() -> dict[str, Any]:

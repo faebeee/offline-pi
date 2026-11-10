@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type * as Shared from '@offline-pi/maps-shared';
+import type * as Shared from '@outpost/maps-shared';
 import { UpstreamClient, UpstreamService } from '../../../platform/upstream/upstream.service';
 import { readSse } from '../../../platform/upstream/sse';
 import type {

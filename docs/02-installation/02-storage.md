@@ -50,15 +50,15 @@ until you move it yourself.
 Example answers for an SSD mounted at `/mnt/ssd`:
 
 ```ini
-MAPS_DATA_DIR=/mnt/ssd/offline-pi/maps
-KNOWLEDGE_CONTENT_DIR=/mnt/ssd/offline-pi/knowledge
+MAPS_DATA_DIR=/mnt/ssd/outpost/maps
+KNOWLEDGE_CONTENT_DIR=/mnt/ssd/outpost/knowledge
 ```
 
 ## Mount the SSD permanently
 
-offline-pi does not mount drives. Mount the SSD the way your system does it
+outpost does not mount drives. Mount the SSD the way your system does it
 (for example with an `/etc/fstab` entry by UUID) so that it is there at
-every boot, before offline-pi starts. Use a subfolder of the mount point as
+every boot, before outpost starts. Use a subfolder of the mount point as
 the data directory, not the mount point itself (see the next section).
 
 ## When the drive is not there
@@ -67,14 +67,14 @@ the data directory, not the mount point itself (see the next section).
 exists before it starts anything. If one is missing, it stops with:
 
 ```
-[error] MAPS_DATA_DIR '/mnt/ssd/offline-pi/maps' is not available (is the drive mounted?). Re-run ./install.sh to pick another.
+[error] MAPS_DATA_DIR '/mnt/ssd/outpost/maps' is not available (is the drive mounted?). Re-run ./install.sh to pick another.
 ```
 
 Mount the drive and run `./start.sh` again. This check only sees whether
 the directory exists. If you used the mount point itself (for example
 `/mnt/ssd`) and the drive is not mounted, the empty mount point still
 exists and the module would write to the SD card instead. A subfolder such
-as `/mnt/ssd/offline-pi/maps` avoids that, because it only exists while the
+as `/mnt/ssd/outpost/maps` avoids that, because it only exists while the
 drive is mounted.
 
 `uninstall.sh` also treats a missing directory as "drive not mounted": it
@@ -83,7 +83,7 @@ keeps it and keeps `.env`.
 ## exFAT and other drives without Unix permissions
 
 External SSDs are often formatted as exFAT. exFAT has no Unix owners or
-permissions and rejects `chmod` and `chown`. offline-pi copes with that:
+permissions and rejects `chmod` and `chown`. outpost copes with that:
 
 - `install.sh` copies data without permissions, owner and group
   (`rsync -a --no-perms --no-owner --no-group`).

@@ -1,6 +1,6 @@
 # Web app
 
-There is one UI: `apps/web` (`@offline-pi/web`). It holds every screen of
+There is one UI: `apps/web` (`@outpost/web`). It holds every screen of
 every module, is built into core's image and is served by core at `/`. It
 follows the Outpost design system (see [Design system](05-design-system.md)).
 
@@ -70,7 +70,7 @@ Other facts go in the items, never in the link text.
 
 ## Data
 
-Data only comes through `@offline-pi/api-client`:
+Data only comes through `@outpost/api-client`:
 
 - **REST**: the generated hooks, for example `useMapsRegions()` or
   `useMeshSend()`. No hand-written `fetch` to `/api`.

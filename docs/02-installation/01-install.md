@@ -12,7 +12,7 @@
   reachable on the network).
 - Optional: an SSD for maps and books.
 
-Run everything as your normal user, not as root. offline-pi uses rootless
+Run everything as your normal user, not as root. outpost uses rootless
 Podman; `install.sh` asks for `sudo` only when it needs it (installing
 packages, adding your user to a group, enabling lingering).
 
@@ -20,7 +20,7 @@ packages, adding your user to a group, enabling lingering).
 
 ```sh
 git clone https://github.com/faebeee/offline-pi.git
-cd offline-pi
+cd outpost
 ./install.sh
 ```
 
@@ -49,7 +49,7 @@ cd offline-pi
 5. **Build and start.** Shows a summary (web app address, modules, data
    directories) and asks before building. Then it builds every image, runs
    one-off setup (Maps downloads its fonts, sprites and region catalog),
-   enables `podman-restart.service` and lingering so offline-pi comes back
+   enables `podman-restart.service` and lingering so outpost comes back
    after a reboot, and finally runs `./start.sh`.
 
 If you answer "no" at the summary, your answers are saved in `.env` and
@@ -77,7 +77,7 @@ At the end, `start.sh` creates the containers, starts core and waits until
 the web app answers. It prints the addresses:
 
 ```
-✔ offline-pi is up and running!
+✔ outpost is up and running!
   Local:   http://localhost:8080
   LAN:     http://192.168.1.20:8080
 ```
@@ -110,7 +110,7 @@ directly; run `./start.sh` afterwards. See
 
 ## Upgrading from the per-app layout
 
-Older versions of offline-pi had one stack per app under `apps/<name>/`, each
+Older versions of outpost had one stack per app under `apps/<name>/`, each
 with its own `.env`. After `git pull`, run `./install.sh` once. For every
 `apps/<name>/.env` it finds, it:
 

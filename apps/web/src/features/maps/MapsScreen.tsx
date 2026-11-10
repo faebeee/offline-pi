@@ -9,8 +9,8 @@ import {
   type Poi,
   type Region,
   type RegionsResponse,
-} from "@offline-pi/api-client";
-import { bytes, coords, toast, type StripItem } from "@offline-pi/ui/outpost.js";
+} from "@outpost/api-client";
+import { bytes, coords, toast, type StripItem } from "@outpost/ui/outpost.js";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { Screen } from "../../app/Screen";

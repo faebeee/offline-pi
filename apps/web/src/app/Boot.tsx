@@ -45,7 +45,7 @@ export function Boot() {
     <div className="boot grid-bg" aria-hidden="true" onClick={() => setShow(false)}>
       <div className="boot-inner">
         <Illustration name="generic" />
-        <p className="boot-name">offline-pi</p>
+        <p className="boot-name">outpost</p>
         <ul className="boot-lines">
           <li>
             Field terminal <b>Loaded</b>

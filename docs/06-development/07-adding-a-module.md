@@ -13,8 +13,8 @@ steps 1, 3, 4 and 5 and see the note in step 2.
 
 Create `apps/radio/` with a `Dockerfile` and the code.
 
-- `radio` is the compose service name; the container is `offline-pi-radio`.
-- A JS module is a workspace: a `package.json` named `@offline-pi/radio`
+- `radio` is the compose service name; the container is `outpost-radio`.
+- A JS module is a workspace: a `package.json` named `@outpost/radio`
   (or nested workspaces like `apps/maps/backend`, added to the root
   `workspaces`). Run `npm install` at the root to update the lockfile.
 - A module in another language has no `package.json`; npm and Turborepo
@@ -82,8 +82,8 @@ A service block in `compose.yml`:
     build:
       context: .
       dockerfile: apps/radio/Dockerfile
-    image: offline-pi-radio
-    container_name: offline-pi-radio
+    image: outpost-radio
+    container_name: outpost-radio
     network_mode: host
     environment:
       PORT: ${RADIO_PORT:-8087}
@@ -122,7 +122,7 @@ the next free internal port and a comment for each:
 # ------------------------------------------------------------------ radio --
 # /radio/: what it does. Internal port.
 RADIO_PORT=8087
-# What grows here. Point at your SSD, e.g. /mnt/ssd/offline-pi/radio.
+# What grows here. Point at your SSD, e.g. /mnt/ssd/outpost/radio.
 RADIO_DATA_DIR=./data/radio
 ```
 

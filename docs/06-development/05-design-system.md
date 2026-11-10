@@ -1,13 +1,13 @@
 # Design system
 
-Every screen of offline-pi uses **Outpost**, one design system for
+Every screen of outpost uses **Outpost**, one design system for
 offline-first apps used in emergencies and off-grid. The look: a field
 terminal that survived the collapse. Tactical, readable, never noisy.
 
 | What | Where |
 |---|---|
 | The spec (rules, tokens, components, changelog) | `DESIGN.md` in the project root |
-| The implementation | `packages/ui` (`@offline-pi/ui`), described in `packages/ui/README.md` |
+| The implementation | `packages/ui` (`@outpost/ui`), described in `packages/ui/README.md` |
 | React bindings | `apps/web/src/ui/outpost.tsx` and `apps/web/src/app/` |
 
 `DESIGN.md` is the source of truth. This page is a summary; read the spec

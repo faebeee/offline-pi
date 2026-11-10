@@ -3,7 +3,7 @@
   "num": 7,
   "label": "Info",
   "icon": "manual",
-  "description": "This documentation: how offline-pi works and how to install, use and repair it.",
+  "description": "This documentation: how outpost works and how to install, use and repair it.",
   "service": "core",
   "path": "/info/",
   "dirs": [],

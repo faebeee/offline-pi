@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# uninstall.sh - remove offline-pi: containers and images always; data and
+# uninstall.sh - remove outpost: containers and images always; data and
 # .env only after confirmation (or with --purge). See ./uninstall.sh --help.
 set -euo pipefail
 
@@ -7,15 +7,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # ------------------------------------------------------------ app config --
-APP_NAME="offline-pi"
+APP_NAME="outpost"
 # Images to remove (locally built and/or pulled upstream ones).
 IMAGES=(
-  localhost/offline-pi-core:latest
-  localhost/offline-pi-maps:latest
-  localhost/offline-pi-knowledge:latest
+  localhost/outpost-core:latest
+  localhost/outpost-maps:latest
+  localhost/outpost-knowledge:latest
   ghcr.io/kiwix/kiwix-serve:3.8.2
-  localhost/offline-pi-mesh:latest
-  localhost/offline-pi-mesh-map:latest
+  localhost/outpost-mesh:latest
+  localhost/outpost-mesh-map:latest
 )
 # Persistent data directories as VAR=default (same vars as .env).
 DATA_DIR_VARS=(
@@ -38,7 +38,7 @@ log_error() { printf '\033[1;31m[error]\033[0m %s\n' "$*" >&2; }
 log_ok()    { printf '\033[1;32m\xe2\x9c\x94\033[0m %s\n' "$*"; }
 
 # compose - run the available podman compose backend with the given args.
-# Always project "offline-pi" on the root compose.yml (see lib/common.sh).
+# Always project "outpost" on the root compose.yml (see lib/common.sh).
 compose() {
   local -a args=(-p "$APP_NAME" -f "$SCRIPT_DIR/compose.yml")
   if podman compose version >/dev/null 2>&1; then
@@ -134,7 +134,7 @@ if command -v podman >/dev/null 2>&1; then
     compose down || log_warn "compose down reported an error; continuing."
   fi
   # containers compose doesn't know about any more (modules removed from MODULES)
-  for name in $(podman ps -a --format '{{.Names}}' | grep '^offline-pi-' || true); do
+  for name in $(podman ps -a --format '{{.Names}}' | grep -E '^(outpost|offline-pi)-' || true); do
     podman rm -f "$name" >/dev/null && log_ok "Removed container $name"
   done
 

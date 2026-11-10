@@ -5,7 +5,7 @@ ZIM files (medical/first aid, food & water, shelter & repair, general
 survival, reference) that are useful to have *without* internet access,
 served over your LAN through core at `/library` (module label "Library").
 
-- **Nothing is downloaded at install.** Once offline-pi runs, you choose the
+- **Nothing is downloaded at install.** Once outpost runs, you choose the
   books on the Library screen ("Choose books", `/library/catalog`): a
   curated list plus any other Kiwix book by name. Only what you tick is
   downloaded; unticking an installed book deletes it
@@ -21,7 +21,7 @@ served over your LAN through core at `/library` (module label "Library").
 
 ## Requirements
 
-- offline-pi installed with the `knowledge` module (root `./install.sh`;
+- outpost installed with the `knowledge` module (root `./install.sh`;
   see the root README for install, start and uninstall).
 - Internet access while the books download.
 - Enough free disk space for what you choose (the screen shows each book's
@@ -130,7 +130,7 @@ unless you confirm deleting it.
 ## How it works
 
 - The service `knowledge` in `compose.yml` in the repo root runs as
-  container `offline-pi-knowledge` (image `localhost/offline-pi-knowledge`)
+  container `outpost-knowledge` (image `localhost/outpost-knowledge`)
   with host networking, so ZIM downloads don't depend on Podman's bridge
   DNS; kiwix-serve binds `127.0.0.1:KNOWLEDGE_PORT`.
 - The container entrypoint (`container/knowledge.sh serve`) builds

@@ -8,7 +8,7 @@ import {
   type CreatePoiRequest,
   type Poi,
   type UpdatePoiRequest,
-} from "@offline-pi/maps-shared";
+} from "@outpost/maps-shared";
 import { Between, Repository } from "typeorm";
 import { PoiEntity } from "../db/entities/poi.entity.ts";
 

@@ -1,5 +1,5 @@
 /* Logs: screen-specific layout only. Components, tokens and fonts come from
-   @offline-pi/ui/outpost.css. Tokens only: no colours or fonts. */
+   @outpost/ui/outpost.css. Tokens only: no colours or fonts. */
 
 .logs {
   display: flex;

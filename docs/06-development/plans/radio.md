@@ -48,10 +48,10 @@ the Pi or lacks a must-have.
 Either way:
 
 - **Host setup** (done by `install.sh` with `sudo`, reversed by
-  `uninstall.sh`): `/etc/modprobe.d/offline-pi-radio.conf` blacklisting
+  `uninstall.sh`): `/etc/modprobe.d/outpost-radio.conf` blacklisting
   `dvb_usb_rtl28xxu` (otherwise the kernel's DVB-T driver grabs the
   dongle), unload it if loaded, and a udev rule
-  `/etc/udev/rules.d/60-offline-pi-radio.rules` giving `plugdev` access to
+  `/etc/udev/rules.d/60-outpost-radio.rules` giving `plugdev` access to
   the dongle's USB IDs.
 - **Container:** USB passthrough of `/dev/bus/usb` (OpenWebRX needs the bus,
   not a single node), `group_add: [keep-groups]`.

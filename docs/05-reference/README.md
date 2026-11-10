@@ -1,6 +1,6 @@
 # Reference
 
-Look-up pages for people who run or extend offline-pi: every setting in
+Look-up pages for people who run or extend outpost: every setting in
 `.env`, every path and port, the API of core and the words used throughout
 these docs. The other chapters explain how things work; this one lists the
 facts in tables.

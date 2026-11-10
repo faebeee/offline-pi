@@ -6,7 +6,7 @@ Wikipedia. They are Kiwix books (ZIM files). Once downloaded, you can read
 and search them with no internet. Open it with Library in the module nav
 (`/library`).
 
-Nothing is downloaded when you install offline-pi. You choose the books
+Nothing is downloaded when you install outpost. You choose the books
 yourself.
 
 ## The library screen

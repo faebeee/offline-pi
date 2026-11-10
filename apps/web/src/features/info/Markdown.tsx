@@ -1,4 +1,4 @@
-import type { InfoEntry } from "@offline-pi/api-client";
+import type { InfoEntry } from "@outpost/api-client";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";

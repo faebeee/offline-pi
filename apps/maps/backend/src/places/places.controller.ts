@@ -1,5 +1,5 @@
 import { BadRequestException, Controller, Get, Query } from "@nestjs/common";
-import type { PlacesResponse } from "@offline-pi/maps-shared";
+import type { PlacesResponse } from "@outpost/maps-shared";
 import { PlacesService } from "./places.service.ts";
 
 @Controller("api/places")

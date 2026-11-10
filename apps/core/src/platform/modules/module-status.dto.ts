@@ -8,7 +8,7 @@ export class ModuleStatus {
   /** web route of the module (e.g. /maps/); also its passthrough under /svc */
   path!: string;
   optional!: boolean;
-  /** podman container name, offline-pi-<service> */
+  /** podman container name, outpost-<service> */
   container!: string;
   installed!: boolean;
   /** switched on (persisted); modules not installed are never enabled */

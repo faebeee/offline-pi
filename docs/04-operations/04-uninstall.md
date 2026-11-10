@@ -1,6 +1,6 @@
 # Uninstall
 
-`uninstall.sh` removes offline-pi from the Pi. It always removes the
+`uninstall.sh` removes outpost from the Pi. It always removes the
 containers and images. Your data is kept unless you confirm deleting it.
 
 ```sh
@@ -22,10 +22,10 @@ It works with or without `.env` and even when Podman is already gone.
    each data directory whether it is kept or deleted.
 2. It asks once whether to uninstall (default no).
 3. It stops and removes every container (`compose down`, plus any
-   `offline-pi-*` container left over, for example of a module you removed
+   `outpost-*` container left over, for example of a module you removed
    from `MODULES`).
-4. It removes the images (`offline-pi-core`, `offline-pi-maps`,
-   `offline-pi-knowledge`, `offline-pi-mesh`, `offline-pi-mesh-map` and the
+4. It removes the images (`outpost-core`, `outpost-maps`,
+   `outpost-knowledge`, `outpost-mesh`, `outpost-mesh-map` and the
    Kiwix base image).
 5. For each data directory, it shows the path and size and asks whether to
    delete it (default no). With `--purge` it deletes without asking each

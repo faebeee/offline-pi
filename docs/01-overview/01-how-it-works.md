@@ -1,12 +1,12 @@
 # How it works
 
-offline-pi is one Podman Compose project named `offline-pi`. It has one set
+outpost is one Podman Compose project named `outpost`. It has one set
 of scripts, one settings file (`.env`) and one port. Inside, it is a small
 group of containers.
 
 ## Core and modules
 
-**Core** (container `offline-pi-core`) is the part that always runs. It is
+**Core** (container `outpost-core`) is the part that always runs. It is
 the only thing the network can reach, and the only thing your browser talks
 to. On `PORT` (8080 by default) it serves:
 
@@ -21,17 +21,17 @@ Core also shows the System and Logs screens itself, and it starts and stops
 the other modules.
 
 **Modules** (Maps, Library, Mesh, Mesh map) are one container each, named
-`offline-pi-<name>`. They have no user interface of their own: just an API,
+`outpost-<name>`. They have no user interface of their own: just an API,
 their data and background jobs. Each listens only on `127.0.0.1` (the Pi
 itself) on an internal port, so nobody on the network can reach a module
 directly. Core forwards to them.
 
 | Module | Container | Internal port |
 |---|---|---|
-| Maps | `offline-pi-maps` | `8081` |
-| Library | `offline-pi-knowledge` | `8082` |
-| Mesh | `offline-pi-mesh` | `8084` |
-| Mesh map | `offline-pi-mesh-map` | `8086` |
+| Maps | `outpost-maps` | `8081` |
+| Library | `outpost-knowledge` | `8082` |
+| Mesh | `outpost-mesh` | `8084` |
+| Mesh map | `outpost-mesh-map` | `8086` |
 
 ## One port, one origin
 
@@ -104,7 +104,7 @@ that:
 The web app, its fonts and icons, the map styles, fonts and sprites are all
 served by the Pi. No page loads anything from a CDN or another website. That
 is what makes the screens work with the network unplugged. The internet is
-only used when you install or update offline-pi and when you download map
+only used when you install or update outpost and when you download map
 regions or books.
 
 ## See also

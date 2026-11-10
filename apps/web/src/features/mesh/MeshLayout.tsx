@@ -1,4 +1,4 @@
-import type { LinkState, StripItem } from "@offline-pi/ui/outpost.js";
+import type { LinkState, StripItem } from "@outpost/ui/outpost.js";
 import { Link, Outlet, useLocation, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useRef, type KeyboardEvent } from "react";
 import { Screen } from "../../app/Screen";

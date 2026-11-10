@@ -13,7 +13,7 @@ import {
   type DownloadEstimate,
   type Job,
   type Region,
-} from "@offline-pi/maps-shared";
+} from "@outpost/maps-shared";
 import { PATHS } from "../config/paths.ts";
 import { UPSTREAM } from "../config/upstream.ts";
 import { exists } from "../common/files.ts";

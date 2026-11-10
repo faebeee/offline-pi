@@ -1,5 +1,5 @@
 {
-  "name": "@offline-pi/maps-shared",
+  "name": "@outpost/maps-shared",
   "private": true,
   "type": "module",
   "main": "./dist/index.js",

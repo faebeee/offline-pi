@@ -1,4 +1,4 @@
-import { useInfoIndex, useInfoPage, useInfoSearch, type InfoEntry } from "@offline-pi/api-client";
+import { useInfoIndex, useInfoPage, useInfoSearch, type InfoEntry } from "@outpost/api-client";
 import { Link } from "@tanstack/react-router";
 import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { Screen } from "../../app/Screen";

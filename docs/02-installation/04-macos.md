@@ -1,7 +1,7 @@
 # macOS (development)
 
 The same scripts run on a Mac, which is handy for development and for
-trying offline-pi out. Bash 3.2 (the version macOS ships) is enough. This
+trying outpost out. Bash 3.2 (the version macOS ships) is enough. This
 page lists what differs from a Pi.
 
 ## Podman on a Mac
@@ -34,7 +34,7 @@ else.
 
 The forwarding of `PORT` from the Mac into the machine is not permanent.
 `start.sh` sets it up on every run. If `BIND_ADDRESS` is `127.0.0.1`, only
-the Mac itself can open offline-pi; otherwise other devices on your network
+the Mac itself can open outpost; otherwise other devices on your network
 can too.
 
 If `start.sh` prints

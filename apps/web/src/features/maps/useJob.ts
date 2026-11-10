@@ -1,4 +1,4 @@
-import { mapsJob, mapsJobs, type Job } from "@offline-pi/api-client";
+import { mapsJob, mapsJobs, type Job } from "@outpost/api-client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSocket, useSocketEvent } from "../../app/realtime";
 import { isJobFinished } from "./lib";

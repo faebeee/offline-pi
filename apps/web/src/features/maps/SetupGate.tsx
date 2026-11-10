@@ -1,4 +1,4 @@
-import { mapsSetup, type Job, type MapsStatus } from "@offline-pi/api-client";
+import { mapsSetup, type Job, type MapsStatus } from "@outpost/api-client";
 import { useState } from "react";
 import { Badge, Banner } from "../../ui/outpost";
 import { JobView } from "./JobView";

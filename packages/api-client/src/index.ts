@@ -1,5 +1,5 @@
 /**
- * @offline-pi/api-client: everything the web app needs to talk to core.
+ * @outpost/api-client: everything the web app needs to talk to core.
  *   - generated/: one file per domain (OpenAPI tag) with fetch functions,
  *     query keys and TanStack Query hooks; generated/model: every DTO
  *   - events.ts: typed Socket.IO namespaces (live updates)

@@ -1,6 +1,6 @@
 # Overview
 
-offline-pi is one self-hosted app for a Raspberry Pi that keeps working
+outpost is one self-hosted app for a Raspberry Pi that keeps working
 without internet. It bundles offline maps, an emergency-knowledge library,
 text messaging over a Meshtastic LoRa radio, a live map of that radio mesh
 and a dashboard for the Pi itself. You reach all of it on one port, in one
@@ -9,7 +9,7 @@ hotspot.
 
 ## Who it is for
 
-offline-pi is for people who want useful information and a way to talk to
+outpost is for people who want useful information and a way to talk to
 each other when the internet or the phone network is gone: a household
 preparing for outages, a cabin or boat without coverage, a group using
 Meshtastic radios. You set it up once while you still have internet, and
@@ -35,7 +35,7 @@ books.
 
 ## Modules
 
-offline-pi is made of modules. Core (the dashboard, System and Logs) always
+outpost is made of modules. Core (the dashboard, System and Logs) always
 runs. The other modules are chosen when you install and switched on and off
 on the home page.
 

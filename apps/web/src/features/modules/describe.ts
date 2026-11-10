@@ -1,5 +1,5 @@
-import type { ModuleStatus } from "@offline-pi/api-client";
-import type { StatusState } from "@offline-pi/ui/outpost.js";
+import type { ModuleStatus } from "@outpost/api-client";
+import type { StatusState } from "@outpost/ui/outpost.js";
 
 /** State badge + one status line for a module. */
 export function describe(m: ModuleStatus, pending?: "start" | "stop"): { tone: StatusState; badge: string; line: string } {

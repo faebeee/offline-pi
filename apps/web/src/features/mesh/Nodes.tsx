@@ -1,5 +1,5 @@
-import type { MeshNode } from "@offline-pi/api-client";
-import { ago, coords, distance } from "@offline-pi/ui/outpost.js";
+import type { MeshNode } from "@outpost/api-client";
+import { ago, coords, distance } from "@outpost/ui/outpost.js";
 import { Link, useRouter } from "@tanstack/react-router";
 import { Fragment, useState, type ReactNode } from "react";
 import { Icon, Illustration } from "../../ui/outpost";

@@ -3,7 +3,7 @@
 # download is chosen on the Library screen of the web app (stored in
 # selection.txt in the content dir); downloads run in the container.
 
-KNOWLEDGE_CONTAINER="offline-pi-knowledge"
+KNOWLEDGE_CONTAINER="outpost-knowledge"
 
 knowledge_configure() {
   local old new

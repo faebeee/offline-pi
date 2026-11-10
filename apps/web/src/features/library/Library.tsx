@@ -1,5 +1,5 @@
-import type { Book } from "@offline-pi/api-client";
-import { bytes } from "@offline-pi/ui/outpost.js";
+import type { Book } from "@outpost/api-client";
+import { bytes } from "@outpost/ui/outpost.js";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { useStripLink } from "../../app/strip";

@@ -1,5 +1,5 @@
-import { bytes } from "@offline-pi/ui/outpost.js";
-import type { Job } from "@offline-pi/api-client";
+import { bytes } from "@outpost/ui/outpost.js";
+import type { Job } from "@outpost/api-client";
 import { Progress } from "../../ui/outpost";
 
 /** Progress bar + live log, shared by the download and setup flows. */

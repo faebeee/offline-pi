@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
 import { Injectable } from "@nestjs/common";
-import type { Bbox, PlaceCandidate, Polygon } from "@offline-pi/maps-shared";
+import type { Bbox, PlaceCandidate, Polygon } from "@outpost/maps-shared";
 import { PATHS } from "../config/paths.ts";
 import { UPSTREAM } from "../config/upstream.ts";
 import { exists } from "../common/files.ts";

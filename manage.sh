@@ -55,7 +55,7 @@ cmd_status() {
   printf '%-12s %-10s %s\n' MODULE INSTALLED STATE
   for m in core $(all_modules); do
     if [[ "$m" == core ]] || is_installed "$m"; then
-      state="$(podman ps -a --filter "name=^offline-pi-$m\$" --format '{{.Status}}' 2>/dev/null | head -n 1)"
+      state="$(podman ps -a --filter "name=^outpost-$m\$" --format '{{.Status}}' 2>/dev/null | head -n 1)"
       printf '%-12s %-10s %s\n' "$m" yes "${state:-no container (run ./start.sh)}"
     else
       printf '%-12s %-10s %s\n' "$m" no -
@@ -78,7 +78,7 @@ case "${1:-}" in
   logs)
     require_env
     if [[ -n "${2:-}" && "$2" != core ]]; then require_module "$2"; fi
-    podman logs -f "offline-pi-${2:-core}"
+    podman logs -f "outpost-${2:-core}"
     ;;
   help|-h|--help) usage ;;
   *)

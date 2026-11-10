@@ -1,6 +1,6 @@
 # Updating
 
-New versions of offline-pi come from the Git repository you cloned.
+New versions of outpost come from the Git repository you cloned.
 `update.sh` installs one: it pulls the new code, rebuilds every image and
 recreates every container. Your data and `.env` are kept. The Pi needs
 internet access for the update.
@@ -17,7 +17,7 @@ internet access for the update.
 | `--check` | Only shows whether a new version is available, and what it changes. Changes nothing. |
 | `--yes` | Does not ask before updating. |
 | `--clean` | Rebuilds every image from scratch, without the layer cache. Slower; use it when a build behaves strangely. |
-| `--rebuild` | Rebuilds and recreates everything even when offline-pi is already up to date. |
+| `--rebuild` | Rebuilds and recreates everything even when outpost is already up to date. |
 | `--help` | Prints the usage. |
 
 ## What it does
@@ -82,3 +82,10 @@ understood by an older one, so check the screens after going back.
 - [Everyday commands](01-everyday-commands.md)
 - [Backup and restore](03-backup-and-restore.md)
 - [Troubleshooting](05-troubleshooting.md)
+
+## From offline-pi to outpost
+
+The project used to be called offline-pi. The first `./start.sh` (or
+`./update.sh`) after the rename removes the old `offline-pi-*` containers
+and images and creates the `outpost-*` ones. Your data and `.env` stay as
+they are.

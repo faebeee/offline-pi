@@ -1,5 +1,5 @@
-import type { MeshNode } from "@offline-pi/api-client";
-import { ago } from "@offline-pi/ui/outpost.js";
+import type { MeshNode } from "@outpost/api-client";
+import { ago } from "@outpost/ui/outpost.js";
 
 export type Positioned = MeshNode & { latitude: number; longitude: number };
 export type Age = "fresh" | "old" | "stale";

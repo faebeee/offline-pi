@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# install.sh - set up offline-pi: check dependencies, write .env, choose and
+# install.sh - set up outpost: check dependencies, write .env, choose and
 # configure the modules, build the images, then start everything. Safe to
 # re-run: it is also how you add/remove modules, move data to an SSD (every
 # *_DIR is re-asked, defaulting to the current value) or reconfigure a module.
@@ -46,7 +46,7 @@ source "$ROOT_DIR/lib/install.sh"
 load_module_hooks
 
 STEPS=5
-ui_banner "offline-pi" "installer $UI_DOT $(platform_label)"
+ui_banner "outpost" "installer $UI_DOT $(platform_label)"
 
 # ---------------------------------------------------------- 1. the system --
 ui_step 1 "$STEPS" "System check"
@@ -75,7 +75,7 @@ read_lines MODS installed_modules
 
 # ------------------------------------------------- 4. module configuration --
 ui_step 4 "$STEPS" "Storage and settings"
-ui_note "Directories that grow can live on an SSD, e.g. /mnt/ssd/offline-pi/maps."
+ui_note "Directories that grow can live on an SSD, e.g. /mnt/ssd/outpost/maps."
 ui_note "Changing one offers to move what is already there."
 core_configure
 for m in ${MODS[@]+"${MODS[@]}"}; do
@@ -85,7 +85,7 @@ done
 # -------------------------------------------------------------- 5. build --
 ui_step 5 "$STEPS" "Build and start"
 install_summary ${MODS[@]+"${MODS[@]}"}
-if ! ui_confirm "Build and start offline-pi now?" y; then
+if ! ui_confirm "Build and start outpost now?" y; then
   log_info "Settings saved in .env. Run ./install.sh again to build and start."
   exit 0
 fi

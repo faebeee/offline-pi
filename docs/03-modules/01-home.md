@@ -64,7 +64,7 @@ You can do the same from a terminal on the Pi with
 ### What survives a reboot
 
 Your choice is stored on the Pi, not in the browser. A module you switched
-off stays off after a restart of the Pi or of offline-pi, until you switch
+off stays off after a restart of the Pi or of outpost, until you switch
 it on again. Every module that is switched on is started again
 automatically when core starts.
 

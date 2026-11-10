@@ -1,4 +1,4 @@
-import { connect, type Namespace, type NamespaceSocket, type ServerEvents } from "@offline-pi/api-client";
+import { connect, type Namespace, type NamespaceSocket, type ServerEvents } from "@outpost/api-client";
 import { useEffect, useRef, useState } from "react";
 
 /**

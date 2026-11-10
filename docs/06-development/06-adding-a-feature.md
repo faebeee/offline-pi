@@ -95,7 +95,7 @@ Use the hook in the feature folder:
 
 ```tsx
 // apps/web/src/features/mesh/Summary.tsx
-import { useMeshSummary } from "@offline-pi/api-client";
+import { useMeshSummary } from "@outpost/api-client";
 
 export function Summary() {
   const { data } = useMeshSummary();
@@ -135,7 +135,7 @@ commit, and `./start.sh` to try it in the real images.
 - [ ] Logic in `application/`, container calls in `infrastructure/`
 - [ ] Controller method named for the client
 - [ ] `npm run api:gen` run, generated files committed
-- [ ] Data in the web app only through `@offline-pi/api-client`
+- [ ] Data in the web app only through `@outpost/api-client`
 - [ ] Screen uses Outpost components, no restyling
 - [ ] The module's page in [Modules](../03-modules/README.md) updated if
       users see the change

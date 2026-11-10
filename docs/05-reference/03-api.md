@@ -1,6 +1,6 @@
 # API
 
-Core is the one API of offline-pi. The web app uses nothing else, and you
+Core is the one API of outpost. The web app uses nothing else, and you
 can call it yourself, for example with `curl` from the Pi. Every feature is a
 domain with its routes under `/api/<domain>/`.
 

@@ -1,5 +1,5 @@
-import type { HistoryPoint } from "@offline-pi/api-client";
-import { utcClock, utcDate, utcDateTime, utcTime } from "@offline-pi/ui/outpost.js";
+import type { HistoryPoint } from "@outpost/api-client";
+import { utcClock, utcDate, utcDateTime, utcTime } from "@outpost/ui/outpost.js";
 import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent } from "react";
 import { fmtNum } from "./format";
 import { LIVE_WINDOW } from "./useSystemLive";

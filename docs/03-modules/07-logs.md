@@ -64,7 +64,7 @@ banner appears with a RESUME button. Press it once the module runs again.
 
 The download button saves the lines you see (after filters) as a `.log`
 file named after the source and the time, for example
-`offline-pi-mesh-2026-11-10T14-32-05-123Z.log`. Attach it when you ask
+`outpost-mesh-2026-11-10T14-32-05-123Z.log`. Attach it when you ask
 someone for help.
 
 ## When lines are missing
@@ -75,7 +75,7 @@ someone for help.
 - `No logs from <module>`: the container's logs cannot be read, with the
   reason.
 
-Anyone who can open offline-pi can read its logs. To keep them to the Pi,
+Anyone who can open outpost can read its logs. To keep them to the Pi,
 see `BIND_ADDRESS` in [Settings](../05-reference/01-settings.md). For logs
 in a terminal, see [Everyday commands](../04-operations/01-everyday-commands.md)
 and [Troubleshooting](../04-operations/05-troubleshooting.md).

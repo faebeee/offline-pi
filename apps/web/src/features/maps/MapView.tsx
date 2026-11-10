@@ -1,5 +1,5 @@
-import type { GeoPolygon, Poi, Region } from "@offline-pi/api-client";
-import { bearing as fmtBearing, toast } from "@offline-pi/ui/outpost.js";
+import type { GeoPolygon, Poi, Region } from "@outpost/api-client";
+import { bearing as fmtBearing, toast } from "@outpost/ui/outpost.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AttributionControl,

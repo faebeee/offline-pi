@@ -1,7 +1,7 @@
 # Scripts
 
 The shell scripts in the project root install, start, update, manage and
-uninstall offline-pi. They run on a Raspberry Pi (Bash 5) and on a Mac
+uninstall outpost. They run on a Raspberry Pi (Bash 5) and on a Mac
 (Bash 3.2), so they follow a few strict conventions. What each script does
 for the user is in [Everyday commands](../04-operations/01-everyday-commands.md).
 
@@ -19,7 +19,7 @@ for the user is in [Everyday commands](../04-operations/01-everyday-commands.md)
 | `lib/ui.sh` | Prompts, menus and the progress spinner |
 | `lib/storage.sh` | `prompt_dir` and `resync_dir` (relocatable data) |
 | `lib/modules.sh` | Module registry from the manifests, hooks, `core_api` |
-| `lib/install.sh`, `lib/update.sh`, `lib/migrate.sh`, `lib/serial.sh` | Steps of `install.sh` and `update.sh`, old layout migration, USB serial picker |
+| `lib/install.sh`, `lib/update.sh`, `lib/migrate.sh`, `lib/serial.sh` | Steps of `install.sh` and `update.sh`, old layout and old name (offline-pi) migration, USB serial picker |
 | `lib/modules/<name>.sh` | One module's hooks |
 
 Put logic in `lib/*.sh` rather than growing the entry scripts.
@@ -109,7 +109,7 @@ Every compose call goes through `compose` in `lib/common.sh`:
 compose up -d --no-start --force-recreate maps
 ```
 
-It adds `-p offline-pi -f compose.yml --env-file .env`, plus
+It adds `-p outpost -f compose.yml --env-file .env`, plus
 `compose.macos.yml` on a Mac. It prefers `podman compose` and falls back to
 `podman-compose` (always `podman-compose` on macOS). Never call `docker`,
 `docker-compose` or `podman-compose` directly.

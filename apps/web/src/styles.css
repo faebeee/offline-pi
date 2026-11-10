@@ -1,5 +1,5 @@
 /* App-wide layout on top of the Outpost package (components, tokens and
-   fonts come from @offline-pi/ui/outpost.css; DESIGN.md). Feature styles
+   fonts come from @outpost/ui/outpost.css; DESIGN.md). Feature styles
    live next to their feature (src/features/<domain>/*.css). */
 
 #root {

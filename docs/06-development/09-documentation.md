@@ -56,7 +56,7 @@ paths as inline code instead, for example `apps/core/src/main.ts`.
 
 ## The Info module
 
-The Info screen shows these docs inside offline-pi, with navigation and
+The Info screen shows these docs inside outpost, with navigation and
 search.
 
 | Part | Where |
@@ -83,7 +83,7 @@ development, refresh the page.
 - No em dashes or en dashes as punctuation. Use commas, colons, parentheses
   or full stops.
 - Say what the reader does and what happens, with the exact command or path.
-- User-facing chapters (1 to 4) explain how to use offline-pi; the
+- User-facing chapters (1 to 4) explain how to use outpost; the
   reference and development chapters can assume the reader knows the
   basics.
 - When a fact comes from a file in the checkout, check it there. Don't

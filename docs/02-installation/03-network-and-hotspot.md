@@ -1,6 +1,6 @@
 # Network and hotspot
 
-offline-pi is reached on one port of the Pi. Who can reach it depends on
+outpost is reached on one port of the Pi. Who can reach it depends on
 two settings and on the network the Pi is connected to.
 
 ## Settings
@@ -10,7 +10,7 @@ current values and ask whether you want to change them.
 
 | Variable | Default | Description |
 |---|---|---|
-| `PORT` | `8080` | The one port offline-pi uses on the Pi: web app, API and every module. |
+| `PORT` | `8080` | The one port outpost uses on the Pi: web app, API and every module. |
 | `BIND_ADDRESS` | `0.0.0.0` | `0.0.0.0`: every device on the network (LAN, Wi-Fi hotspot). `127.0.0.1`: only the Pi itself. |
 | `CONTROL_PIN` | empty | PIN asked before a module is started or stopped from the web app. Empty: anyone who can open the web app can do it. |
 
@@ -35,13 +35,13 @@ the Pi shows the current one.
 
 ## Access and PINs
 
-offline-pi has no user accounts. Anyone who can open the web app can read
+outpost has no user accounts. Anyone who can open the web app can read
 maps, books, messages and logs. Three settings limit what they can do:
 
 - `CONTROL_PIN`: required to start and stop modules. The web app asks for
   it once per browser tab. `./manage.sh start|stop` sends it for you.
 - `MESH_SEND_PIN`: required to send Meshtastic messages from the web app.
-- `BIND_ADDRESS=127.0.0.1`: nobody but the Pi itself can open offline-pi.
+- `BIND_ADDRESS=127.0.0.1`: nobody but the Pi itself can open outpost.
 
 ## Wi-Fi hotspot fallback
 
@@ -52,7 +52,7 @@ the containers. At every boot it:
 2. connects to it as a normal client if it is in range,
 3. otherwise opens its own Wi-Fi hotspot on the same interface.
 
-Phones and laptops can then join the hotspot and open offline-pi at the
+Phones and laptops can then join the hotspot and open outpost at the
 Pi's address on that network. The hotspot uses NetworkManager's "shared"
 mode, which gives clients an address by DHCP; the Pi itself is usually
 `10.42.0.1` there (NetworkManager's default), so the web app is at

@@ -17,7 +17,7 @@ function Home() {
   const optional = installed.filter((m) => m.optional);
   const running = optional.filter((m) => m.state === "running").length;
   return (
-    <Screen module="home" title="offline-pi">
+    <Screen module="home" title="outpost">
       <section className="hero" aria-labelledby="hero-title">
         <Illustration name="hero" />
         <div className="hero-text">

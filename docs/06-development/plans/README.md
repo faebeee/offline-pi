@@ -1,6 +1,6 @@
 # Implementation plans: portal, mesh, radio
 
-> **Note (2026-11):** these plans predate the single-app layout. offline-pi
+> **Note (2026-11):** these plans predate the single-app layout. outpost
 > is now one app (a Turborepo monorepo): modules live in `apps/<name>/` with
 > a `module.json`, are served by core under a path on one port, and are
 > configured through `lib/modules/<name>.sh` hooks (see
@@ -48,7 +48,7 @@ Mesh and radio are independent of each other; only their last session
 - **Host-level changes** (sysctl, nftables, kernel module blacklist, udev,
   NetworkManager dnsmasq snippets) are done by the app's `install.sh` via
   `sudo`, each in its own clearly named file
-  (`/etc/.../offline-pi-<app>.conf`), and removed again by `uninstall.sh`.
+  (`/etc/.../outpost-<app>.conf`), and removed again by `uninstall.sh`.
   This keeps "every installer has an uninstaller" true.
 - **USB devices in rootless Podman:** pass the device via `devices:` from a
   `.env` variable (as `apps/monitor` does with `VCIO_DEVICE`) and add

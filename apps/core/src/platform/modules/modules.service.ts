@@ -20,7 +20,7 @@ function installedIds(): Set<string> {
  * or off (persisted to CORE_DATA_DIR/modules.json so a reboot doesn't start
  * something the user stopped), and their container's live state (from
  * RuntimeService). Starts and stops go through PodmanService, by container
- * name (offline-pi-<service>).
+ * name (outpost-<service>).
  */
 @Injectable()
 export class ModulesService implements OnModuleInit {

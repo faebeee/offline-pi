@@ -1,6 +1,6 @@
 # Settings
 
-offline-pi has one configuration file: `.env` in the project folder. It is
+outpost has one configuration file: `.env` in the project folder. It is
 created by `./install.sh` from `.env.example`, which documents every
 variable. `start.sh` and `manage.sh` only read it, and core only writes its
 own state file (`CORE_DATA_DIR/modules.json`), never `.env`.

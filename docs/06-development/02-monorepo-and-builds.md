@@ -11,17 +11,17 @@ The root `package.json` declares the workspaces `apps/*`, `apps/maps/*` and
 
 | Workspace | Folder | What it is |
 |---|---|---|
-| `@offline-pi/core` | `apps/core` | The API, passthrough and supervisor (NestJS) |
-| `@offline-pi/web` | `apps/web` | The web app (Vite, React, TanStack) |
-| `@offline-pi/maps-backend` | `apps/maps/backend` | The maps container's code |
-| `@offline-pi/ui` | `packages/ui` | Outpost design system (plain CSS and JS, no build) |
-| `@offline-pi/api-client` | `packages/api-client` | Client generated from core's OpenAPI |
-| `@offline-pi/maps-shared` | `packages/maps-shared` | The maps container's contract (types) |
+| `@outpost/core` | `apps/core` | The API, passthrough and supervisor (NestJS) |
+| `@outpost/web` | `apps/web` | The web app (Vite, React, TanStack) |
+| `@outpost/maps-backend` | `apps/maps/backend` | The maps container's code |
+| `@outpost/ui` | `packages/ui` | Outpost design system (plain CSS and JS, no build) |
+| `@outpost/api-client` | `packages/api-client` | Client generated from core's OpenAPI |
+| `@outpost/maps-shared` | `packages/maps-shared` | The maps container's contract (types) |
 
 Rules:
 
 - Workspaces depend on each other with `"*"`, for example
-  `"@offline-pi/ui": "*"`.
+  `"@outpost/ui": "*"`.
 - Run `npm install` once at the root. Never add a lockfile inside a
   workspace; `package-lock.json` at the root is the only one.
 - Modules without a JS build (mesh: Python; knowledge: kiwix; mesh-map: a

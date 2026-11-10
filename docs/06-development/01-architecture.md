@@ -1,6 +1,6 @@
 # Architecture
 
-offline-pi is one app made of modules. One Podman Compose project runs one
+outpost is one app made of modules. One Podman Compose project runs one
 container per module plus **core**. Core is the only thing the browser
 talks to: it serves the web app, is the one API, and starts and stops the
 modules.
@@ -13,7 +13,7 @@ browser ──> core :8080
             ├─ /api/<domain>/*   core's API, one Nest domain module per feature
             ├─ /api/docs         Swagger UI (/api/openapi.json)
             ├─ /socket.io        live updates, one namespace per domain
-            ├─ /ui/              @offline-pi/ui
+            ├─ /ui/              @outpost/ui
             └─ /svc/<module>/*   passthrough to a module's raw files
 core ──HTTP/WS──> maps :8081 · knowledge :8082 · mesh :8084 · mesh-map :8086
 core ──libpod REST──> the user's podman.socket (start/stop)

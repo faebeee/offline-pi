@@ -1,5 +1,5 @@
-import type { HistoryPoint, PowerEvent, Snapshot } from "@offline-pi/api-client";
-import { ago, STATUS, utcClock, utcDate, utcDateTime, type LinkState as StripLink } from "@offline-pi/ui/outpost.js";
+import type { HistoryPoint, PowerEvent, Snapshot } from "@outpost/api-client";
+import { ago, STATUS, utcClock, utcDate, utcDateTime, type LinkState as StripLink } from "@outpost/ui/outpost.js";
 import { useEffect, useState } from "react";
 import { Screen } from "../../app/Screen";
 import { useStripItems, useStripLink } from "../../app/strip";

@@ -6,9 +6,9 @@ import {
   useLibraryCatalog,
   type CatalogBook,
   type LibraryCatalog,
-} from "@offline-pi/api-client";
-import { bytes, toast } from "@offline-pi/ui/outpost.js";
-import type { StatusState } from "@offline-pi/ui/outpost.js";
+} from "@outpost/api-client";
+import { bytes, toast } from "@outpost/ui/outpost.js";
+import type { StatusState } from "@outpost/ui/outpost.js";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent } from "react";

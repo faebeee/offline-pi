@@ -1,5 +1,5 @@
-import { ApiError, meshSend, type MeshConfig, type MeshMessage } from "@offline-pi/api-client";
-import { ago, utcTime } from "@offline-pi/ui/outpost.js";
+import { ApiError, meshSend, type MeshConfig, type MeshMessage } from "@outpost/api-client";
+import { ago, utcTime } from "@outpost/ui/outpost.js";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";

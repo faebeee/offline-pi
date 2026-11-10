@@ -1,6 +1,6 @@
 # Paths and ports
 
-Everything offline-pi offers is on one origin: core on `PORT` (default
+Everything outpost offers is on one origin: core on `PORT` (default
 `8080`). The browser never talks to a module directly. This page lists what
 lives under which path, which internal ports the modules use, and where
 their data and logs are.
@@ -74,13 +74,13 @@ network.
 
 | Service | Container | Image | Port variable | Default port | Listens on |
 |---|---|---|---|---|---|
-| `core` | `offline-pi-core` | `offline-pi-core` | `PORT` | `8080` | `BIND_ADDRESS` |
-| `maps` | `offline-pi-maps` | `offline-pi-maps` | `MAPS_PORT` | `8081` | `127.0.0.1` |
-| `knowledge` | `offline-pi-knowledge` | `offline-pi-knowledge` | `KNOWLEDGE_PORT` | `8082` | `127.0.0.1` |
-| `mesh` | `offline-pi-mesh` | `offline-pi-mesh` | `MESH_PORT` | `8084` | `127.0.0.1` |
-| `mesh-map` | `offline-pi-mesh-map` | `offline-pi-mesh-map` | `MESH_MAP_PORT` | `8086` | `127.0.0.1` |
+| `core` | `outpost-core` | `outpost-core` | `PORT` | `8080` | `BIND_ADDRESS` |
+| `maps` | `outpost-maps` | `outpost-maps` | `MAPS_PORT` | `8081` | `127.0.0.1` |
+| `knowledge` | `outpost-knowledge` | `outpost-knowledge` | `KNOWLEDGE_PORT` | `8082` | `127.0.0.1` |
+| `mesh` | `outpost-mesh` | `outpost-mesh` | `MESH_PORT` | `8084` | `127.0.0.1` |
+| `mesh-map` | `outpost-mesh-map` | `outpost-mesh-map` | `MESH_MAP_PORT` | `8086` | `127.0.0.1` |
 
-The Compose project is always called `offline-pi`, whatever the folder of
+The Compose project is always called `outpost`, whatever the folder of
 the checkout is called. Only core has `restart: always`; the modules have
 `restart: on-failure`.
 

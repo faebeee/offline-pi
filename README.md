@@ -1,4 +1,4 @@
-# offline-pi
+# outpost
 
 > **Documentation:** [`docs/`](docs/README.md), plain Markdown in chapters,
 > also shown in the app under **Info** (`/info`). Start there; it works
@@ -42,7 +42,7 @@ Meshtastic node for Mesh; an SSD recommended for maps and library data.
 
 ```sh
 git clone https://github.com/faebeee/offline-pi.git
-cd offline-pi
+cd outpost
 ./install.sh
 ```
 
@@ -175,7 +175,7 @@ Core (`apps/core`, NestJS) has one domain module per feature
 core's OpenAPI document (`packages/api-client`), so a new endpoint is one
 `npm run api:gen` away from a typed hook in the UI. The UI follows the
 Outpost design system: [`DESIGN.md`](DESIGN.md) is the spec and
-[`packages/ui`](packages/ui/README.md) (`@offline-pi/ui`) the package.
+[`packages/ui`](packages/ui/README.md) (`@outpost/ui`) the package.
 [`AGENTS.md`](AGENTS.md) describes the architecture, how to add a feature
 (domain, `api:gen`, screen) and how to add a module (an `apps/<name>/`
 directory with a `module.json` manifest, a compose service and optional

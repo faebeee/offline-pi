@@ -1,4 +1,4 @@
-# offline-pi: one Podman Compose project ("offline-pi", see lib/common.sh).
+# outpost: one Podman Compose project ("outpost", see lib/common.sh).
 #
 # core is the only service reachable from the LAN: on PORT it serves the web
 # app (/), the one API (/api/<domain>/, a NestJS domain module per feature,
@@ -25,8 +25,8 @@ services:
     build:
       context: .
       dockerfile: apps/core/Dockerfile
-    image: offline-pi-core
-    container_name: offline-pi-core
+    image: outpost-core
+    container_name: outpost-core
     # Host networking and PID namespace so /proc/net/dev, /proc/1/mounts and
     # the process count describe the Pi, not the container.
     network_mode: host
@@ -68,8 +68,8 @@ services:
     build:
       context: .
       dockerfile: apps/maps/Dockerfile
-    image: offline-pi-maps
-    container_name: offline-pi-maps
+    image: outpost-maps
+    container_name: outpost-maps
     # runs as node (uid 1000); keep-id maps the host user onto it so the bind
     # mounts stay writable (needs x-podman.in_pod: false below)
     userns_mode: "keep-id:uid=1000,gid=1000"
@@ -96,8 +96,8 @@ services:
     build:
       context: .
       dockerfile: apps/knowledge/Dockerfile
-    image: offline-pi-knowledge
-    container_name: offline-pi-knowledge
+    image: outpost-knowledge
+    container_name: outpost-knowledge
     # runs as user (uid 1001), see maps
     userns_mode: "keep-id:uid=1001,gid=1001"
     network_mode: host
@@ -126,8 +126,8 @@ services:
     build:
       context: .
       dockerfile: apps/mesh/Dockerfile
-    image: offline-pi-mesh
-    container_name: offline-pi-mesh
+    image: outpost-mesh
+    container_name: outpost-mesh
     network_mode: host
     environment:
       PORT: ${MESH_PORT:-8084}
@@ -158,8 +158,8 @@ services:
     build:
       context: .
       dockerfile: apps/mesh-map/Dockerfile
-    image: offline-pi-mesh-map
-    container_name: offline-pi-mesh-map
+    image: outpost-mesh-map
+    container_name: outpost-mesh-map
     network_mode: host
     environment:
       PORT: ${MESH_MAP_PORT:-8086}

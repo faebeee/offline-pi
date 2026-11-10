@@ -1,6 +1,6 @@
 import path from "node:path";
 import { Controller, Get, HttpCode, Post } from "@nestjs/common";
-import type { Job, Status } from "@offline-pi/maps-shared";
+import type { Job, Status } from "@outpost/maps-shared";
 import { PATHS } from "../config/paths.ts";
 import { exists } from "../common/files.ts";
 import { AssetsService } from "../assets/assets.service.ts";

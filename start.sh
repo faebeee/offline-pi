@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# start.sh - (re)start offline-pi from an existing installation: rebuild what
+# start.sh - (re)start outpost from an existing installation: rebuild what
 # changed, recreate the containers, then core starts the modules that are
 # switched on in the dashboard. Run ./install.sh first.
 #
@@ -21,6 +21,8 @@ fi
 source "$ROOT_DIR/lib/common.sh"
 # shellcheck source=lib/modules.sh
 source "$ROOT_DIR/lib/modules.sh"
+# shellcheck source=lib/migrate.sh
+source "$ROOT_DIR/lib/migrate.sh"
 load_module_hooks
 
 BUILD_FLAGS=()
@@ -76,6 +78,9 @@ fi
 # container when the compose config changed, not when the image did.
 # One at a time, so a module that can't be created (e.g. the Meshtastic node
 # is unplugged: podman resolves devices at creation) doesn't stop the rest.
+# the project used to be called offline-pi: its containers go first
+migrate_project_rename
+
 failed=()
 # create_module SERVICE - create its container; compose backends without
 # --no-start start it instead (core stops it again right away if it is
@@ -92,8 +97,8 @@ done
 
 # Remove containers of modules that are no longer installed.
 for m in $(all_modules); do
-  if ! is_installed "$m" && podman container exists "offline-pi-$m" 2>/dev/null; then
-    podman rm -f "offline-pi-$m" >/dev/null && log_ok "Removed $(module_label "$m") (no longer in MODULES)"
+  if ! is_installed "$m" && podman container exists "outpost-$m" 2>/dev/null; then
+    podman rm -f "outpost-$m" >/dev/null && log_ok "Removed $(module_label "$m") (no longer in MODULES)"
   fi
 done
 
@@ -121,7 +126,7 @@ fi
 
 LAN_IP="$(lan_ip)"
 echo
-log_ok "offline-pi is up and running!"
+log_ok "outpost is up and running!"
 echo "  Local:   http://localhost:${PORT}"
 if [[ -n "$LAN_IP" && "${BIND_ADDRESS:-0.0.0.0}" != "127.0.0.1" ]]; then
   echo "  LAN:     http://${LAN_IP}:${PORT}"

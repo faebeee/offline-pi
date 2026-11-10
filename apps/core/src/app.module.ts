@@ -10,7 +10,7 @@ import { SystemModule } from './domains/system/system.module';
 import { PlatformModule } from './platform/platform.module';
 
 /**
- * core: the one API of offline-pi. PlatformModule is the shared kernel
+ * core: the one API of outpost. PlatformModule is the shared kernel
  * (module registry, podman, upstream clients); every feature is a domain
  * module under src/domains/<name>/ with its own /api/<name>/ routes. A new
  * feature = a new domain module listed here (see AGENTS.md).

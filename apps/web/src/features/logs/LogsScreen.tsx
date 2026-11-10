@@ -1,5 +1,5 @@
-import { useLogsSources, type LogEntry, type LogSource } from "@offline-pi/api-client";
-import type { LinkState } from "@offline-pi/ui/outpost.js";
+import { useLogsSources, type LogEntry, type LogSource } from "@outpost/api-client";
+import type { LinkState } from "@outpost/ui/outpost.js";
 import { useNavigate } from "@tanstack/react-router";
 import { useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Screen } from "../../app/Screen";
@@ -43,7 +43,7 @@ function asText(source: string, entries: LogEntry[]): string {
       return `${ts} ${e.level.toUpperCase().padEnd(7)} ${e.context ? `[${e.context}] ` : ""}${e.message}`;
     })
     .join("\n")
-    .concat("\n", `# offline-pi logs · ${source} · ${new Date().toISOString()}\n`);
+    .concat("\n", `# outpost logs · ${source} · ${new Date().toISOString()}\n`);
 }
 
 function download(source: string, entries: LogEntry[]) {
@@ -51,7 +51,7 @@ function download(source: string, entries: LogEntry[]) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `offline-pi-${source}-${new Date().toISOString().replace(/[:.]/g, "-")}.log`;
+  a.download = `outpost-${source}-${new Date().toISOString().replace(/[:.]/g, "-")}.log`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

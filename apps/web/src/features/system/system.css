@@ -1,5 +1,5 @@
 /* System dashboard: screen-specific layout only. Components, tokens and
-   fonts come from @offline-pi/ui/outpost.css. Tokens only: no colours or fonts. */
+   fonts come from @outpost/ui/outpost.css. Tokens only: no colours or fonts. */
 
 .sys {
   display: flex;

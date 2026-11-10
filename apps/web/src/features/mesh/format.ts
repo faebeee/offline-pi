@@ -1,5 +1,5 @@
-import type { MeshNode, RadioChannel, RadioStatus } from "@offline-pi/api-client";
-import { utcDate, utcTime } from "@offline-pi/ui/outpost.js";
+import type { MeshNode, RadioChannel, RadioStatus } from "@outpost/api-client";
+import { utcDate, utcTime } from "@outpost/ui/outpost.js";
 
 /** Meshtastic's broadcast address (channel messages). */
 export const BROADCAST = 0xffffffff;

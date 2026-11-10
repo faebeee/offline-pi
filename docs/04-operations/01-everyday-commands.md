@@ -1,6 +1,6 @@
 # Everyday commands
 
-Two scripts cover daily operation: `start.sh` (re)starts offline-pi, and
+Two scripts cover daily operation: `start.sh` (re)starts outpost, and
 `manage.sh` shows the state, starts and stops modules, follows logs and
 runs module commands. Both need an existing installation (`.env`); without
 one they tell you to run `./install.sh` first.

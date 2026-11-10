@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { coords } from "@offline-pi/ui/outpost.js";
-import type { CreatePoiRequest, Poi } from "@offline-pi/api-client";
-import { DEFAULT_POI_EMOJI, POI_NAME_MAX } from "@offline-pi/maps-shared";
+import { coords } from "@outpost/ui/outpost.js";
+import type { CreatePoiRequest, Poi } from "@outpost/api-client";
+import { DEFAULT_POI_EMOJI, POI_NAME_MAX } from "@outpost/maps-shared";
 import { HoldButton, Icon } from "../../ui/outpost";
 
 /** What the dialog is editing: a brand-new pin, or an existing POI. */

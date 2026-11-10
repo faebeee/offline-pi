@@ -1,5 +1,5 @@
 /* Maps screen: feature layout only. Tokens, fonts, the frame and every
-   component (map stage, panel, controls) come from @offline-pi/ui.
+   component (map stage, panel, controls) come from @outpost/ui.
    Tokens only here: no hex colours, no font names. */
 
 /* delete confirmation under a region row */

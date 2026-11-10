@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# update.sh - install a new version of offline-pi: pull it from git, then
+# update.sh - install a new version of outpost: pull it from git, then
 # rebuild every image (with fresh base images) and recreate every container.
 # Data and settings (.env) are kept; settings a new version adds are listed
 # with their defaults.
@@ -36,7 +36,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ ! -f "$ENV_FILE" ]]; then
-  log_error "offline-pi is not installed here yet: run ./install.sh."
+  log_error "outpost is not installed here yet: run ./install.sh."
   exit 1
 fi
 
@@ -72,7 +72,7 @@ if (( AHEAD > 0 && BEHIND > 0 )); then
 fi
 
 if (( BEHIND == 0 )); then
-  log_ok "offline-pi is up to date: $(version HEAD)."
+  log_ok "outpost is up to date: $(version HEAD)."
   [[ "$check" == true ]] && exit 0
   if [[ "$rebuild" != true ]]; then
     if [[ "$yes" == true ]]; then exit 0; fi

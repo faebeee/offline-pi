@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { BehaviorSubject, type Observable } from "rxjs";
-import type { DownloadEstimate, Job, JobProgress, JobState, JobType } from "@offline-pi/maps-shared";
+import type { DownloadEstimate, Job, JobProgress, JobState, JobType } from "@outpost/maps-shared";
 
 /** Raised when a job is cancelled; carried through to a `cancelled` state. */
 export class JobCancelledError extends Error {

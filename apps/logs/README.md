@@ -1,6 +1,6 @@
 # Logs: log lines of core and every module
 
-The Logs module (`/logs`, number 06) shows what offline-pi writes to its logs,
+The Logs module (`/logs`, number 06) shows what outpost writes to its logs,
 for debugging, without SSH or `./manage.sh logs`. It has **no container of
 its own**: like System it is served by core (`"service": "core"` in
 `module.json`, always on). Its domain lives in
@@ -48,5 +48,5 @@ filtering.
   `entries` (`{ source, entries }`) and `followError` when a stream fails or
   ends (container stopped; the screen offers RESUME).
 
-Like the rest of core there is no login: anyone who can open offline-pi can
+Like the rest of core there is no login: anyone who can open outpost can
 read its logs. Set `BIND_ADDRESS=127.0.0.1` to keep it to the Pi.

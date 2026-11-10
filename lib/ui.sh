@@ -26,7 +26,7 @@
 UI_PLAIN="${UI_PLAIN:-false}"
 UI_ASSUME_YES="${UI_ASSUME_YES:-false}"
 UI_VERBOSE="${UI_VERBOSE:-false}"
-UI_LOG="${UI_LOG:-${TMPDIR:-/tmp}/offline-pi.log}"
+UI_LOG="${UI_LOG:-${TMPDIR:-/tmp}/outpost.log}"
 UI_REPLY=""
 
 if [[ -t 2 && -z "${NO_COLOR:-}" && "${TERM:-dumb}" != dumb ]]; then

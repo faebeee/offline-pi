@@ -1,12 +1,12 @@
 # Development
 
-This chapter is for people who change offline-pi itself: fix a bug, add a
+This chapter is for people who change outpost itself: fix a bug, add a
 screen or an endpoint, add a whole module, or work on the scripts and these
 docs. You need a checkout, Node.js 22 or newer and, to run the stack,
 Podman. A Mac works for most of it (see
 [macOS](../02-installation/04-macos.md)).
 
-If you only run offline-pi, you don't need this chapter: start with
+If you only run outpost, you don't need this chapter: start with
 [Installation](../02-installation/README.md) and
 [Operations](../04-operations/README.md).
 
@@ -35,4 +35,4 @@ short version for coding agents. When the two disagree, fix one of them.
 - [Documentation](09-documentation.md): how these docs are organised, shown
   in the app and written.
 - [Plans](plans/README.md): historical implementation plans (portal, mesh,
-  radio), written before offline-pi became one app. Kept for reference.
+  radio), written before outpost became one app. Kept for reference.

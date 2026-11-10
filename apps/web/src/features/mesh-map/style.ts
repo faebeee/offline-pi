@@ -1,4 +1,4 @@
-import type { MapAssets, MapRegion } from "@offline-pi/api-client";
+import type { MapAssets, MapRegion } from "@outpost/api-client";
 import { layers, namedFlavor } from "@protomaps/basemaps";
 import type { LngLatBoundsLike, StyleSpecification } from "../../app/maplibre";
 

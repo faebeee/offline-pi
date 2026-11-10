@@ -1,4 +1,4 @@
-import type { StatusState } from "@offline-pi/ui/outpost.js";
+import type { StatusState } from "@outpost/ui/outpost.js";
 
 // ------------------------------------------------------------ formatting
 export function fmtBytes(n: number | null | undefined, digits = 1): string {

@@ -10,7 +10,7 @@ export class ContainerPort {
 export class ContainerInfo {
   id!: string;
   name!: string;
-  /** compose project, i.e. the offline-pi app directory */
+  /** compose project, i.e. the outpost app directory */
   app!: string | null;
   service!: string | null;
   image!: string | null;

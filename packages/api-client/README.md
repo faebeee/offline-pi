@@ -1,4 +1,4 @@
-# @offline-pi/api-client
+# @outpost/api-client
 
 Everything the web app needs to talk to core, generated from core's OpenAPI
 document, so an endpoint added to a domain in `apps/core` is a typed hook in

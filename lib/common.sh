@@ -15,12 +15,12 @@ source "$ROOT_DIR/lib/platform.sh"
 # shellcheck source=lib/ui.sh
 source "$ROOT_DIR/lib/ui.sh"
 
-PROJECT_NAME="offline-pi"
+PROJECT_NAME="outpost"
 ENV_FILE="$ROOT_DIR/.env"
 ENV_EXAMPLE="$ROOT_DIR/.env.example"
 
 # compose - run the available podman compose backend with the given args on
-# the root compose.yml, always as project "offline-pi" (independent of the
+# the root compose.yml, always as project "outpost" (independent of the
 # checkout's directory name). Prefers the built-in `podman compose`
 # subcommand, falls back to the standalone `podman-compose` binary.
 #
@@ -93,7 +93,7 @@ ensure_podman_machine() {
     none)
       ui_note "On macOS, Podman runs its containers in a small Linux VM (the Podman machine)."
       if ! ui_confirm "Create and start the Podman machine now?" y; then
-        log_error "offline-pi needs a Podman machine: podman machine init --now"
+        log_error "outpost needs a Podman machine: podman machine init --now"
         exit 1
       fi
       ui_run "Creating the Podman machine (downloads its image once)" podman machine init --now || exit 1

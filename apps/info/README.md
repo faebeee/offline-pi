@@ -3,7 +3,7 @@
 The Info module (`/info`, number 07) shows the project documentation: the
 Markdown files in the repo's [`docs/`](../../docs/README.md) folder. The
 files are the source; the screen only renders them, so the docs stay
-readable in any editor or file browser when offline-pi does not start.
+readable in any editor or file browser when outpost does not start.
 
 It has **no container of its own**: like System and Logs it is served by
 core (`"service": "core"` in `module.json`, always on). Its domain lives in

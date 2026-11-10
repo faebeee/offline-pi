@@ -6,7 +6,7 @@
 # dashboard knows), run the meshtastic CLI in a one-off container from the
 # same image, then start it again.
 
-MESH_IMAGE="localhost/offline-pi-mesh:latest"
+MESH_IMAGE="localhost/outpost-mesh:latest"
 
 mesh_configure() {
   local conn old new device host
@@ -101,7 +101,7 @@ mesh_cli() {
     exit 1
   fi
 
-  if [[ "$(podman inspect -f '{{.State.Running}}' offline-pi-mesh 2>/dev/null)" == true ]]; then
+  if [[ "$(podman inspect -f '{{.State.Running}}' outpost-mesh 2>/dev/null)" == true ]]; then
     log_info "Stopping Mesh to free the radio..."
     module_stop mesh
     # start it again however the CLI ends (error, Ctrl+C)
@@ -111,9 +111,9 @@ mesh_cli() {
 }
 
 mesh_status() {
-  podman ps -a --filter name=offline-pi-mesh --format '{{.Names}}  {{.Status}}'
+  podman ps -a --filter name=outpost-mesh --format '{{.Names}}  {{.Status}}'
   echo
-  if ! podman exec offline-pi-mesh python - <<'PY'
+  if ! podman exec outpost-mesh python - <<'PY'
 import json, os, urllib.request
 port = os.environ.get("PORT", "8084")
 s = json.load(urllib.request.urlopen(f"http://127.0.0.1:{port}/api/status", timeout=5))
@@ -135,10 +135,10 @@ mesh_manage() {
     status) mesh_status ;;
     export)
       if [[ -n "${2:-}" ]]; then
-        podman exec offline-pi-mesh python -m app.export > "$2"
+        podman exec outpost-mesh python -m app.export > "$2"
         log_ok "Wrote $2"
       else
-        podman exec offline-pi-mesh python -m app.export
+        podman exec outpost-mesh python -m app.export
       fi
       ;;
     info) mesh_cli --info ;;

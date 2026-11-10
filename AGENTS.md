@@ -1,6 +1,6 @@
-# AGENTS.md: conventions for offline-pi
+# AGENTS.md: conventions for outpost
 
-offline-pi is **one app** meant to run offline on a host like a Raspberry Pi:
+outpost is **one app** meant to run offline on a host like a Raspberry Pi:
 one Podman Compose project, one set of scripts, one `.env`, one port. It is
 made of **modules** (maps, library, mesh, ...), each a container behind
 **core**. Core is the **one API** (NestJS, one domain module per feature)
@@ -13,7 +13,7 @@ touching the scripts.
 ## Layout
 
 ```
-compose.yml              # the whole stack, project "offline-pi"
+compose.yml              # the whole stack, project "outpost"
 compose.macos.yml        # added on macOS (lib/common.sh): what the remote API lacks
 .env.example             # checked in; documents every var
 .env                     # gitignored; written by install.sh only
@@ -29,7 +29,7 @@ lib/install.sh           # install.sh's steps (host check, basics, modules)
 lib/storage.sh           # prompt_dir / resync_dir (relocatable data)
 lib/serial.sh            # USB serial device picker (mesh)
 lib/modules.sh           # module registry for the scripts, hooks, core_api
-lib/migrate.sh           # adopts the old per-app layout (apps/*/.env)
+lib/migrate.sh           # adopts the old per-app layout, offline-pi -> outpost
 lib/update.sh            # update.sh: git checks, incoming changes, new settings
 lib/modules/<name>.sh    # per-module hooks (configure, prepare, manage, ...)
 package.json             # npm workspaces root (apps/*, apps/maps/*, packages/*)
@@ -43,9 +43,9 @@ apps/logs/               # a screen served by core: module.json + README only
 apps/info/               # the docs screen, served by core (reads docs/)
 apps/web/                # the web app: every screen of every module
 apps/maps/backend/       # a module's container code (API, data, jobs)
-packages/ui/             # @offline-pi/ui: Outpost design system (DESIGN.md)
-packages/api-client/     # @offline-pi/api-client: generated from core's OpenAPI
-packages/maps-shared/    # @offline-pi/maps-shared: maps container contract
+packages/ui/             # @outpost/ui: Outpost design system (DESIGN.md)
+packages/api-client/     # @outpost/api-client: generated from core's OpenAPI
+packages/maps-shared/    # @outpost/maps-shared: maps container contract
 host/hotspot-pi/         # host-level utility, no container (see below)
 docs/                    # the documentation (Markdown chapters), shown by Info
 data/                    # gitignored default home of every *_DIR
@@ -53,8 +53,8 @@ data/                    # gitignored default home of every *_DIR
 
 ## Monorepo (npm workspaces + Turborepo)
 
-- JS workspaces are named `@offline-pi/<name>` and depend on each other with
-  `"*"` (e.g. `"@offline-pi/ui": "*"`). Install once at the root
+- JS workspaces are named `@outpost/<name>` and depend on each other with
+  `"*"` (e.g. `"@outpost/ui": "*"`). Install once at the root
   (`npm install`); never add a lockfile inside a workspace.
 - Every workspace with code has `build` (output in `dist/`), `typecheck`
   and, where it makes sense, `dev` scripts. `turbo.json` orders them
@@ -63,8 +63,8 @@ data/                    # gitignored default home of every *_DIR
 - Modules without a JS build (mesh: Python, knowledge: kiwix, mesh-map: a
   dependency-free `server.mjs`) live in `apps/` without a `package.json`;
   npm and turbo ignore them.
-- `@offline-pi/core` depends on `@offline-pi/web`, so `turbo prune
-  @offline-pi/core` and `turbo run build --filter=@offline-pi/core` include
+- `@outpost/core` depends on `@outpost/web`, so `turbo prune
+  @outpost/core` and `turbo run build --filter=@outpost/core` include
   the web app; core's image serves its `dist/`. The web app's packages are
   all `devDependencies` (Vite bundles them), so core's runtime image doesn't
   install them.
@@ -88,7 +88,7 @@ browser ──> core :8080
             ├─ /api/<domain>/*   core's API, one Nest domain module per feature
             ├─ /api/docs         Swagger UI (/api/openapi.json)
             ├─ /socket.io        live updates, one namespace per domain
-            ├─ /ui/              @offline-pi/ui
+            ├─ /ui/              @outpost/ui
             └─ /svc/<module>/*   passthrough to a module's raw files
 core ──HTTP/WS──> maps :8081 · knowledge :8082 · mesh :8084 · mesh-map :8086
 ```
@@ -173,7 +173,7 @@ apps/core/src/domains/<name>/
    domain: also its `<name>.module.ts` in `src/app.module.ts`.
 2. `npm run api:gen`.
 3. In `apps/web`: use the generated hook (`useXxx()` from
-   `@offline-pi/api-client`) in `src/features/<name>/`, and a route in
+   `@outpost/api-client`) in `src/features/<name>/`, and a route in
    `src/routes/` if it is a new screen.
 
 A feature may combine domains (e.g. mesh-map's overview uses the mesh
@@ -184,8 +184,8 @@ browser.
 ## Adding a module
 
 1. `apps/<name>/` with a `Dockerfile` and the code. `<name>` is the
-   compose service name, the container is `offline-pi-<name>`. A JS module
-   is a workspace (`package.json` named `@offline-pi/<name>`, or nested
+   compose service name, the container is `outpost-<name>`. A JS module
+   is a workspace (`package.json` named `@outpost/<name>`, or nested
    workspaces like `apps/maps/backend`, added to the root `workspaces`);
    run `npm install` at the root to update the lockfile.
 2. `apps/<name>/module.json`, **one key per line** (the shell scripts
@@ -299,7 +299,7 @@ then sources `lib/common.sh` (and what else it needs).
   Destructive commands confirm first and never silently delete data.
 - **`uninstall.sh`** `[--purge] [--yes]`: works with or without `.env` and
   without Podman. Shows what it will do, asks once (default no). Always
-  removes containers (`compose down` plus any `offline-pi-*` left) and the
+  removes containers (`compose down` plus any `outpost-*` left) and the
   images. Every `*_DIR` is **kept by default**, shown with its size and only
   deleted after its own confirmation (or `--purge`); never `/`, `$HOME`,
   mount roots or anything containing the checkout. `.env` is removed only
@@ -309,7 +309,7 @@ then sources `lib/common.sh` (and what else it needs).
 - Only `install.sh` writes `.env` (`set_env`); `start.sh`/`manage.sh` read
   it. Core writes only `CORE_DATA_DIR/modules.json`.
 - Every compose call goes through `compose` in `lib/common.sh`, which adds
-  `-p offline-pi -f compose.yml --env-file .env` and prefers `podman compose`
+  `-p outpost -f compose.yml --env-file .env` and prefers `podman compose`
   over `podman-compose`. On macOS it always uses `podman-compose` (`podman
   compose` may hand over to Docker Compose, which resolves bind mounts such
   as `/` on the Mac, not in the VM) and adds `-f compose.macos.yml`.
@@ -361,7 +361,7 @@ specifics (apt vs brew, systemd, devices). Never `producer | grep -q` under
 ### Compose rules (`compose.yml`)
 
 - `build: { context: ., dockerfile: apps/<name>/Dockerfile }`,
-  `image: offline-pi-<name>`, `container_name: offline-pi-<name>`; or a
+  `image: outpost-<name>`, `container_name: outpost-<name>`; or a
   pinned upstream image. The context is always the repo root (see
   "Monorepo"), so `COPY` paths in a Dockerfile start at the root
   (`COPY apps/<name>/app/ app/`).
@@ -394,7 +394,7 @@ the SD card.
 
 - `compose.yml`: `- ${MAPS_DATA_DIR:-./data/maps}:/app/data`.
 - `.env.example`: a comment per dir saying what grows there and to point it
-  at the SSD (e.g. `/mnt/ssd/offline-pi/maps`).
+  at the SSD (e.g. `/mnt/ssd/outpost/maps`).
 - The module's configure hook re-prompts it on **every** `install.sh` run
   (`prompt_dir`, default = current value): expands to an absolute path,
   `mkdir -p`, checks it is writable, fails fast if not (SSD not mounted).
@@ -407,10 +407,10 @@ the SD card.
 
 ## Web UI: one app, the Outpost design system
 
-There is one UI: `apps/web` (`@offline-pi/web`), Vite + React + TanStack
+There is one UI: `apps/web` (`@outpost/web`), Vite + React + TanStack
 Router (file routes) + TanStack Query, built into core's image and served
 at `/`. It follows [`DESIGN.md`](DESIGN.md) and builds on
-[`packages/ui`](packages/ui/README.md) (`@offline-pi/ui`: tokens,
+[`packages/ui`](packages/ui/README.md) (`@outpost/ui`: tokens,
 self-hosted fonts, icon sprite, components, `outpost.js`), bundled by Vite.
 Don't restyle components per feature; add missing ones to `packages/ui` with
 tokens only and note them in the `DESIGN.md` changelog.
@@ -424,7 +424,7 @@ apps/web/src/
   ui/outpost.tsx        # React wrappers for the Outpost package
 ```
 
-- **Data only through `@offline-pi/api-client`**: generated hooks for REST
+- **Data only through `@outpost/api-client`**: generated hooks for REST
   (`useMapsRegions()`, ...), `useSocketEvent("/<domain>", ...)`
   (`src/app/realtime.ts`) for live updates, updating the Query cache. No
   hand-written `fetch` to `/api`, never a module's container directly; raw
@@ -449,7 +449,7 @@ apps/web/src/
   links to other `.md` files in `docs/` only, one `# ` title per file, no
   raw HTML. A change to a feature, setting, command or module updates its
   page here too (see `docs/06-development/09-documentation.md`).
-- Root `README.md`: what offline-pi is, quick start (`git clone`,
+- Root `README.md`: what outpost is, quick start (`git clone`,
   `./install.sh`), the module table (path, internal port, description), the
   `.env` table, `manage.sh` usage, uninstall.
 - `apps/<name>/README.md`: what the module does, its settings and

@@ -48,7 +48,7 @@ list back. Search runs on the Pi and needs no internet.
 
 ## Reading the docs without the app
 
-The documentation is plain Markdown. If offline-pi does not start, you can
+The documentation is plain Markdown. If outpost does not start, you can
 still read the same pages:
 
 - in the `docs/` folder of the project on the Pi, with any text editor or
@@ -60,7 +60,7 @@ Start with `docs/README.md`. When the app does not start, read
 
 ## Updates
 
-The docs are built into the core image. They change when offline-pi is
+The docs are built into the core image. They change when outpost is
 updated or rebuilt: after `./update.sh`, or after you edit files in
 `docs/` and run `./start.sh`. Until then the app shows the version from the
 last build. See [Updating](../04-operations/02-updating.md).

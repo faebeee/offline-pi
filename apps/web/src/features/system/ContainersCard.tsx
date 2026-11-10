@@ -1,5 +1,5 @@
-import type { ContainerInfo, ContainersInfo, ModuleStatus } from "@offline-pi/api-client";
-import type { StatusState } from "@offline-pi/ui/outpost.js";
+import type { ContainerInfo, ContainersInfo, ModuleStatus } from "@outpost/api-client";
+import type { StatusState } from "@outpost/ui/outpost.js";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useControlModule, useModules } from "../modules/useModules";
@@ -14,9 +14,9 @@ const STATE_TONE: Record<string, StatusState> = {
   stopped: "crit",
 };
 
-/** A module's container: `offline-pi-<id>` (compose service = module id). */
+/** A module's container: `outpost-<id>` (compose service = module id). */
 const moduleFor = (mods: ModuleStatus[], c: ContainerInfo) =>
-  mods.find((m) => c.name === `offline-pi-${m.id}`) ?? mods.find((m) => c.service === m.id && c.app === "offline-pi");
+  mods.find((m) => c.name === `outpost-${m.id}`) ?? mods.find((m) => c.service === m.id && c.app === "outpost");
 
 /**
  * "Apps and containers": every container on the host. Rows of optional

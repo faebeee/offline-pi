@@ -1,5 +1,5 @@
-import { useMeshMapOverview, type MapRegion, type MeshNode } from "@offline-pi/api-client";
-import { ago, coords, getTheme, onVisibility, utcDateTime, type LinkState, type StripItem } from "@offline-pi/ui/outpost.js";
+import { useMeshMapOverview, type MapRegion, type MeshNode } from "@outpost/api-client";
+import { ago, coords, getTheme, onVisibility, utcDateTime, type LinkState, type StripItem } from "@outpost/ui/outpost.js";
 import { Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";

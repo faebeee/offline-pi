@@ -5,9 +5,9 @@ import {
   libraryStartSync,
   useLibrarySync,
   type LibrarySync,
-} from "@offline-pi/api-client";
-import { ago, bytes } from "@offline-pi/ui/outpost.js";
-import type { StatusState } from "@offline-pi/ui/outpost.js";
+} from "@outpost/api-client";
+import { ago, bytes } from "@outpost/ui/outpost.js";
+import type { StatusState } from "@outpost/ui/outpost.js";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useStripItems } from "../../app/strip";

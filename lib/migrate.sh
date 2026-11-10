@@ -55,13 +55,13 @@ old_env_value() {
 }
 
 # remove_old_containers APP - containers of the old compose project (by the
-# images that project used; never the new offline-pi-* containers).
+# images that project used; never the containers of the single app).
 remove_old_containers() {
   local app="$1" image id name
   for image in $(migrate_images "$app"); do
     podman image exists "$image" 2>/dev/null || continue
     while read -r id name; do
-      [[ -z "$id" || "$name" == offline-pi-* ]] && continue
+      [[ -z "$id" || "$name" == offline-pi-* || "$name" == outpost-* ]] && continue
       podman rm -f "$id" >/dev/null && log_ok "Removed old container $name"
     done < <(podman ps -a --filter "ancestor=$image" --format '{{.ID}} {{.Names}}')
   done
@@ -126,4 +126,24 @@ migrate_old_apps() {
     done
     log_info "The old data stays where it is; the storage questions below default to it and can move it."
   fi
+}
+
+# migrate_project_rename - the project was called offline-pi before it was
+# renamed to outpost: remove the containers (offline-pi-*, core holds PORT)
+# and images of that name, so the outpost-* ones can take over. Bind-mounted
+# data stays where it is (.env still points at it). Safe to re-run.
+migrate_project_rename() {
+  local name image found=false
+  has_cmd podman || return 0
+  for name in $(podman ps -a --format '{{.Names}}' 2>/dev/null | grep '^offline-pi-' || true); do
+    if [[ "$found" == false ]]; then
+      log_info "Replacing the containers of the old project name (offline-pi) with outpost ones."
+      found=true
+    fi
+    podman rm -f "$name" >/dev/null && log_ok "Removed old container $name"
+  done
+  for image in $(podman images --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep '^localhost/offline-pi-' || true); do
+    podman rmi "$image" >/dev/null 2>&1 && log_ok "Removed old image $image"
+  done
+  return 0
 }

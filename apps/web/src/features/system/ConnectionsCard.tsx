@@ -1,4 +1,4 @@
-import type { ConnectionsInfo, ListeningSocket } from "@offline-pi/api-client";
+import type { ConnectionsInfo, ListeningSocket } from "@outpost/api-client";
 import { useState } from "react";
 
 const MAX_ROWS = 60;

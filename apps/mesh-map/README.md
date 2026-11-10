@@ -35,12 +35,12 @@ that shares its position, updated live:
 The module has no UI of its own. The map page is the `/mesh-map` screen of
 the single web app (`apps/web`, code in `apps/web/src/features/mesh-map/` and
 `apps/web/src/routes/mesh-map.tsx`), built on the shared Outpost UI package
-`@offline-pi/ui` (see `DESIGN.md`). It loads the archives, fonts and sprites
+`@outpost/ui` (see `DESIGN.md`). It loads the archives, fonts and sprites
 from this container through core's passthrough at `/svc/mesh-map/`.
 
 ## Requirements
 
-- offline-pi installed with the `mesh-map` module (root `./install.sh`; see
+- outpost installed with the `mesh-map` module (root `./install.sh`; see
   the root README for install, start and uninstall). It depends on `mesh`.
 - The Maps module with at least one region downloaded (without one, nodes
   show on a blank map). If Maps isn't installed, `./install.sh` asks for the
@@ -53,10 +53,10 @@ precision (the public `LongFast` channel by default) send an approximate
 position only, about 1 to 2 km. Positions are the last ones heard, not live
 tracking.
 
-## In offline-pi
+## In outpost
 
 The service `mesh-map` in `compose.yml` in the repo root runs as container
-`offline-pi-mesh-map` (image `localhost/offline-pi-mesh-map`) with host
+`outpost-mesh-map` (image `localhost/outpost-mesh-map`) with host
 networking, bound to `127.0.0.1:MESH_MAP_PORT`; core passes its files through at
 `/svc/mesh-map/`. Start/stop it with the switch on the home page or
 `./manage.sh start|stop mesh-map`; logs: `./manage.sh logs mesh-map`.

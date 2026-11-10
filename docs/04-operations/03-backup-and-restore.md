@@ -1,6 +1,6 @@
 # Backup and restore
 
-offline-pi has no backup command. A backup is a copy of two things: the
+outpost has no backup command. A backup is a copy of two things: the
 settings file `.env` and the data directories. This page says which data
 you cannot get back and how to copy it by hand.
 
@@ -31,7 +31,7 @@ grep '_DIR=' .env
 
 ## Make a backup
 
-Stop offline-pi's modules first, so no database is written while you copy
+Stop outpost's modules first, so no database is written while you copy
 it. The simplest way is to stop the modules with data you care about:
 
 ```sh
@@ -43,10 +43,10 @@ Then copy `.env` and the directories to another disk, for example a USB
 stick mounted at `/media/backup`:
 
 ```sh
-mkdir -p /media/backup/offline-pi
-cp .env /media/backup/offline-pi/
-rsync -a --no-perms --no-owner --no-group /path/to/mesh/ /media/backup/offline-pi/mesh/
-rsync -a --no-perms --no-owner --no-group /path/to/maps/ /media/backup/offline-pi/maps/
+mkdir -p /media/backup/outpost
+cp .env /media/backup/outpost/
+rsync -a --no-perms --no-owner --no-group /path/to/mesh/ /media/backup/outpost/mesh/
+rsync -a --no-perms --no-owner --no-group /path/to/maps/ /media/backup/outpost/maps/
 ```
 
 Replace `/path/to/...` with the paths from `.env`. The `--no-perms
@@ -71,7 +71,7 @@ Switch the modules on again afterwards:
 
    ```sh
    git clone https://github.com/faebeee/offline-pi.git
-   cd offline-pi
+   cd outpost
    ```
 
 3. Copy the backed-up `.env` into the project folder.
@@ -82,7 +82,7 @@ Switch the modules on again afterwards:
 5. Run `./install.sh`. It finds the existing `.env`, keeps your answers as
    defaults and asks for every data directory again. If you put the data
    somewhere else, give the new location here.
-6. `install.sh` builds everything and starts offline-pi. Maps downloads its
+6. `install.sh` builds everything and starts outpost. Maps downloads its
    fonts and sprites during the build if you did not restore
    `MAPS_ASSETS_DIR`.
 
