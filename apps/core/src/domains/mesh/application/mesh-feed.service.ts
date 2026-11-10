@@ -14,9 +14,9 @@ export type MeshEvent =
 
 /**
  * One WebSocket from core to the mesh container's live feed (/api/live),
- * held while anyone listens (the /mesh namespace, or another domain such as
- * mesh-map), reconnecting with backoff when the module restarts. Events are
- * mapped to the domain model and published on events$.
+ * held while anyone listens (the /mesh namespace: the Mesh screen and the
+ * node layer of Maps), reconnecting with backoff when the module restarts.
+ * Events are mapped to the domain model and published on events$.
  */
 @Injectable()
 export class MeshFeed implements OnModuleDestroy {

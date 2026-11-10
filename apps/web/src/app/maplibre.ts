@@ -1,4 +1,4 @@
-// MapLibre setup shared by every map screen (maps, mesh map). Import this
+// MapLibre setup shared by every map screen (Maps). Import this
 // module instead of "maplibre-gl" directly.
 import * as maplibregl from "maplibre-gl";
 import { setWorkerUrl } from "maplibre-gl";

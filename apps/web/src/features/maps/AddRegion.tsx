@@ -5,9 +5,9 @@ import {
   mapsPlaces,
   type Job,
   type PlaceCandidate,
-} from "@offline-pi/api-client";
-import { DEFAULT_MAXZOOM } from "@offline-pi/maps-shared";
-import { bytes } from "@offline-pi/ui/outpost.js";
+} from "@outpost/api-client";
+import { DEFAULT_MAXZOOM } from "@outpost/maps-shared";
+import { bytes } from "@outpost/ui/outpost.js";
 import { useEffect, useRef, useState } from "react";
 import { Badge, Banner, Icon } from "../../ui/outpost";
 import { JobView } from "./JobView";

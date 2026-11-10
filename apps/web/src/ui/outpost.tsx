@@ -1,4 +1,4 @@
-// Thin React bindings for the Outpost design system (@offline-pi/ui,
+// Thin React bindings for the Outpost design system (@outpost/ui,
 // packages/ui). Markup and behaviour come from the package; these only
 // adapt it to React's lifecycle.
 import { useEffect, useRef, useState } from "react";
@@ -11,7 +11,8 @@ import {
   type StatusState,
   type Theme,
   themeToggle,
-} from "@offline-pi/ui/outpost.js";
+} from "@outpost/ui/outpost.js";
+import { illustration } from "@outpost/ui/illustrations.js";
 
 /** Sprite icon, decorative unless the parent labels it. */
 export function Icon({ name, className = "" }: { name: string; className?: string }) {
@@ -124,4 +125,14 @@ export function ThemeToggle() {
     themeToggle(ref.current);
   }, []);
   return <button ref={ref} type="button" />;
+}
+
+/**
+ * Outpost illustration (line art, animated by CSS), decorative. `name` is a
+ * scene or a module id; `off` greys it out and stops it (module not running).
+ */
+export function Illustration({ name, className = "", off = false }: { name: string; className?: string; off?: boolean }) {
+  const cls = `${className}${off ? " is-off" : ""}`.trim();
+  // our own static markup (packages/ui/illustrations.js), never user data
+  return <span className="il-wrap" dangerouslySetInnerHTML={{ __html: illustration(name, cls) }} />;
 }

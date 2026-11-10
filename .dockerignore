@@ -37,8 +37,7 @@ apps/monitor
 apps/maps/apps
 apps/maps/packages
 
-# not needed by any image
-docs
+# not needed by any image (docs/ is: core serves it on the Info screen)
 host
 lib
 *.sh

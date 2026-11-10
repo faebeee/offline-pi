@@ -20,7 +20,7 @@ function installedIds(): Set<string> {
  * or off (persisted to CORE_DATA_DIR/modules.json so a reboot doesn't start
  * something the user stopped), and their container's live state (from
  * RuntimeService). Starts and stops go through PodmanService, by container
- * name (offline-pi-<service>).
+ * name (outpost-<service>).
  */
 @Injectable()
 export class ModulesService implements OnModuleInit {
@@ -141,7 +141,7 @@ export class ModulesService implements OnModuleInit {
 
   /**
    * Brings every installed module to its desired (switched on/off) state,
-   * dependsOn first so e.g. mesh-map doesn't come up before mesh.
+   * dependsOn first, so a module never comes up before one it needs.
    */
   async reconcile(): Promise<void> {
     await this.podman.ready;

@@ -1,13 +1,14 @@
 # Offline Knowledge (Kiwix Box)
 
 Offline emergency-knowledge box built on [Kiwix](https://www.kiwix.org/):
-a fixed set of ZIM files (medical/first aid, food & water, shelter & repair,
-general survival, reference) that's useful to have *without* internet
-access, served over your LAN through core at `/library` (module label
-"Library").
+ZIM files (medical/first aid, food & water, shelter & repair, general
+survival, reference) that are useful to have *without* internet access,
+served over your LAN through core at `/library` (module label "Library").
 
-- The ZIM set is defined once in [`zims.txt`](zims.txt); there is no
-  interactive selection
+- **Nothing is downloaded at install.** Once outpost runs, you choose the
+  books on the Library screen ("Choose books", `/library/catalog`): a
+  curated list plus any other Kiwix book by name. Only what you tick is
+  downloaded; unticking an installed book deletes it
 - Everything runs inside the container: catalog lookup, resumable and
   checksum-verified downloads (`aria2c` + Kiwix `.meta4` metalinks) and
   `kiwix-serve`. The host only needs Podman
@@ -20,16 +21,17 @@ access, served over your LAN through core at `/library` (module label
 
 ## Requirements
 
-- offline-pi installed with the `knowledge` module (root `./install.sh`;
+- outpost installed with the `knowledge` module (root `./install.sh`;
   see the root README for install, start and uninstall).
-- Internet access while the ZIMs download.
-- Enough free disk space for `zims.txt`: the default set is roughly
-  **13 GB**. The container checks free space before each download and skips
-  a ZIM that doesn't fit.
+- Internet access while the books download.
+- Enough free disk space for what you choose (the screen shows each book's
+  size and the free space). The container checks free space before each
+  download and skips a ZIM that doesn't fit.
 
-On start the container serves whatever is already installed and downloads
-every entry of `zims.txt` that's missing in the background. Follow progress
-with `./manage.sh logs knowledge`, then open `http://<pi-ip>:8080/library`.
+Open `http://<pi-ip>:8080/library`, choose books and apply. The container
+downloads them in the background and serves each one as soon as it is
+complete. After a restart it resumes unfinished downloads of the selection
+(`KNOWLEDGE_AUTO_SYNC`).
 
 ## Library screen
 
@@ -44,10 +46,11 @@ reload, and `/api/library/search` uses kiwix's `search?format=xml`. Articles
 open in an in-app reader (`/library/read?url=...`), an iframe of Kiwix's
 viewer.
 
-The screen also shows the **background sync**: while books from `zims.txt`
+The screen also shows the **background sync**: while selected books
 download it shows which book (n of m), how far it is and a `SYNC n/m` strip
 item, and the book list refreshes as each one completes; afterwards a badge
-says "Up to date", or a banner explains problems or an interrupted sync.
+says "Up to date", or a banner explains problems or an interrupted sync and
+offers a retry.
 `knowledge.sh` writes the state to `.cache/sync.json` in the content dir at
 every step (atomically; an interrupted run is recorded as such, also after a
 crash), and core's `/api/library/sync` reads it through its read-only host
@@ -60,35 +63,46 @@ kiwix-serve runs with `--urlRootLocation /svc/library` (`URL_ROOT` in
 core's passthrough, which forwards the path without stripping it. Kiwix's
 own home page is there too (no custom index).
 
-## Defining the ZIM set (`zims.txt`)
+## Choosing books
 
-One entry per line: the ZIM file name without date suffix and `.zim`, as
-listed on <https://download.kiwix.org/zim/>. Pick the flavour explicitly
-(`_maxi` with images, `_nopic`, `_mini`):
+"Choose books" (`/library/catalog`, `features/library/Catalog.tsx`) lists
+the curated books by topic with their approximate size and state
+(installed, downloading, queued, not downloaded), the free space on the
+library disk, and a field to add any other book by its Kiwix name: the ZIM
+file name without date suffix and `.zim`, as listed on
+<https://download.kiwix.org/zim/> (e.g. `wikipedia_de_all_nopic` for
+`wikipedia_de_all_nopic_2026-10.zim`). Pick the flavour explicitly (`_maxi`
+with images, `_nopic`, `_mini`). "Apply" saves the selection; when it
+removes installed books it is a hold-to-confirm button that says how many
+will be deleted. "Check for newer versions" downloads updates of installed
+books.
 
-```
-wikipedia_en_medicine_maxi     # wikipedia_en_medicine_maxi_2026-10.zim
-ifixit_en_all                  # ifixit_en_all_2025-12.zim
-```
-
-`#` starts a comment. The default list covers WikiMed, military medicine,
-NHS Medicines, MedlinePlus, CDC Travelers' Health, three cookbooks, iFixit,
-Low-Tech Magazine, Hundred Rabbits, CD3WD, True Prepper, Ready.gov, Rabbit
-Waves and Simple English Wikipedia. Survivor Library (~210 GB) is listed but
-commented out.
-
-The file is baked into the image. After editing it, run `./start.sh` (it
-rebuilds and recreates the container, which then downloads the new
-entries). Entries the Kiwix catalog doesn't know are reported in the log.
-Removing a line doesn't delete anything; `./manage.sh knowledge prune` does.
+- The curated list lives in core: `apps/core/src/domains/library/domain/catalog.ts`
+  (WikiMed, military medicine, NHS Medicines, MedlinePlus, CDC Travelers'
+  Health, three cookbooks, iFixit, Low-Tech Magazine, Hundred Rabbits, CD3WD,
+  True Prepper, Ready.gov, Rabbit Waves, Survivor Library (~210 GB) and
+  Simple English Wikipedia). None of them is preselected.
+- The selection is `selection.txt` in the content dir, one key per line.
+  Only the container writes it: core runs `knowledge apply KEY...` in the
+  container (libpod exec through the Podman socket, `PodmanService.exec`),
+  because core's host mount is read-only. `apply` stops a running sync,
+  writes the selection, deletes ZIMs and partial downloads that are no
+  longer selected, and starts the sync detached (its output goes to the
+  container log).
+- API (core's library domain): `GET /api/library/catalog`,
+  `PUT /api/library/selection` (`{ keys }`, the complete new selection),
+  `POST /api/library/sync` (`{ update }`, retry or check for updates).
+- Upgrading from the old fixed set (`zims.txt`): on the first start without
+  `selection.txt` the container selects every book already on disk, so
+  nothing is deleted or downloaded.
 
 ## Managing content later
 
 ```bash
 ./manage.sh knowledge list     # installed ZIMs, which are served, which are missing
-./manage.sh knowledge sync     # download missing entries of zims.txt now
-./manage.sh knowledge update   # download newer versions of the entries in zims.txt
-./manage.sh knowledge prune    # delete old versions + ZIMs no longer in zims.txt (asks)
+./manage.sh knowledge sync     # download missing selected books now
+./manage.sh knowledge update   # download newer versions of the selected books
+./manage.sh knowledge prune    # delete old versions + ZIMs no longer selected (asks)
 ./manage.sh logs knowledge     # follow the container log (download progress)
 ```
 
@@ -106,7 +120,7 @@ Set in the root `.env` (see the root README):
 |---|---|---|
 | `KNOWLEDGE_CONTENT_DIR` | `./data/knowledge` | ZIM files, partial downloads, catalog cache, `library.xml`. Point at your SSD. |
 | `KNOWLEDGE_PORT` | `8082` | Internal port kiwix-serve listens on (loopback only, `MODULES_BIND_ADDRESS`), passed through by core at `/svc/library/`. |
-| `KNOWLEDGE_AUTO_SYNC` | `true` | `true`: download missing `zims.txt` entries on every start. `false`: only on `./manage.sh knowledge sync`. |
+| `KNOWLEDGE_AUTO_SYNC` | `true` | `true`: resume downloads of selected books on every start. `false`: only from the Library screen or `./manage.sh knowledge sync`. Nothing is downloaded before something is selected. |
 
 Re-running `./install.sh` re-asks `KNOWLEDGE_CONTENT_DIR` and moves the
 library to a new path (e.g. a newly mounted SSD); if the copy fails, both
@@ -116,12 +130,13 @@ unless you confirm deleting it.
 ## How it works
 
 - The service `knowledge` in `compose.yml` in the repo root runs as
-  container `offline-pi-knowledge` (image `localhost/offline-pi-knowledge`)
+  container `outpost-knowledge` (image `localhost/outpost-knowledge`)
   with host networking, so ZIM downloads don't depend on Podman's bridge
   DNS; kiwix-serve binds `127.0.0.1:KNOWLEDGE_PORT`.
 - The container entrypoint (`container/knowledge.sh serve`) builds
   `library.xml` in the content directory from the newest file of each entry
-  in its `zim/`, starts the sync in the background and runs
+  in its `zim/`, resumes the sync of the selection in the background (if
+  anything is selected) and runs
   `kiwix-serve --library --monitorLibrary`, so new downloads show up without
   a restart.
 - The sync reads the official Kiwix OPDS catalog
@@ -135,9 +150,8 @@ unless you confirm deleting it.
 ## Project layout
 
 ```
-zims.txt                  The ZIM set to download and serve
-Dockerfile                kiwix-serve + aria2/curl/xmlstarlet + zims.txt
-container/knowledge.sh    In-container tool: serve / sync / prune / list / library
+Dockerfile                kiwix-serve + aria2/curl/xmlstarlet
+container/knowledge.sh    In-container tool: serve / apply / sync / prune / list / library
 module.json               Module manifest (path, port, data dir, health /svc/library/)
 ```
 

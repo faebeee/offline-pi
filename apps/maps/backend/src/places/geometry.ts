@@ -1,4 +1,4 @@
-import type { Polygon } from "@offline-pi/maps-shared";
+import type { Polygon } from "@outpost/maps-shared";
 
 type Ring = number[][];
 

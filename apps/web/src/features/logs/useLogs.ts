@@ -1,4 +1,4 @@
-import { getLogsEntriesQueryKey, useLogsEntries, type LogBatch, type LogEntry, type LogPage } from "@offline-pi/api-client";
+import { getLogsEntriesQueryKey, useLogsEntries, type LogBatch, type LogEntry, type LogPage } from "@outpost/api-client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSocket, useSocketEvent } from "../../app/realtime";

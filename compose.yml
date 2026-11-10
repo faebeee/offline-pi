@@ -1,9 +1,9 @@
-# offline-pi: one Podman Compose project ("offline-pi", see lib/common.sh).
+# outpost: one Podman Compose project ("outpost", see lib/common.sh).
 #
 # core is the only service reachable from the LAN: on PORT it serves the web
 # app (/), the one API (/api/<domain>/, a NestJS domain module per feature,
 # which talks to the module containers) and a passthrough for the modules'
-# raw files (/svc/maps/, /svc/library/, /svc/mesh/, /svc/mesh-map/). Modules
+# raw files (/svc/maps/, /svc/library/, /svc/mesh/). Modules
 # bind MODULES_BIND_ADDRESS (127.0.0.1) on their own internal port.
 #
 # Only core has restart: always (podman-restart.service brings it back after
@@ -25,8 +25,8 @@ services:
     build:
       context: .
       dockerfile: apps/core/Dockerfile
-    image: offline-pi-core
-    container_name: offline-pi-core
+    image: outpost-core
+    container_name: outpost-core
     # Host networking and PID namespace so /proc/net/dev, /proc/1/mounts and
     # the process count describe the Pi, not the container.
     network_mode: host
@@ -68,8 +68,8 @@ services:
     build:
       context: .
       dockerfile: apps/maps/Dockerfile
-    image: offline-pi-maps
-    container_name: offline-pi-maps
+    image: outpost-maps
+    container_name: outpost-maps
     # runs as node (uid 1000); keep-id maps the host user onto it so the bind
     # mounts stay writable (needs x-podman.in_pod: false below)
     userns_mode: "keep-id:uid=1000,gid=1000"
@@ -96,8 +96,8 @@ services:
     build:
       context: .
       dockerfile: apps/knowledge/Dockerfile
-    image: offline-pi-knowledge
-    container_name: offline-pi-knowledge
+    image: outpost-knowledge
+    container_name: outpost-knowledge
     # runs as user (uid 1001), see maps
     userns_mode: "keep-id:uid=1001,gid=1001"
     network_mode: host
@@ -108,6 +108,8 @@ services:
       # --urlRootLocation, so its links point there); the web app's Library
       # screen is /library
       URL_ROOT: /svc/library
+      # resume downloads of the books selected on the Library screen on start
+      # (nothing is downloaded before something is selected)
       AUTO_SYNC: ${KNOWLEDGE_AUTO_SYNC:-true}
     volumes:
       - ${KNOWLEDGE_CONTENT_DIR:-./data/knowledge}:/data
@@ -124,8 +126,8 @@ services:
     build:
       context: .
       dockerfile: apps/mesh/Dockerfile
-    image: offline-pi-mesh
-    container_name: offline-pi-mesh
+    image: outpost-mesh
+    container_name: outpost-mesh
     network_mode: host
     environment:
       PORT: ${MESH_PORT:-8084}
@@ -150,29 +152,6 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
-
-  # -------------------------------------------------------------- mesh-map --
-  mesh-map:
-    build:
-      context: .
-      dockerfile: apps/mesh-map/Dockerfile
-    image: offline-pi-mesh-map
-    container_name: offline-pi-mesh-map
-    network_mode: host
-    environment:
-      PORT: ${MESH_MAP_PORT:-8086}
-      HOST: ${MODULES_BIND_ADDRESS:-127.0.0.1}
-    volumes:
-      # the maps module's data, read-only: region archives, fonts, sprites
-      - ${MAPS_DATA_DIR:-./data/maps}:/maps/data:ro
-      - ${MAPS_ASSETS_DIR:-./data/maps-assets}:/maps/assets:ro
-    restart: on-failure
-    healthcheck:
-      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:' + (process.env.PORT || 8086) + '/healthz').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))\""]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
 
 # userns_mode keep-id cannot be combined with a pod.
 x-podman:

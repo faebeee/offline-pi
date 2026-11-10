@@ -40,7 +40,7 @@ require_env() {
 }
 
 require_module() {
-  if [[ -z "${1:-}" ]] || ! all_modules | grep -qx "$1"; then
+  if [[ -z "${1:-}" ]] || ! is_module "$1"; then
     log_error "Unknown module '${1:-}'. Modules: $(all_modules | tr '\n' ' ')"
     exit 1
   fi
@@ -55,7 +55,7 @@ cmd_status() {
   printf '%-12s %-10s %s\n' MODULE INSTALLED STATE
   for m in core $(all_modules); do
     if [[ "$m" == core ]] || is_installed "$m"; then
-      state="$(podman ps -a --filter "name=^offline-pi-$m\$" --format '{{.Status}}' 2>/dev/null | head -n 1)"
+      state="$(podman ps -a --filter "name=^outpost-$m\$" --format '{{.Status}}' 2>/dev/null | head -n 1)"
       printf '%-12s %-10s %s\n' "$m" yes "${state:-no container (run ./start.sh)}"
     else
       printf '%-12s %-10s %s\n' "$m" no -
@@ -78,12 +78,12 @@ case "${1:-}" in
   logs)
     require_env
     if [[ -n "${2:-}" && "$2" != core ]]; then require_module "$2"; fi
-    podman logs -f "offline-pi-${2:-core}"
+    podman logs -f "outpost-${2:-core}"
     ;;
   help|-h|--help) usage ;;
   *)
     m="${1:-}"
-    if [[ -n "$m" ]] && all_modules | grep -qx "$m"; then
+    if [[ -n "$m" ]] && is_module "$m"; then
       require_env
       require_module "$m"
       shift

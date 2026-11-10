@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { layers, namedFlavor, type Flavor } from "@protomaps/basemaps";
-import type { Region, Theme } from "@offline-pi/maps-shared";
+import type { Region, Theme } from "@outpost/maps-shared";
 
 /**
  * The viewer's dark/light themes follow the Outpost UI tokens (DESIGN.md

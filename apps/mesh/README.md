@@ -9,11 +9,9 @@ LAN to:
 - send and receive direct messages to/from individual nodes, with delivery
   state (sending, sent to mesh, delivered, failed),
 - see which nodes are around: last heard, hops, signal, battery, distance,
-  and "Show on map": to the Mesh map screen (`/mesh-map`,
-  [`apps/mesh-map`](../mesh-map/README.md)) when installed, which shows
-  every node with a position on an offline map (updated live), otherwise to
-  Maps (`/maps`). Which one comes from core's module list; without either
-  the links are hidden.
+  and "Show on map": to Maps (`/maps?node=<id>`), which turns on its mesh
+  nodes layer (every node with a position, updated live) and opens that
+  node. Without Maps installed the links are hidden.
 
 The message history and node list are kept on the Pi (SQLite), so they
 survive restarts and are readable even while the radio is unplugged.
@@ -25,7 +23,7 @@ TCP API, no port forwarding or router config.
 
 ## Requirements
 
-- offline-pi installed with the `mesh` module (root `./install.sh`; see the
+- outpost installed with the `mesh` module (root `./install.sh`; see the
   root README for install, start and uninstall).
 - A Meshtastic node with USB serial, e.g. RAK WisBlock 4631, Seeed XIAO
   nRF52840 kit, Seeed Wio Tracker L1 Pro, Heltec V3, LilyGO T-Beam. nRF52
@@ -109,7 +107,7 @@ don't spam: `MESH_SEND_RATE_LIMIT` limits each browser.
 ## How it works
 
 - The service `mesh` in `compose.yml` in the repo root runs as container
-  `offline-pi-mesh` (image `localhost/offline-pi-mesh`) with host
+  `outpost-mesh` (image `localhost/outpost-mesh`) with host
   networking, bound to `127.0.0.1:MESH_PORT`.
 - Python: FastAPI + uvicorn, the official `meshtastic` library, SQLite.
   API only, no static files.

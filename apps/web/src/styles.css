@@ -1,12 +1,13 @@
 /* App-wide layout on top of the Outpost package (components, tokens and
-   fonts come from @offline-pi/ui/outpost.css; DESIGN.md). Feature styles
+   fonts come from @outpost/ui/outpost.css; DESIGN.md). Feature styles
    live next to their feature (src/features/<domain>/*.css). */
 
 #root {
   height: 100dvh;
 }
 
-.stack {
+/* a vertical list (not Outpost's .stack, the storage bar) */
+.vstack {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
@@ -36,7 +37,7 @@
 }
 
 /* module switches */
-.card-control .stack {
+.card-control .vstack {
   gap: 0;
 }
 
@@ -51,6 +52,11 @@
 .card-control .row-main {
   flex: 1;
   min-width: 0;
+}
+
+/* the hint is the instruction (./install.sh), so wrap it instead of cutting */
+.card-control .row-meta {
+  white-space: normal;
 }
 
 .card-control .help {

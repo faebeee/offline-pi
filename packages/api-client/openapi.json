@@ -740,28 +740,6 @@
         ]
       }
     },
-    "/api/mesh-map/overview": {
-      "get": {
-        "operationId": "meshMapOverview",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MeshMapOverview"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Regions to draw, map assets and every node with a position.",
-        "tags": [
-          "mesh-map"
-        ]
-      }
-    },
     "/api/library/books": {
       "get": {
         "operationId": "libraryBooks",
@@ -800,7 +778,91 @@
             }
           }
         },
-        "summary": "Whether books from zims.txt are being downloaded in the background, and how far.",
+        "summary": "Whether selected books are being downloaded in the background, and how far.",
+        "tags": [
+          "library"
+        ]
+      },
+      "post": {
+        "operationId": "libraryStartSync",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartSyncRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibrarySync"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Download missing selected books now (update: also newer versions). Runs in the background.",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/library/catalog": {
+      "get": {
+        "operationId": "libraryCatalog",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryCatalog"
+                }
+              }
+            }
+          }
+        },
+        "summary": "The books on offer, which are selected and which are installed.",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/library/selection": {
+      "put": {
+        "operationId": "librarySelect",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelectionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryCatalog"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Replace the selection: books no longer selected are deleted, newly\nselected ones download in the background (a running sync restarts).",
         "tags": [
           "library"
         ]
@@ -932,11 +994,100 @@
           "logs"
         ]
       }
+    },
+    "/api/info": {
+      "get": {
+        "operationId": "infoIndex",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfoIndex"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Every page in reading order, for the chapter navigation.",
+        "tags": [
+          "info"
+        ]
+      }
+    },
+    "/api/info/page": {
+      "get": {
+        "operationId": "infoPage",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": false,
+            "in": "query",
+            "description": "the page's slug; empty or missing = docs/README.md",
+            "schema": {
+              "maxLength": 300,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfoPage"
+                }
+              }
+            }
+          }
+        },
+        "summary": "One page's Markdown, with the pages before and after it.",
+        "tags": [
+          "info"
+        ]
+      }
+    },
+    "/api/info/search": {
+      "get": {
+        "operationId": "infoSearch",
+        "parameters": [
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "description": "at least 2 characters, case-insensitive, over titles and text",
+            "schema": {
+              "minLength": 2,
+              "maxLength": 100,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfoSearchResult"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Pages whose title or text contains every word of the query.",
+        "tags": [
+          "info"
+        ]
+      }
     }
   },
   "info": {
-    "title": "offline-pi",
-    "description": "The API of offline-pi: one domain per feature, under /api/<domain>/.",
+    "title": "outpost",
+    "description": "The API of outpost: one domain per feature, under /api/<domain>/.",
     "version": "1",
     "contact": {}
   },
@@ -971,7 +1122,7 @@
           },
           "container": {
             "type": "string",
-            "description": "podman container name, offline-pi-<service>"
+            "description": "podman container name, outpost-<service>"
           },
           "installed": {
             "type": "boolean"
@@ -1504,7 +1655,7 @@
           "app": {
             "type": "string",
             "nullable": true,
-            "description": "compose project, i.e. the offline-pi app directory"
+            "description": "compose project, i.e. the outpost app directory"
           },
           "service": {
             "type": "string",
@@ -2780,96 +2931,6 @@
           "text"
         ]
       },
-      "MapRegion": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "label": {
-            "type": "string"
-          },
-          "bbox": {
-            "description": "[minLon, minLat, maxLon, maxLat]",
-            "type": "array",
-            "items": {
-              "type": "number"
-            }
-          },
-          "minzoom": {
-            "type": "number"
-          },
-          "maxzoom": {
-            "type": "number"
-          },
-          "pmtilesUrl": {
-            "type": "string",
-            "description": "archive for the pmtiles:// protocol, under core's passthrough"
-          }
-        },
-        "required": [
-          "name",
-          "label",
-          "bbox",
-          "minzoom",
-          "maxzoom",
-          "pmtilesUrl"
-        ]
-      },
-      "MapAssets": {
-        "type": "object",
-        "properties": {
-          "glyphs": {
-            "type": "string",
-            "description": "MapLibre glyphs template, e.g. /svc/mesh-map/fonts/{fontstack}/{range}.pbf"
-          },
-          "spriteBase": {
-            "type": "string",
-            "description": "sprite base without theme, e.g. /svc/mesh-map/sprites/ (append \"light\" or \"dark\")"
-          }
-        },
-        "required": [
-          "glyphs",
-          "spriteBase"
-        ]
-      },
-      "MeshMapOverview": {
-        "type": "object",
-        "properties": {
-          "regions": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MapRegion"
-            }
-          },
-          "assets": {
-            "$ref": "#/components/schemas/MapAssets"
-          },
-          "meshRunning": {
-            "type": "boolean",
-            "description": "the mesh module runs; nodes is empty otherwise"
-          },
-          "ownNum": {
-            "type": "number",
-            "nullable": true,
-            "description": "our own node number (marks \"you\"), when the radio is connected"
-          },
-          "nodes": {
-            "description": "nodes with a position only",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MeshNode"
-            }
-          }
-        },
-        "required": [
-          "regions",
-          "assets",
-          "meshRunning",
-          "ownNum",
-          "nodes"
-        ]
-      },
       "Book": {
         "type": "object",
         "properties": {
@@ -2948,23 +3009,23 @@
         "type": "object",
         "properties": {
           "state": {
-            "type": "string",
             "description": "running = downloading or checking now; unknown = no status yet (never synced, or not readable)",
             "enum": [
               "running",
               "idle",
               "unknown"
-            ]
+            ],
+            "type": "string"
           },
           "phase": {
-            "type": "string",
             "nullable": true,
             "description": "while running: checking what's missing, fetching the Kiwix catalog, downloading a book",
             "enum": [
               "checking",
               "catalog",
               "downloading"
-            ]
+            ],
+            "type": "string"
           },
           "file": {
             "type": "string",
@@ -2983,25 +3044,25 @@
           },
           "index": {
             "type": "number",
-            "description": "position of the current book in zims.txt (1-based), 0 when none"
+            "description": "position of the current book in the selection (1-based), 0 when none"
           },
           "count": {
             "type": "number",
-            "description": "books in zims.txt"
+            "description": "selected books"
           },
           "failed": {
             "type": "number",
             "description": "books that failed in this run"
           },
           "result": {
-            "type": "string",
             "nullable": true,
             "description": "last finished run: ok, problems or interrupted",
             "enum": [
               "ok",
               "problems",
               "interrupted"
-            ]
+            ],
+            "type": "string"
           },
           "message": {
             "type": "string",
@@ -3031,6 +3092,121 @@
           "message",
           "startedAt",
           "updatedAt"
+        ]
+      },
+      "StartSyncRequest": {
+        "type": "object",
+        "properties": {
+          "update": {
+            "type": "boolean",
+            "description": "also download newer versions of installed books (old files stay until pruned)"
+          }
+        }
+      },
+      "CatalogBook": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Kiwix name: the ZIM file name without date suffix and \".zim\""
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "size": {
+            "type": "number",
+            "nullable": true,
+            "description": "bytes: the installed file's size, else the approximate download size; null when unknown"
+          },
+          "language": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO 639-3, when known"
+          },
+          "selected": {
+            "type": "boolean"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "downloading",
+              "installed",
+              "queued",
+              "missing",
+              "available"
+            ]
+          }
+        },
+        "required": [
+          "key",
+          "title",
+          "description",
+          "size",
+          "language",
+          "selected",
+          "state"
+        ]
+      },
+      "CatalogGroup": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "books": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogBook"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "books"
+        ]
+      },
+      "LibraryCatalog": {
+        "type": "object",
+        "properties": {
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CatalogGroup"
+            }
+          },
+          "freeBytes": {
+            "type": "number",
+            "nullable": true,
+            "description": "bytes free in KNOWLEDGE_CONTENT_DIR, null when unknown"
+          }
+        },
+        "required": [
+          "groups",
+          "freeBytes"
+        ]
+      },
+      "SelectionRequest": {
+        "type": "object",
+        "properties": {
+          "keys": {
+            "description": "Kiwix names, e.g. \"wikipedia_en_medicine_maxi\"",
+            "maxItems": 500,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,199}$"
+            }
+          }
+        },
+        "required": [
+          "keys"
         ]
       },
       "SearchHit": {
@@ -3219,6 +3395,159 @@
           "available",
           "error",
           "entries"
+        ]
+      },
+      "InfoEntry": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "description": "URL path of the page: the file path without numeric prefixes, \".md\" and\n\"README\" (\"02-installation/01-install.md\" -> \"installation/install\",\n\"README.md\" -> \"\")"
+          },
+          "title": {
+            "type": "string",
+            "description": "the first \"# \" heading, else the file name"
+          },
+          "depth": {
+            "type": "number",
+            "description": "0 = docs/README.md, 1 = a chapter, 2 = a page of a chapter, ..."
+          },
+          "file": {
+            "type": "string",
+            "description": "path relative to docs/, e.g. \"02-installation/01-install.md\""
+          }
+        },
+        "required": [
+          "slug",
+          "title",
+          "depth",
+          "file"
+        ]
+      },
+      "InfoIndex": {
+        "type": "object",
+        "properties": {
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InfoEntry"
+            }
+          },
+          "root": {
+            "type": "string",
+            "description": "where the files are, for \"read them without the app\" hints"
+          },
+          "version": {
+            "type": "string",
+            "nullable": true,
+            "description": "the app's version (root package.json), e.g. \"0.1.0\"; null if unknown"
+          },
+          "changelog": {
+            "type": "string",
+            "nullable": true,
+            "description": "slug of the changelog page (docs/07-changelog.md), null if missing"
+          }
+        },
+        "required": [
+          "entries",
+          "root",
+          "version",
+          "changelog"
+        ]
+      },
+      "InfoPage": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string"
+          },
+          "markdown": {
+            "type": "string",
+            "description": "the file's Markdown, unchanged"
+          },
+          "prev": {
+            "nullable": true,
+            "description": "the pages before and after in reading order",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InfoEntry"
+              }
+            ]
+          },
+          "next": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InfoEntry"
+              }
+            ]
+          },
+          "trail": {
+            "description": "the chapters above this page, outermost first (no docs/README.md)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InfoEntry"
+            }
+          }
+        },
+        "required": [
+          "slug",
+          "title",
+          "file",
+          "markdown",
+          "prev",
+          "next",
+          "trail"
+        ]
+      },
+      "InfoSearchHit": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string"
+          },
+          "snippet": {
+            "type": "string",
+            "description": "the first line that matches, as plain text"
+          }
+        },
+        "required": [
+          "slug",
+          "title",
+          "file",
+          "snippet"
+        ]
+      },
+      "InfoSearchResult": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          },
+          "hits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InfoSearchHit"
+            }
+          }
+        },
+        "required": [
+          "query",
+          "hits"
         ]
       },
       "LogBatch": {

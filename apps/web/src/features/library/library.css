@@ -1,4 +1,4 @@
-/* Library: layout only, tokens only (components from @offline-pi/ui). */
+/* Library: layout only, tokens only (components from @outpost/ui). */
 
 .lib-search {
   display: flex;
@@ -105,7 +105,7 @@
   background: var(--bg);
 }
 
-/* background sync (zims.txt downloads) */
+/* background sync (downloads of the selected books) */
 .lib-sync {
   display: flex;
   flex-direction: column;
@@ -127,4 +127,63 @@
 
 .lib-sync .help {
   margin: 0;
+}
+
+/* book selection (/library/catalog) */
+.lib-pick {
+  align-items: flex-start;
+}
+
+.lib-pick input {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  margin: 2px 0 0;
+  accent-color: var(--acc);
+}
+
+.lib-pick .row-meta {
+  text-transform: none;
+}
+
+.lib-pick-desc {
+  white-space: normal;
+}
+
+.lib-pick-side {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-1);
+}
+
+/* stays in view at the bottom of the content while scrolling */
+.lib-apply {
+  position: sticky;
+  z-index: 1;
+  bottom: var(--space-3);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.lib-apply-text {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 220px;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lib-apply-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.lib-apply .banner {
+  flex: 1 1 100%;
 }

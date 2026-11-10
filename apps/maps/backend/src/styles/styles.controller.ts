@@ -1,6 +1,6 @@
 import { BadRequestException, Controller, Get, NotFoundException, Param, Query, Req } from "@nestjs/common";
 import type { Request } from "express";
-import { isTheme } from "@offline-pi/maps-shared";
+import { isTheme } from "@outpost/maps-shared";
 import { RegistryService } from "../regions/registry.service.ts";
 import { StyleService } from "./style.service.ts";
 import { publicBase } from "../common/public-base.ts";

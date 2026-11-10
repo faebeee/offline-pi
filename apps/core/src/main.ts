@@ -35,8 +35,8 @@ async function bootstrap() {
   app.useGlobalFilters(new ErrorsFilter(app.getHttpAdapter()));
   SwaggerModule.setup('api/docs', app, () => buildOpenApi(app), { jsonDocumentUrl: 'api/openapi.json' });
 
-  // /ui/: the shared Outpost package (@offline-pi/ui)
-  const uiDir = dirname(require.resolve('@offline-pi/ui/package.json'));
+  // /ui/: the shared Outpost package (@outpost/ui)
+  const uiDir = dirname(require.resolve('@outpost/ui/package.json'));
   app.useStaticAssets(uiDir, { prefix: '/ui/', redirect: true });
 
   // /: the web app (apps/web), with client-side routes
@@ -45,7 +45,7 @@ async function bootstrap() {
   const host = process.env.HOST ?? '0.0.0.0';
   const port = Number(process.env.PORT) || 8080;
   await app.listen(port, host);
-  Logger.log(`offline-pi on http://${host}:${port}`, 'core');
+  Logger.log(`outpost on http://${host}:${port}`, 'core');
 }
 
 void bootstrap();

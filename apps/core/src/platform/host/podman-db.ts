@@ -9,7 +9,7 @@ export interface PodmanContainer {
   id: string;
   name: string;
   image: string | null;
-  project: string | null; // compose project (= offline-pi app directory)
+  project: string | null; // compose project (= outpost app directory)
   service: string | null;
   state: string;
   pid: number | null;

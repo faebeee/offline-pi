@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
-# lib/modules/knowledge.sh - Kiwix library (apps/knowledge). The ZIM set
-# is defined in apps/knowledge/zims.txt; downloads run in the container.
+# lib/modules/knowledge.sh - Kiwix library (apps/knowledge). Which books to
+# download is chosen on the Library screen of the web app (stored in
+# selection.txt in the content dir); downloads run in the container.
 
-KNOWLEDGE_CONTAINER="offline-pi-knowledge"
+KNOWLEDGE_CONTAINER="outpost-knowledge"
 
 knowledge_configure() {
   local old new
   old="$(get_env KNOWLEDGE_CONTENT_DIR)"; old="${old:-./data/knowledge}"
-  new="$(prompt_dir "Library: where should the ZIM files be stored (tens of GB)?" "$old")"
+  new="$(prompt_dir "Library: where should the books be stored (you choose them later in the web app; up to hundreds of GB)?" "$old")"
   resync_dir "$old" "$new" "library content"
   set_env KNOWLEDGE_CONTENT_DIR "$new"
   mkdir -p "$new/zim"
@@ -16,9 +17,9 @@ knowledge_configure() {
 knowledge_usage() {
   cat <<USAGE
   knowledge list              installed ZIMs, which are served, what's missing
-  knowledge sync              download missing entries of zims.txt
+  knowledge sync              download missing selected books (choose them on the Library screen)
   knowledge update            download newer versions (old ones kept until prune)
-  knowledge prune             delete outdated / unlisted ZIMs (asks first)
+  knowledge prune             delete outdated / unselected ZIMs (asks first)
 USAGE
 }
 
@@ -42,7 +43,7 @@ knowledge_manage() {
       log_info "Old versions are kept but no longer served; './manage.sh knowledge prune' removes them."
       ;;
     prune)
-      local plan reply
+      local plan
       plan="$(knowledge_exec prune --dry-run)"
       if [[ -z "$plan" ]]; then
         log_ok "Nothing to prune."
@@ -50,8 +51,7 @@ knowledge_manage() {
       fi
       echo "These files would be deleted (relative to $(get_env KNOWLEDGE_CONTENT_DIR)):"
       echo "$plan" | sed 's/^/  /'
-      read -r -p "Delete them? This cannot be undone. [y/N] " reply
-      if [[ ! "$reply" =~ ^[Yy] ]]; then
+      if ! ui_confirm "Delete them? This cannot be undone." n; then
         log_warn "Cancelled; nothing was deleted."
         return
       fi

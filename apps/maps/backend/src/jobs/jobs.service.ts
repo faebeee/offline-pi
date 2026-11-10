@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { ConflictException, Injectable, Logger, NotFoundException, type OnApplicationBootstrap } from "@nestjs/common";
-import type { Job, JobType } from "@offline-pi/maps-shared";
+import type { Job, JobType } from "@outpost/maps-shared";
 import type { Observable } from "rxjs";
 import { PATHS } from "../config/paths.ts";
 import { RegistryService } from "../regions/registry.service.ts";

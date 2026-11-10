@@ -4,7 +4,7 @@ import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 /**
  * Models that only travel over Socket.IO (event payloads). OpenAPI has no
  * place for them in a path, so they are added as extra schemas: the web
- * app gets their types from @offline-pi/api-client like every other DTO.
+ * app gets their types from @outpost/api-client like every other DTO.
  * Each domain's *.events.ts registers its own.
  */
 const eventModels = new Set<Type<unknown>>();
@@ -23,8 +23,8 @@ const ucfirst = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
  */
 export function buildOpenApi(app: INestApplication): OpenAPIObject {
   const config = new DocumentBuilder()
-    .setTitle('offline-pi')
-    .setDescription('The API of offline-pi: one domain per feature, under /api/<domain>/.')
+    .setTitle('outpost')
+    .setDescription('The API of outpost: one domain per feature, under /api/<domain>/.')
     .setVersion('1')
     .build();
   return SwaggerModule.createDocument(app, config, {

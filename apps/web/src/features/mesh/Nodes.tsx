@@ -1,8 +1,8 @@
-import type { MeshNode } from "@offline-pi/api-client";
-import { ago, coords, distance } from "@offline-pi/ui/outpost.js";
+import type { MeshNode } from "@outpost/api-client";
+import { ago, coords, distance } from "@outpost/ui/outpost.js";
 import { Link, useRouter } from "@tanstack/react-router";
 import { Fragment, useState, type ReactNode } from "react";
-import { Icon } from "../../ui/outpost";
+import { Icon, Illustration } from "../../ui/outpost";
 import { useModules } from "../modules/useModules";
 import { batteryText, distanceM, hex, hopsText } from "./format";
 import { useMesh, useTick } from "./useMesh";
@@ -15,15 +15,13 @@ export function Nodes() {
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   useTick();
 
-  // the Mesh map module (all nodes, this one opened) if installed, else Maps
-  // centred on the position; the hash is the map camera in both
+  // Maps with the mesh nodes layer on and this node opened; the hash is the
+  // map camera
   const mapLink = (n: MeshNode): string | null => {
     if (n.latitude == null || n.longitude == null) return null;
     const camera = `#14/${n.latitude.toFixed(5)}/${n.longitude.toFixed(5)}`;
-    const meshMap = modules.find((m) => m.id === "mesh-map");
-    if (meshMap) return `${meshMap.path}?node=${encodeURIComponent(n.nodeId || hex(n.num))}${camera}`;
     const maps = modules.find((m) => m.id === "maps");
-    return maps ? `${maps.path}${camera}` : null;
+    return maps ? `${maps.path}?node=${encodeURIComponent(n.nodeId || hex(n.num))}${camera}` : null;
   };
 
   const me = mesh.status.nodeNum != null ? mesh.nodes.get(mesh.status.nodeNum) : undefined;
@@ -43,7 +41,7 @@ export function Nodes() {
     <section className="mesh-nodes grid-bg" role="tabpanel" aria-labelledby="mesh-tab-nodes">
       {nodes.length === 0 ? (
         <div className="empty">
-          <Icon name="nodes" />
+          <Illustration name="mesh" />
           <p className="empty-title">No nodes heard yet</p>
           <p>Nodes appear here as soon as the radio hears them. That can take a few minutes after start-up.</p>
         </div>

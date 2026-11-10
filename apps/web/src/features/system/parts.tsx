@@ -1,4 +1,4 @@
-import { STATUS, type StatusState } from "@offline-pi/ui/outpost.js";
+import { STATUS, type StatusState } from "@outpost/ui/outpost.js";
 import { Fragment, type ReactNode } from "react";
 import { Badge, Icon } from "../../ui/outpost";
 import { SEV_LABEL, TONE, type Level } from "./format";

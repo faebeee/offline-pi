@@ -1,6 +1,6 @@
-# AGENTS.md: conventions for offline-pi
+# AGENTS.md: conventions for outpost
 
-offline-pi is **one app** meant to run offline on a host like a Raspberry Pi:
+outpost is **one app** meant to run offline on a host like a Raspberry Pi:
 one Podman Compose project, one set of scripts, one `.env`, one port. It is
 made of **modules** (maps, library, mesh, ...), each a container behind
 **core**. Core is the **one API** (NestJS, one domain module per feature)
@@ -13,7 +13,8 @@ touching the scripts.
 ## Layout
 
 ```
-compose.yml              # the whole stack, project "offline-pi"
+compose.yml              # the whole stack, project "outpost"
+compose.macos.yml        # added on macOS (lib/common.sh): what the remote API lacks
 .env.example             # checked in; documents every var
 .env                     # gitignored; written by install.sh only
 install.sh               # choose + configure modules, build, then start.sh
@@ -22,11 +23,14 @@ update.sh                # git pull a new version, then start.sh --pull
 manage.sh                # status, start/stop, logs, module commands
 uninstall.sh             # remove containers/images; data only on confirmation
 lib/common.sh            # log helpers, compose wrapper, .env helpers
+lib/ui.sh                # prompts: inputs, menus, checkboxes, spinner (ui_*)
+lib/platform.sh          # Linux/macOS differences, Bash 3.2 stand-ins
+lib/install.sh           # install.sh's steps (host check, basics, modules)
 lib/storage.sh           # prompt_dir / resync_dir (relocatable data)
 lib/serial.sh            # USB serial device picker (mesh)
 lib/modules.sh           # module registry for the scripts, hooks, core_api
-lib/migrate.sh           # adopts the old per-app layout (apps/*/.env)
-lib/update.sh            # update.sh: git checks, incoming changes, new settings
+lib/migrate.sh           # adopts the old per-app layout, offline-pi -> outpost
+lib/update.sh            # update.sh: git checks, versions, incoming changes, new settings
 lib/modules/<name>.sh    # per-module hooks (configure, prepare, manage, ...)
 package.json             # npm workspaces root (apps/*, apps/maps/*, packages/*)
 package-lock.json        # the one lockfile of every JS workspace
@@ -36,29 +40,30 @@ tsconfig.base.json       # shared TypeScript base config
 apps/<name>/             # one module: Dockerfile, code, module.json, README
 apps/core/               # the API (domains), passthrough, supervisor (always on)
 apps/logs/               # a screen served by core: module.json + README only
+apps/info/               # the docs screen, served by core (reads docs/)
 apps/web/                # the web app: every screen of every module
 apps/maps/backend/       # a module's container code (API, data, jobs)
-packages/ui/             # @offline-pi/ui: Outpost design system (DESIGN.md)
-packages/api-client/     # @offline-pi/api-client: generated from core's OpenAPI
-packages/maps-shared/    # @offline-pi/maps-shared: maps container contract
+packages/ui/             # @outpost/ui: Outpost design system (DESIGN.md)
+packages/api-client/     # @outpost/api-client: generated from core's OpenAPI
+packages/maps-shared/    # @outpost/maps-shared: maps container contract
 host/hotspot-pi/         # host-level utility, no container (see below)
+docs/                    # the documentation (Markdown chapters), shown by Info
 data/                    # gitignored default home of every *_DIR
 ```
 
 ## Monorepo (npm workspaces + Turborepo)
 
-- JS workspaces are named `@offline-pi/<name>` and depend on each other with
-  `"*"` (e.g. `"@offline-pi/ui": "*"`). Install once at the root
+- JS workspaces are named `@outpost/<name>` and depend on each other with
+  `"*"` (e.g. `"@outpost/ui": "*"`). Install once at the root
   (`npm install`); never add a lockfile inside a workspace.
 - Every workspace with code has `build` (output in `dist/`), `typecheck`
   and, where it makes sense, `dev` scripts. `turbo.json` orders them
   (`^build` first), so `npm run build`, `npm run typecheck` and
   `npx turbo run dev --filter=<workspace>` work from the root.
-- Modules without a JS build (mesh: Python, knowledge: kiwix, mesh-map: a
-  dependency-free `server.mjs`) live in `apps/` without a `package.json`;
-  npm and turbo ignore them.
-- `@offline-pi/core` depends on `@offline-pi/web`, so `turbo prune
-  @offline-pi/core` and `turbo run build --filter=@offline-pi/core` include
+- Modules without a JS build (mesh: Python, knowledge: kiwix) live in
+  `apps/` without a `package.json`; npm and turbo ignore them.
+- `@outpost/core` depends on `@outpost/web`, so `turbo prune
+  @outpost/core` and `turbo run build --filter=@outpost/core` include
   the web app; core's image serves its `dist/`. The web app's packages are
   all `devDependencies` (Vite bundles them), so core's runtime image doesn't
   install them.
@@ -82,9 +87,9 @@ browser ──> core :8080
             ├─ /api/<domain>/*   core's API, one Nest domain module per feature
             ├─ /api/docs         Swagger UI (/api/openapi.json)
             ├─ /socket.io        live updates, one namespace per domain
-            ├─ /ui/              @offline-pi/ui
+            ├─ /ui/              @outpost/ui
             └─ /svc/<module>/*   passthrough to a module's raw files
-core ──HTTP/WS──> maps :8081 · knowledge :8082 · mesh :8084 · mesh-map :8086
+core ──HTTP/WS──> maps :8081 · knowledge :8082 · mesh :8084
 ```
 
 - **core** (`apps/core`, NestJS) is the only service the LAN reaches, on
@@ -167,19 +172,19 @@ apps/core/src/domains/<name>/
    domain: also its `<name>.module.ts` in `src/app.module.ts`.
 2. `npm run api:gen`.
 3. In `apps/web`: use the generated hook (`useXxx()` from
-   `@offline-pi/api-client`) in `src/features/<name>/`, and a route in
+   `@outpost/api-client`) in `src/features/<name>/`, and a route in
    `src/routes/` if it is a new screen.
 
-A feature may combine domains (e.g. mesh-map's overview uses the mesh
-domain's client): import the other domain's Nest module and inject its
-exported client or service. Never call another module's container from the
-browser.
+A feature may combine domains: import the other domain's Nest module and
+inject its exported client or service. A screen may also use another
+domain's hooks (Maps' mesh nodes layer uses `useMeshNodes()` and the `/mesh`
+namespace). Never call another module's container from the browser.
 
 ## Adding a module
 
 1. `apps/<name>/` with a `Dockerfile` and the code. `<name>` is the
-   compose service name, the container is `offline-pi-<name>`. A JS module
-   is a workspace (`package.json` named `@offline-pi/<name>`, or nested
+   compose service name, the container is `outpost-<name>`. A JS module
+   is a workspace (`package.json` named `@outpost/<name>`, or nested
    workspaces like `apps/maps/backend`, added to the root `workspaces`);
    run `npm install` at the root to update the lockfile.
 2. `apps/<name>/module.json`, **one key per line** (the shell scripts
@@ -224,7 +229,7 @@ browser.
 4. Its settings in `.env.example`, prefixed with the module name
    (`RADIO_PORT`, `RADIO_DATA_DIR`, ...), with the next free internal port.
 5. Optional `lib/modules/<name>.sh` with hooks (dashes in the name become
-   underscores, e.g. `mesh_map_configure`):
+   underscores, e.g. `field_radio_configure`):
    - `<name>_configure`: install.sh, every run while installed: prompts,
      storage (`prompt_dir` + `resync_dir` + `set_env`), device checks.
    - `<name>_prepare`: before every build (install.sh, start.sh), for files
@@ -237,7 +242,9 @@ browser.
    domains") and its screen in the web app (`apps/web/src/routes/<path>.tsx`
    + `src/features/<name>/`, see "Web UI"). The container itself serves no
    UI.
-7. A row in the root `README.md` module table and an `apps/<name>/README.md`.
+7. A row in the root `README.md` module table and an `apps/<name>/README.md`,
+   plus its user page in `docs/03-modules/` and a row in the module table
+   of `docs/01-overview/README.md`.
 8. Images and `*_DIR` vars in `uninstall.sh`'s config block.
 
 ## Scripts
@@ -252,21 +259,30 @@ ROOT_DIR="$SCRIPT_DIR"
 
 then sources `lib/common.sh` (and what else it needs).
 
-- **`install.sh`**: idempotent. Checks/offers to install podman and a
-  compose backend (`ensure_podman`); creates `.env` from `.env.example` and
-  asks for `PORT`/`BIND_ADDRESS` on first run only; adopts old `apps/*`
-  installs (`migrate_old_apps`); asks which modules to install (every run,
-  current choice as default); runs `core_configure` and each module's
-  configure hook; detects the vcio device, Podman's storage root and socket
-  (enables `podman.socket`); builds; runs post-build hooks;
-  `ensure_autostart`; ends by `exec`'ing `start.sh`.
+- **`install.sh`** `[--yes] [--plain] [--verbose]`: idempotent, five
+  steps. 1. System check: offers to install podman and a compose backend
+  (`ensure_podman`: apt/dnf, Homebrew on macOS plus the Podman machine);
+  creates `.env` from `.env.example`; adopts old `apps/*` installs
+  (`migrate_old_apps`); detects the vcio device, Podman's storage root and
+  socket (enables `podman.socket`). 2. Web app: `PORT`, `BIND_ADDRESS`,
+  `CONTROL_PIN` on the first run, later only if the user wants to change
+  them. 3. Which modules to install (checkboxes, current choice as default).
+  4. `core_configure` and each module's configure hook. 5. A summary and a
+  confirmation, then builds (one `ui_run` per image, output in
+  `install.log`), runs post-build hooks, `ensure_autostart` and ends by
+  `exec`'ing `start.sh`.
 - **`start.sh`**: requires `.env` (`log_error "Run ./install.sh first."`,
   never prompts). Checks every `*_DIR` exists, runs prepare hooks, builds,
   `compose up -d --no-start --force-recreate <modules>`, removes containers
-  of modules no longer installed, then `compose up -d --force-recreate core`
+  of modules no longer installed and the containers and images of retired
+  modules (`retired_modules` in `lib/modules.sh`, e.g. mesh-map, merged
+  into maps), then `compose up -d --force-recreate core`
   (core starts the modules). `--force-recreate` is required: podman-compose
   only replaces a container when the compose config changed, not the image.
-  Prints the local + LAN URL.
+  On macOS it starts the Podman machine if needed and forwards `PORT` from
+  the Mac into it (`macos_expose_port`). Waits until core answers, then
+  prints the local + LAN URL. Output of the steps goes to `start.log` (or
+  `install.log` when run by install.sh).
   `./start.sh --pull` also pulls newer base images, `--no-cache` ignores
   the layer cache.
 - **`update.sh`** `[--check] [--yes] [--clean] [--rebuild]`: installs a new
@@ -284,7 +300,7 @@ then sources `lib/common.sh` (and what else it needs).
   Destructive commands confirm first and never silently delete data.
 - **`uninstall.sh`** `[--purge] [--yes]`: works with or without `.env` and
   without Podman. Shows what it will do, asks once (default no). Always
-  removes containers (`compose down` plus any `offline-pi-*` left) and the
+  removes containers (`compose down` plus any `outpost-*` left) and the
   images. Every `*_DIR` is **kept by default**, shown with its size and only
   deleted after its own confirmation (or `--purge`); never `/`, `$HOME`,
   mount roots or anything containing the checkout. `.env` is removed only
@@ -294,8 +310,10 @@ then sources `lib/common.sh` (and what else it needs).
 - Only `install.sh` writes `.env` (`set_env`); `start.sh`/`manage.sh` read
   it. Core writes only `CORE_DATA_DIR/modules.json`.
 - Every compose call goes through `compose` in `lib/common.sh`, which adds
-  `-p offline-pi -f compose.yml --env-file .env` and prefers `podman compose`
-  over `podman-compose`.
+  `-p outpost -f compose.yml --env-file .env` and prefers `podman compose`
+  over `podman-compose`. On macOS it always uses `podman-compose` (`podman
+  compose` may hand over to Docker Compose, which resolves bind mounts such
+  as `/` on the Mac, not in the VM) and adds `-f compose.macos.yml`.
 
 ### Logging & prompts
 
@@ -306,8 +324,27 @@ log_error() { printf '\033[1;31m[error]\033[0m %s\n' "$*" >&2; }
 log_ok()    { printf '\033[1;32m✔\033[0m %s\n' "$*"; }
 ```
 
-Plain `read -r -p` prompts with the default in brackets. Put logic in
-`lib/*.sh` rather than growing the entry scripts.
+Prompts go through `lib/ui.sh` (sourced by `lib/common.sh`), never a bare
+`read`: `ui_input QUESTION DEFAULT [VALIDATOR]`, `ui_confirm QUESTION y|n`,
+`ui_select QUESTION DEFAULT "value|label|hint"...`, `ui_multiselect
+QUESTION "value|label|hint|on"...` (answers in `UI_REPLY`), `ui_run MESSAGE
+CMD...` for long steps (spinner, output to `UI_LOG`, its end shown on
+failure; stdin is `/dev/null`, so nothing run by it may prompt). They draw on
+stderr, so they work inside `$(...)`, fall back to plain `read` prompts
+without a terminal (or `UI_PLAIN=true`, `--plain`) and take every default
+with `UI_ASSUME_YES=true` (`--yes`). Put logic in `lib/*.sh` rather than
+growing the entry scripts.
+
+### Portability (Raspberry Pi OS and macOS)
+
+The scripts run on a Pi/Linux and on a Mac, whose `/bin/bash` is 3.2 and
+whose tools are BSD. Check with `/bin/bash -n` and avoid: `mapfile`/
+`readarray` (`read_lines` in `lib/platform.sh`), associative arrays
+(`declare -A`; use `case` functions), `${var,,}`, namerefs, fractional
+`read -t`, `sed -i` (`set_env` uses awk), `stat -c` (`file_group`),
+`hostname -I` (`lan_ip`). Branch on `is_macos` / `is_pi` for host
+specifics (apt vs brew, systemd, devices). Never `producer | grep -q` under
+`pipefail`: grep exiting early fails the pipeline at random.
 
 ## Podman, not Docker
 
@@ -315,11 +352,17 @@ Plain `read -r -p` prompts with the default in brackets. Put logic in
   `docker`/`docker-compose`.
 - Rootless Podman. `podman-restart.service` (enabled by `ensure_autostart`,
   plus lingering) brings core back after a reboot; core brings the modules.
+- macOS (development): Podman runs in a VM (`podman machine`). The
+  containers' host network, `/`, the Podman socket and storage root
+  (`PODMAN_*` in `.env`) are the VM's; `*_DIR`s must be under a path the
+  machine shares (`/Users`); no USB devices. A setting Linux needs that the
+  remote API rejects goes into `compose.macos.yml` (e.g.
+  `group_add: !reset []`), not into `compose.yml`.
 
 ### Compose rules (`compose.yml`)
 
 - `build: { context: ., dockerfile: apps/<name>/Dockerfile }`,
-  `image: offline-pi-<name>`, `container_name: offline-pi-<name>`; or a
+  `image: outpost-<name>`, `container_name: outpost-<name>`; or a
   pinned upstream image. The context is always the repo root (see
   "Monorepo"), so `COPY` paths in a Dockerfile start at the root
   (`COPY apps/<name>/app/ app/`).
@@ -352,7 +395,7 @@ the SD card.
 
 - `compose.yml`: `- ${MAPS_DATA_DIR:-./data/maps}:/app/data`.
 - `.env.example`: a comment per dir saying what grows there and to point it
-  at the SSD (e.g. `/mnt/ssd/offline-pi/maps`).
+  at the SSD (e.g. `/mnt/ssd/outpost/maps`).
 - The module's configure hook re-prompts it on **every** `install.sh` run
   (`prompt_dir`, default = current value): expands to an absolute path,
   `mkdir -p`, checks it is writable, fails fast if not (SSD not mounted).
@@ -365,10 +408,10 @@ the SD card.
 
 ## Web UI: one app, the Outpost design system
 
-There is one UI: `apps/web` (`@offline-pi/web`), Vite + React + TanStack
+There is one UI: `apps/web` (`@outpost/web`), Vite + React + TanStack
 Router (file routes) + TanStack Query, built into core's image and served
 at `/`. It follows [`DESIGN.md`](DESIGN.md) and builds on
-[`packages/ui`](packages/ui/README.md) (`@offline-pi/ui`: tokens,
+[`packages/ui`](packages/ui/README.md) (`@outpost/ui`: tokens,
 self-hosted fonts, icon sprite, components, `outpost.js`), bundled by Vite.
 Don't restyle components per feature; add missing ones to `packages/ui` with
 tokens only and note them in the `DESIGN.md` changelog.
@@ -382,7 +425,7 @@ apps/web/src/
   ui/outpost.tsx        # React wrappers for the Outpost package
 ```
 
-- **Data only through `@offline-pi/api-client`**: generated hooks for REST
+- **Data only through `@outpost/api-client`**: generated hooks for REST
   (`useMapsRegions()`, ...), `useSocketEvent("/<domain>", ...)`
   (`src/app/realtime.ts`) for live updates, updating the Query cache. No
   hand-written `fetch` to `/api`, never a module's container directly; raw
@@ -401,8 +444,39 @@ apps/web/src/
 
 ## Documentation
 
-- Root `README.md`: what offline-pi is, quick start (`git clone`,
+- `docs/`: the project documentation, for users and developers, in
+  chapters (`docs/NN-chapter/README.md` + `NN-page.md`). Plain Markdown
+  that reads well without the app; the Info module renders it. Relative
+  links to other `.md` files in `docs/` only, one `# ` title per file, no
+  raw HTML. A change to a feature, setting, command or module updates its
+  page here too (see `docs/06-development/09-documentation.md`).
+- `docs/07-changelog.md`: the changelog (see "Versioning & changelog").
+- Root `README.md`: what outpost is, quick start (`git clone`,
   `./install.sh`), the module table (path, internal port, description), the
   `.env` table, `manage.sh` usage, uninstall.
 - `apps/<name>/README.md`: what the module does, its settings and
   `manage.sh <name>` commands, its architecture and development notes.
+
+## Versioning & changelog
+
+One version for the whole app: `version` in the root `package.json`
+(SemVer). The changelog is `docs/07-changelog.md` (shown by Info, linked
+from the root README). Details: `docs/06-development/10-releases.md`.
+
+- **Every change keeps the changelog current.** Add one line per notable
+  change under `## Unreleased`, in `### Added` / `### Changed` /
+  `### Fixed` / `### Removed`, in the same change as the code. Write for
+  the person running outpost (what changed, what they must do); no commit
+  hashes. Pure refactorings and docs-only edits need no line.
+- **Never make a release on your own.** No version bump, no dated
+  changelog section, no tag, unless the maintainer explicitly asks for a
+  new version. Collecting lines under `## Unreleased` is not a release.
+- **When asked for a release**: pick the version from the unreleased
+  changes (or use the one given), rename `## Unreleased` to
+  `## <version> (<YYYY-MM-DD>)` and add a fresh empty `## Unreleased`
+  ("Nothing yet.") above it, check the list against
+  `git log v<last>..HEAD`, set `version` in the root `package.json`, run
+  `npm install` (lockfile), commit as `Release <version>`. Tag
+  (`git tag -a v<version>`) and push only when asked.
+- Workspace `package.json` versions (`apps/*`, `packages/*`) are not the
+  app's version; leave them alone.

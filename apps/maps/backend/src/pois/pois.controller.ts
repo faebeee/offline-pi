@@ -14,7 +14,7 @@ import type {
   Poi,
   PoisResponse,
   UpdatePoiRequest,
-} from "@offline-pi/maps-shared";
+} from "@outpost/maps-shared";
 import { parseBbox, PoisService } from "./pois.service.ts";
 
 @Controller("api/pois")

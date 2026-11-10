@@ -1,6 +1,6 @@
 {
   "id": "knowledge",
-  "num": 4,
+  "num": 3,
   "label": "Library",
   "icon": "library",
   "description": "Offline Wikipedia, medical and survival guides (Kiwix).",

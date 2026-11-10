@@ -1,5 +1,5 @@
-import type { MeshMessage } from "@offline-pi/api-client";
-import { ago, utcDate, utcTime } from "@offline-pi/ui/outpost.js";
+import type { MeshMessage } from "@outpost/api-client";
+import { ago, utcDate, utcTime } from "@outpost/ui/outpost.js";
 import { Fragment, useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
 import { Icon } from "../../ui/outpost";
 import { BROADCAST, dividerLabel, hex, hopsText, parseConv, type Names } from "./format";

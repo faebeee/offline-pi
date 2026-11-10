@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Injectable } from "@nestjs/common";
-import type { Bbox, Region } from "@offline-pi/maps-shared";
+import type { Bbox, Region } from "@outpost/maps-shared";
 import { PATHS } from "../config/paths.ts";
 
 type RegistryFile = { regions: Region[] };

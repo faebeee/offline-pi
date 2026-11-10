@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# update.sh - install a new version of offline-pi: pull it from git, then
+# update.sh - install a new version of outpost: pull it from git, then
 # rebuild every image (with fresh base images) and recreate every container.
 # Data and settings (.env) are kept; settings a new version adds are listed
 # with their defaults.
@@ -36,7 +36,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ ! -f "$ENV_FILE" ]]; then
-  log_error "offline-pi is not installed here yet: run ./install.sh."
+  log_error "outpost is not installed here yet: run ./install.sh."
   exit 1
 fi
 
@@ -44,13 +44,14 @@ fi
 # Runs from the freshly pulled update.sh, so a changed update procedure
 # applies to this very update.
 if [[ -n "$apply_from" ]]; then
-  mapfile -t new_settings < <(new_env_settings "$apply_from")
+  read_lines new_settings new_env_settings "$apply_from"
   start_flags=(--pull)
   [[ "$clean" == true ]] && start_flags+=(--no-cache)
   if [[ "$apply_from" != "$(git rev-parse HEAD)" ]]; then
     log_ok "Updated $(version "$apply_from") -> $(version HEAD)"
     echo "  Something wrong with the new version? Go back with:"
     echo "    git reset --hard $(git rev-parse --short "$apply_from") && ./start.sh"
+    echo "  What's new: docs/07-changelog.md, or Info > Changelog in the app."
   fi
   if [[ ${#new_settings[@]} -gt 0 ]]; then
     log_info "New settings in this version, using their defaults (see .env.example):"
@@ -72,12 +73,11 @@ if (( AHEAD > 0 && BEHIND > 0 )); then
 fi
 
 if (( BEHIND == 0 )); then
-  log_ok "offline-pi is up to date: $(version HEAD)."
+  log_ok "outpost is up to date: $(version HEAD)."
   [[ "$check" == true ]] && exit 0
   if [[ "$rebuild" != true ]]; then
     if [[ "$yes" == true ]]; then exit 0; fi
-    read -r -p "Rebuild and recreate every container anyway? [y/N] " answer
-    [[ "$answer" =~ ^[Yy] ]] || exit 0
+    ui_confirm "Rebuild and recreate every container anyway?" n || exit 0
   fi
   exec "$ROOT_DIR/update.sh" --apply "$(git rev-parse HEAD)" $([[ "$clean" == true ]] && echo --clean)
 fi
@@ -91,8 +91,7 @@ fi
 if [[ "$yes" != true ]]; then
   echo "The update rebuilds every image and recreates every container: the"
   echo "modules are unavailable for a few minutes. Data and settings are kept."
-  read -r -p "Install the update now? [Y/n] " answer
-  if [[ "$answer" =~ ^[Nn] ]]; then
+  if ! ui_confirm "Install the update now?" y; then
     log_info "Nothing changed."
     exit 0
   fi

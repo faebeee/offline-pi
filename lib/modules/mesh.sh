@@ -6,20 +6,24 @@
 # dashboard knows), run the meshtastic CLI in a one-off container from the
 # same image, then start it again.
 
-MESH_IMAGE="localhost/offline-pi-mesh:latest"
+MESH_IMAGE="localhost/outpost-mesh:latest"
 
 mesh_configure() {
-  local answer conn old new device host
+  local conn old new device host
   conn="$(get_env MESH_CONNECTION)"
   if [[ -z "$conn" ]]; then
-    read -r -p "Mesh: how is the node connected? (serial = USB, tcp = over the network) [serial]: " answer
-    conn="${answer:-serial}"
-    if [[ "$conn" != serial && "$conn" != tcp ]]; then
-      log_error "Answer 'serial' or 'tcp'."
-      exit 1
+    if is_macos; then
+      # the Podman machine can't reach the Mac's USB devices
+      ui_note "Mesh: on macOS the node must be reachable over the network (USB can't be passed to the Podman machine)."
+      conn=tcp
+    else
+      ui_select "Mesh: how is the Meshtastic node connected?" serial \
+        "serial|USB cable|plugged into this machine" \
+        "tcp|Network|Wi-Fi or Ethernet, by hostname or IP"
+      conn="$UI_REPLY"
     fi
-    read -r -p "Mesh: PIN for sending from the web UI (empty = no PIN) []: " answer
-    set_env MESH_SEND_PIN "$answer"
+    ui_input "Mesh: PIN for sending from the web UI (empty = no PIN)" ""
+    set_env MESH_SEND_PIN "$UI_REPLY"
   fi
 
   old="$(get_env MESH_DATA_DIR)"; old="${old:-./data/mesh}"
@@ -29,8 +33,8 @@ mesh_configure() {
 
   if [[ "$conn" == tcp ]]; then
     host="$(get_env MESH_HOST)"
-    read -r -p "Mesh: hostname or IP of the Meshtastic node [${host}]: " answer
-    host="${answer:-$host}"
+    ui_input "Mesh: hostname or IP of the Meshtastic node" "$host" mesh_host_valid
+    host="$UI_REPLY"
     if [[ -z "$host" ]]; then
       log_error "MESH_CONNECTION=tcp needs a host."
       exit 1
@@ -52,6 +56,10 @@ mesh_configure() {
   set_env MESH_CONNECTION "$conn"
 }
 
+mesh_host_valid() {
+  [[ -n "$1" ]] || { echo "Enter the node's hostname or IP."; return 1; }
+}
+
 mesh_usage() {
   cat <<USAGE
   mesh status                 radio state, node, channels
@@ -70,7 +78,9 @@ USAGE
 # stopped while the CLI holds the connection.
 mesh_cli() {
   load_env
-  local target=() run_opts=(--rm --group-add keep-groups)
+  local target=() run_opts=(--rm)
+  # keep-groups (serial device access) is not supported by the remote API on macOS
+  is_macos || run_opts+=(--group-add keep-groups)
   if [[ -z "${MESH_CONNECTION:-}" ]]; then
     log_error "Mesh is not configured. Run ./install.sh."
     exit 1
@@ -91,7 +101,7 @@ mesh_cli() {
     exit 1
   fi
 
-  if [[ "$(podman inspect -f '{{.State.Running}}' offline-pi-mesh 2>/dev/null)" == true ]]; then
+  if [[ "$(podman inspect -f '{{.State.Running}}' outpost-mesh 2>/dev/null)" == true ]]; then
     log_info "Stopping Mesh to free the radio..."
     module_stop mesh
     # start it again however the CLI ends (error, Ctrl+C)
@@ -101,9 +111,9 @@ mesh_cli() {
 }
 
 mesh_status() {
-  podman ps -a --filter name=offline-pi-mesh --format '{{.Names}}  {{.Status}}'
+  podman ps -a --filter name=outpost-mesh --format '{{.Names}}  {{.Status}}'
   echo
-  if ! podman exec offline-pi-mesh python - <<'PY'
+  if ! podman exec outpost-mesh python - <<'PY'
 import json, os, urllib.request
 port = os.environ.get("PORT", "8084")
 s = json.load(urllib.request.urlopen(f"http://127.0.0.1:{port}/api/status", timeout=5))
@@ -125,10 +135,10 @@ mesh_manage() {
     status) mesh_status ;;
     export)
       if [[ -n "${2:-}" ]]; then
-        podman exec offline-pi-mesh python -m app.export > "$2"
+        podman exec outpost-mesh python -m app.export > "$2"
         log_ok "Wrote $2"
       else
-        podman exec offline-pi-mesh python -m app.export
+        podman exec outpost-mesh python -m app.export
       fi
       ;;
     info) mesh_cli --info ;;

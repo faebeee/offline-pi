@@ -4,6 +4,10 @@
 
 @import "./tokens.css";
 @import "./fonts.css";
+/* 0.6: illustrations and motion. Imports come first, so motion.css only
+   adds properties the components below don't set (transitions live there). */
+@import "./illustrations.css";
+@import "./motion.css";
 
 /* ================================================================ base === */
 
@@ -469,7 +473,6 @@ a {
   text-decoration: none;
   text-transform: uppercase;
   cursor: pointer;
-  transition: background-color 120ms, border-color 120ms;
 }
 
 .btn:hover:not(:disabled) {
@@ -684,7 +687,6 @@ a {
   border-radius: var(--radius);
   background: var(--fg3);
   content: "";
-  transition: transform 120ms;
 }
 
 .switch[aria-checked="true"] {
@@ -1551,7 +1553,7 @@ a {
 
 /* ================================================================= map === */
 
-/* Map stage: a map view plus a panel (Maps, Mesh map).
+/* Map stage: a map view plus a panel (Maps).
    <div class="map-stage">
      <aside class="map-panel"> .map-panel-head + .map-panel-body + .map-panel-actions
      <div class="map-view"> .map-canvas + .map-badge + .map-ctrls + .map-locate
@@ -1892,4 +1894,173 @@ a {
   background: var(--s1);
   color: var(--fg);
   font: 500 10px/14px var(--font-mono);
+}
+
+/* ============================================================ document === */
+/* Addition (DESIGN.md changelog 0.7): long-form text rendered from Markdown
+   (the Info module). Prose is the one place siblings are spaced with
+   margins: its children are whatever the Markdown produces. */
+
+.doc {
+  max-width: 76ch;
+  color: var(--fg);
+  font: 400 16px/26px var(--font-body);
+  overflow-wrap: break-word;
+}
+
+.doc > * {
+  margin: 0;
+}
+
+.doc > * + * {
+  margin-top: var(--space-4);
+}
+
+.doc h1,
+.doc h2,
+.doc h3,
+.doc h4 {
+  scroll-margin-top: var(--space-4);
+}
+
+.doc h1 {
+  font: 700 28px/34px var(--font-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.doc h2 {
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
+  font: 600 21px/28px var(--font-display);
+  letter-spacing: 0.02em;
+}
+
+.doc h3 {
+  margin-top: var(--space-5);
+  font: 600 17px/24px var(--font-display);
+  letter-spacing: 0.02em;
+}
+
+.doc h4 {
+  margin-top: var(--space-5);
+  color: var(--fg3);
+  font: 500 11px/16px var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* the H1's first paragraph reads as the lead */
+.doc h1 + p {
+  color: var(--fg2);
+  font-size: 17px;
+  line-height: 28px;
+}
+
+.doc a {
+  color: var(--acc-ink);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--acc-ink) 45%, transparent);
+  text-underline-offset: 3px;
+}
+
+.doc a:hover {
+  text-decoration-color: currentColor;
+}
+
+/* a link to a project file outside docs/: named, not followable in the app */
+.doc .doc-file {
+  border-bottom: 1px dashed var(--line2);
+  color: var(--fg2);
+  cursor: help;
+}
+
+.doc ul,
+.doc ol {
+  padding-left: var(--space-5);
+}
+
+.doc li + li,
+.doc li > ul,
+.doc li > ol {
+  margin-top: var(--space-1);
+}
+
+.doc li::marker {
+  color: var(--fg3);
+  font-family: var(--font-mono);
+}
+
+/* task lists (- [ ] / - [x]) */
+.doc li:has(> input[type="checkbox"]) {
+  list-style: none;
+}
+
+.doc input[type="checkbox"] {
+  margin: 0 var(--space-2) 0 calc(-1 * var(--space-5) + 2px);
+  accent-color: var(--acc);
+}
+
+.doc code {
+  padding: 1px 5px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--s2);
+  font: 400 0.88em/1 var(--font-mono);
+}
+
+.doc pre {
+  overflow-x: auto;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--line2);
+  background: var(--s2);
+  font: 400 13px/20px var(--font-mono);
+}
+
+.doc pre code {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+}
+
+.doc blockquote {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--info);
+  border-left-width: 2px;
+  background: var(--info-soft);
+  color: var(--fg);
+}
+
+.doc blockquote > * {
+  margin: 0;
+}
+
+.doc blockquote > * + * {
+  margin-top: var(--space-2);
+}
+
+.doc hr {
+  height: 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+.doc .table {
+  font: 400 14px/20px var(--font-body);
+  font-variant-numeric: normal;
+}
+
+.doc .table th {
+  white-space: nowrap;
+}
+
+.doc .table code {
+  white-space: nowrap;
+}
+
+.doc img {
+  max-width: 100%;
 }

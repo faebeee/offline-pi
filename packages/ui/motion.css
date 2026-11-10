@@ -1,0 +1,485 @@
+/* Outpost motion (DESIGN.md changelog 0.6): the field terminal powering up.
+   Imported last by outpost.css, so it layers on the components.
+
+   Rules: motion follows state or a screen change (an entrance, a live LED, a
+   pressed control), never loops for decoration outside illustrations and
+   live indicators; transform/opacity first; tokens only. Everything stops
+   with prefers-reduced-motion (outpost.css base) or html.motion-off. */
+
+/* ============================================================ keyframes === */
+
+@keyframes op-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes op-fade {
+  from { opacity: 0; }
+}
+
+@keyframes op-pop {
+  0% { opacity: 0; transform: scale(0.92); }
+  60% { opacity: 1; transform: scale(1.04); }
+  100% { transform: none; }
+}
+
+/* a line of light runs along an edge once */
+@keyframes op-sweep {
+  0% { opacity: 1; transform: scaleX(0); }
+  70% { opacity: 1; transform: scaleX(1); }
+  100% { opacity: 0; transform: scaleX(1); }
+}
+
+/* signal locking in: sliced, shifted, colour-split, then clean */
+@keyframes op-glitch {
+  0% { opacity: 0; clip-path: inset(0 0 100% 0); }
+  12% { opacity: 1; clip-path: inset(0 0 55% 0); transform: translateX(-4px); text-shadow: 2px 0 var(--info), -2px 0 var(--crit); }
+  24% { clip-path: inset(45% 0 10% 0); transform: translateX(3px); }
+  36% { clip-path: inset(15% 0 40% 0); transform: translateX(-2px); }
+  50% { clip-path: inset(0); transform: none; text-shadow: 1px 0 var(--info), -1px 0 var(--crit); }
+  70%, 100% { clip-path: inset(0); text-shadow: none; transform: none; opacity: 1; }
+}
+
+/* brief colour split (hover) */
+@keyframes op-chroma {
+  0% { text-shadow: 2px 0 var(--info), -2px 0 var(--crit); transform: translateX(1px); }
+  50% { text-shadow: -1px 0 var(--info), 1px 0 var(--crit); transform: translateX(-1px); }
+  100% { text-shadow: none; transform: none; }
+}
+
+@keyframes op-flicker {
+  0%, 100% { opacity: 1; }
+  10% { opacity: 0.2; }
+  20% { opacity: 1; }
+  30% { opacity: 0.5; }
+  45% { opacity: 1; }
+}
+
+/* LED: a ring of light leaves the dot */
+@keyframes op-ping {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 70%, transparent); }
+  100% { box-shadow: 0 0 0 7px transparent; }
+}
+
+@keyframes op-blink {
+  50% { opacity: 0.25; }
+}
+
+/* reveal from the left edge */
+@keyframes op-reveal {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0); }
+}
+
+/* CRT power-on: a line, then the picture */
+@keyframes op-crt {
+  0% { opacity: 0; transform: scale(0.6, 0.01); }
+  45% { opacity: 1; transform: scale(1, 0.01); }
+  100% { opacity: 1; transform: none; }
+}
+
+@keyframes op-hatch {
+  to { background-position: 17px 0; }
+}
+
+@keyframes op-alarm {
+  50% { border-color: var(--crit-soft); }
+}
+
+@keyframes op-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ================================================================ frame === */
+
+/* scanlines over the whole terminal (static, a single composited layer) */
+.frame {
+  position: relative;
+}
+
+.frame::after {
+  position: fixed;
+  z-index: 40;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  background: repeating-linear-gradient(to bottom, var(--scan) 0 1px, transparent 1px 3px);
+}
+
+/* the header acquires the signal when a screen opens */
+.header {
+  position: relative;
+}
+
+.header::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 1px;
+  pointer-events: none;
+  content: "";
+  background: var(--acc);
+  box-shadow: var(--glow-acc);
+  opacity: 0;
+  transform-origin: left;
+  animation: op-sweep var(--dur-slow) var(--ease-out) 80ms;
+}
+
+.header .h1 {
+  animation: op-glitch 560ms steps(1, end) both;
+}
+
+/* status strip: the link LED is live */
+.strip .led-ok { color: var(--ok); animation: op-ping 2.4s ease-out infinite; }
+.strip .led-cau { animation: op-blink 1s steps(1, end) infinite; }
+.strip .led-crit { color: var(--crit); animation: op-ping 0.9s ease-out infinite; }
+
+/* content boots in, a beat apart */
+.content:not(.bleed) > * {
+  animation: op-rise var(--dur-slow) var(--ease-out) both;
+}
+
+.content:not(.bleed) > :nth-child(2) { animation-delay: 60ms; }
+.content:not(.bleed) > :nth-child(3) { animation-delay: 120ms; }
+.content:not(.bleed) > :nth-child(4) { animation-delay: 180ms; }
+.content:not(.bleed) > :nth-child(5) { animation-delay: 240ms; }
+.content:not(.bleed) > :nth-child(n + 6) { animation-delay: 300ms; }
+
+/* ============================================================== motifs === */
+
+.led.is-live { color: var(--ok); animation: op-ping 2.4s ease-out infinite; }
+.led-cau.is-live { color: var(--cau); animation: op-blink 1s steps(1, end) infinite; }
+.led-crit.is-live { color: var(--crit); animation: op-ping 0.9s ease-out infinite; }
+
+/* ================================================================== nav === */
+
+.nav-item {
+  transition: color var(--dur-fast), background-color var(--dur-fast);
+}
+
+.nav-item .i {
+  transition: transform var(--dur) var(--ease-snap), filter var(--dur);
+}
+
+.nav-item:hover .i {
+  transform: translateY(-2px);
+}
+
+.nav-item[aria-current="page"] .i {
+  filter: drop-shadow(var(--glow-acc));
+  animation: op-flicker 420ms steps(1, end);
+}
+
+/* ============================================================== buttons === */
+
+.btn {
+  transition:
+    background-color var(--dur-fast),
+    border-color var(--dur-fast),
+    color var(--dur-fast),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px) scale(0.98);
+}
+
+/* primary: a band of light crosses it on hover */
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  background: linear-gradient(100deg, transparent 35%, color-mix(in srgb, var(--s1) 22%, transparent) 50%, transparent 65%);
+  transform: translateX(-110%);
+}
+
+.btn-primary:hover:not(:disabled)::after {
+  transform: translateX(110%);
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+
+.btn-primary:not(:disabled) {
+  box-shadow: var(--glow-acc);
+}
+
+.btn-icon .i {
+  transition: transform var(--dur) var(--ease-snap);
+}
+
+.btn-icon:hover:not(:disabled) .i {
+  transform: rotate(-12deg) scale(1.08);
+}
+
+/* ============================================================== switch === */
+
+.switch {
+  transition: background-color var(--dur), border-color var(--dur), box-shadow var(--dur);
+}
+
+.switch::after {
+  transition: transform var(--dur) var(--ease-snap), background-color var(--dur);
+}
+
+.switch:hover:not(:disabled) {
+  border-color: var(--fg3);
+}
+
+.switch[aria-checked="true"] {
+  box-shadow: var(--glow-acc);
+}
+
+.switch:active:not(:disabled)::after {
+  width: 30px;
+}
+
+/* ============================================================== badges === */
+
+.badge {
+  animation: op-pop var(--dur) var(--ease-out);
+  transition: background-color var(--dur), border-color var(--dur), color var(--dur);
+}
+
+.badge-ok { box-shadow: var(--glow-ok); }
+
+/* in progress (starting, syncing): hazard stripes crawl */
+.badge.is-busy {
+  background-image: repeating-linear-gradient(-45deg, currentColor 0 1px, transparent 1px 6px);
+  background-size: 17px 17px;
+  animation: op-hatch 0.9s linear infinite;
+}
+
+.badge.is-busy .i {
+  animation: op-blink 1s steps(1, end) infinite;
+}
+
+/* ============================================================ progress === */
+
+.progress > i,
+.cells > i,
+.bars > i {
+  transition: background-color var(--dur);
+}
+
+/* the cell being filled blinks */
+.progress > i.on:has(+ i:not(.on)) {
+  animation: op-blink 0.8s steps(1, end) infinite;
+}
+
+/* =============================================================== lists === */
+
+.row {
+  transition: background-color var(--dur-fast), box-shadow var(--dur-fast);
+}
+
+.row:not(.static):hover {
+  box-shadow: inset 2px 0 0 var(--line2);
+}
+
+.row[aria-current="true"],
+.row[aria-selected="true"] {
+  box-shadow: inset 2px 0 0 var(--acc);
+}
+
+/* ============================================================= banners === */
+
+.banner {
+  animation: op-reveal var(--dur-slow) var(--ease-out) both;
+}
+
+.banner-crit {
+  animation:
+    op-reveal var(--dur-slow) var(--ease-out) both,
+    op-alarm 1.2s steps(1, end) 3 var(--dur-slow);
+}
+
+/* ======================================================= toast, dialog === */
+
+.toast {
+  animation: op-rise var(--dur) var(--ease-out);
+}
+
+.dialog[open] {
+  animation: op-crt 340ms var(--ease-out);
+}
+
+.dialog[open]::backdrop {
+  animation: op-fade var(--dur) ease-out;
+}
+
+/* ================================================================ tiles === */
+
+.tile {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition:
+    border-color var(--dur-fast),
+    background-color var(--dur-fast),
+    transform var(--dur) var(--ease-out);
+}
+
+/* corner brackets close in on hover / focus */
+.tile::before {
+  position: absolute;
+  z-index: 1;
+  inset: 8px;
+  pointer-events: none;
+  content: "";
+  opacity: 0;
+  background:
+    linear-gradient(var(--acc), var(--acc)) top left / var(--bracket) 2px no-repeat,
+    linear-gradient(var(--acc), var(--acc)) top left / 2px var(--bracket) no-repeat,
+    linear-gradient(var(--acc), var(--acc)) top right / var(--bracket) 2px no-repeat,
+    linear-gradient(var(--acc), var(--acc)) top right / 2px var(--bracket) no-repeat,
+    linear-gradient(var(--acc), var(--acc)) bottom left / var(--bracket) 2px no-repeat,
+    linear-gradient(var(--acc), var(--acc)) bottom left / 2px var(--bracket) no-repeat,
+    linear-gradient(var(--acc), var(--acc)) bottom right / var(--bracket) 2px no-repeat,
+    linear-gradient(var(--acc), var(--acc)) bottom right / 2px var(--bracket) no-repeat;
+  transition: inset var(--dur) var(--ease-out), opacity var(--dur-fast);
+}
+
+.tile:hover,
+.tile:focus-visible {
+  border-color: var(--fg3);
+  background: var(--s2);
+}
+
+.tile:hover::before,
+.tile:focus-visible::before {
+  inset: -1px;
+  opacity: 1;
+}
+
+.tile:active {
+  transform: scale(0.985);
+}
+
+.tile .tile-head .i {
+  transition: transform var(--dur) var(--ease-snap), filter var(--dur), color var(--dur);
+}
+
+.tile:hover .tile-head .i {
+  color: var(--acc-ink);
+  filter: drop-shadow(var(--glow-acc));
+  transform: translateY(-2px);
+}
+
+.tile:hover .tile-name {
+  animation: op-chroma 280ms steps(2, end);
+}
+
+/* hub tiles power on one after another */
+.hub > .tile {
+  animation: op-rise var(--dur-slow) var(--ease-out) both;
+}
+
+.hub > .tile:nth-child(2) { animation-delay: 70ms; }
+.hub > .tile:nth-child(3) { animation-delay: 140ms; }
+.hub > .tile:nth-child(4) { animation-delay: 210ms; }
+.hub > .tile:nth-child(5) { animation-delay: 280ms; }
+.hub > .tile:nth-child(n + 6) { animation-delay: 350ms; }
+
+/* ========================================================== empty state === */
+
+.empty {
+  position: relative;
+  overflow: hidden;
+}
+
+/* a scan bar passes over it once */
+.empty::after {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  pointer-events: none;
+  content: "";
+  background: var(--info);
+  box-shadow: var(--glow-info);
+  opacity: 0;
+  animation: op-scan-down 1.4s var(--ease-out) 200ms;
+}
+
+@keyframes op-scan-down {
+  0% { opacity: 0.8; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(240px); }
+}
+
+/* ================================================================ boot === */
+/* .boot: the terminal powers up, once per session (apps/web Boot) */
+
+.boot {
+  position: fixed;
+  z-index: 60;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--space-5);
+  cursor: pointer;
+  animation: op-fade var(--dur) reverse forwards 1.5s;
+}
+
+.boot-inner {
+  display: flex;
+  width: min(100%, 420px);
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.boot .il {
+  width: 140px;
+  animation: op-crt 500ms var(--ease-out) both;
+}
+
+.boot-name {
+  margin: 0;
+  font: 700 40px/44px var(--font-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  animation: op-glitch 700ms steps(1, end) 200ms both;
+}
+
+.boot-lines {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  color: var(--fg2);
+  font: 500 12px/18px var(--font-mono);
+  letter-spacing: 0.1em;
+  list-style: none;
+  text-transform: uppercase;
+}
+
+.boot-lines li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  animation: op-reveal 260ms steps(12, end) both;
+}
+
+.boot-lines li:nth-child(1) { animation-delay: 300ms; }
+.boot-lines li:nth-child(2) { animation-delay: 550ms; }
+.boot-lines li:nth-child(3) { animation-delay: 800ms; }
+.boot-lines li:nth-child(4) { animation-delay: 1050ms; }
+
+.boot-lines b {
+  color: var(--ok);
+  font-weight: 500;
+}
+
+/* ===================================================== low power / off === */
+
+html.motion-off *,
+html.motion-off *::before,
+html.motion-off *::after {
+  transition: none !important;
+  animation: none !important;
+}

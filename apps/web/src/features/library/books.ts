@@ -1,4 +1,4 @@
-import { useLibraryBooks, type Book } from "@offline-pi/api-client";
+import { useLibraryBooks, type Book } from "@outpost/api-client";
 import { isRunning, useModule } from "../modules/useModules";
 
 /** kiwix-serve's root under core's passthrough (its own views: nojs list, OPDS). */

@@ -1,7 +1,7 @@
 // MapLibre's defaults first, so Outpost (outpost.css) restyles its controls
 import "maplibre-gl/dist/maplibre-gl.css";
-import "@offline-pi/ui/outpost.css";
-import { initTheme } from "@offline-pi/ui/outpost.js";
+import "@outpost/ui/outpost.css";
+import { initTheme } from "@outpost/ui/outpost.js";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";

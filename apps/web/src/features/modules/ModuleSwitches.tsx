@@ -28,7 +28,7 @@ export function ModuleSwitches() {
           {failed.message}
         </Banner>
       )}
-      <div className="stack">
+      <div className="vstack">
         {optional.map((m) => {
           const pending = m.id === pendingId ? control.variables?.action : undefined;
           const d = describe(m, pending);
@@ -47,7 +47,7 @@ export function ModuleSwitches() {
               <div className="row-main">
                 <div className="row-title">
                   {m.label}{" "}
-                  <Badge state={d.tone} className="badge-sm">
+                  <Badge key={d.badge} state={d.tone} className={`badge-sm${busy || (d.tone === "cau" && /ing$/.test(d.badge)) ? " is-busy" : ""}`}>
                     {d.badge}
                   </Badge>
                 </div>

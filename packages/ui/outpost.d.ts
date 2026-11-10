@@ -4,7 +4,7 @@ export type Theme = "dark" | "light";
 export type LinkState = "ok" | "cau" | "crit";
 export type StatusState = "info" | "ok" | "cau" | "crit" | "off";
 // built-in ids; modules added through a manifest are plain strings
-export type ModuleId = "home" | "maps" | "mesh-map" | "mesh" | "knowledge" | "system" | (string & {});
+export type ModuleId = "home" | "maps" | "mesh" | "knowledge" | "system" | (string & {});
 
 export type StripItem = { label: string; value: string };
 export type Strip = {

@@ -1,6 +1,6 @@
 // The system domain's read model. Classes, not interfaces: the
 // @nestjs/swagger CLI plugin (nest-cli.json) turns them into OpenAPI schemas,
-// so the web app gets them through @offline-pi/api-client.
+// so the web app gets them through @outpost/api-client.
 import { ConnectionsInfo, ContainersInfo } from '../../../platform/runtime/runtime.dto';
 
 export class HostAddress {

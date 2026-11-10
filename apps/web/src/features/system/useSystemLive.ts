@@ -7,8 +7,8 @@ import {
   type Snapshot,
   type SystemInit,
   type ThrottleFlags,
-} from "@offline-pi/api-client";
-import { onVisibility } from "@offline-pi/ui/outpost.js";
+} from "@outpost/api-client";
+import { onVisibility } from "@outpost/ui/outpost.js";
 import { useEffect, useRef, useState } from "react";
 import { useSocket, useSocketEvent } from "../../app/realtime";
 

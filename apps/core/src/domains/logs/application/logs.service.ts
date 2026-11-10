@@ -6,7 +6,7 @@ import { LogEntry, LogPage, LogSource, LogSources } from '../domain/logs.dto';
 import { toLevel } from '../infrastructure/log-line.parser';
 import { ContainerLogsClient } from '../infrastructure/container-logs.client';
 
-const CORE: LogSource = { id: 'core', label: 'Core', kind: 'core', container: 'offline-pi-core', state: 'running' };
+const CORE: LogSource = { id: 'core', label: 'Core', kind: 'core', container: 'outpost-core', state: 'running' };
 
 /** Live lines are sent at most this often, in batches (a chatty module can't flood the browser). */
 const BATCH_MS = 250;
@@ -20,7 +20,7 @@ const fromCore = (r: CoreLogRecord): LogEntry => ({
 });
 
 /**
- * The logs of every part of offline-pi: core's own lines come from its Nest
+ * The logs of every part of outpost: core's own lines come from its Nest
  * logger (CoreLogger -> LogBuffer, in memory since core started); every
  * installed module's from its container (podman logs), parsed into levels.
  */

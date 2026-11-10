@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import { Controller, Delete, Get, HttpCode, NotFoundException, Param } from "@nestjs/common";
-import type { RegionsResponse } from "@offline-pi/maps-shared";
+import type { RegionsResponse } from "@outpost/maps-shared";
 import { ArchiveService } from "./archive.service.ts";
 import { RegistryService } from "./registry.service.ts";
 

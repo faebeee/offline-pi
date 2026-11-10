@@ -1,4 +1,4 @@
-import { useLibrarySearch, type Book } from "@offline-pi/api-client";
+import { useLibrarySearch, type Book } from "@outpost/api-client";
 import { keepPreviousData } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Banner, Icon } from "../../ui/outpost";

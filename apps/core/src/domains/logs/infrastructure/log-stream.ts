@@ -1,6 +1,6 @@
 /**
  * Splits podman's log body into lines. Containers without a TTY (all of
- * offline-pi's) answer in the multiplexed format: frames of an 8 byte header
+ * outpost's) answer in the multiplexed format: frames of an 8 byte header
  * (byte 0 = stream: 1 stdout, 2 stderr; bytes 4..7 = payload size, big
  * endian) and the payload. With a TTY the body is the raw output. Lines can
  * span frames and chunks, so each stream keeps its unfinished line.

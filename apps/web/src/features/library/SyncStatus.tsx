@@ -1,16 +1,24 @@
-import { getLibraryBooksQueryKey, useLibrarySync, type LibrarySync } from "@offline-pi/api-client";
-import { ago, bytes } from "@offline-pi/ui/outpost.js";
-import type { StatusState } from "@offline-pi/ui/outpost.js";
+import {
+  getLibraryBooksQueryKey,
+  getLibraryCatalogQueryKey,
+  getLibrarySyncQueryKey,
+  libraryStartSync,
+  useLibrarySync,
+  type LibrarySync,
+} from "@outpost/api-client";
+import { ago, bytes } from "@outpost/ui/outpost.js";
+import type { StatusState } from "@outpost/ui/outpost.js";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useStripItems } from "../../app/strip";
 import { isRunning, useModule } from "../modules/useModules";
-import { Badge, Banner, Progress } from "../../ui/outpost";
+import { Badge, Banner, Icon, Progress } from "../../ui/outpost";
 
 /**
- * The knowledge container's background sync (books from zims.txt). Polled
+ * The knowledge container's background sync (the selected books). Polled
  * every few seconds while it runs, rarely otherwise; when a book finishes
- * (or the sync ends) the book list is re-read so it shows up right away.
+ * (or the sync ends) the book list and the catalog are re-read so it shows
+ * up right away.
  */
 export function useSync() {
   const running = isRunning(useModule("knowledge"));
@@ -30,6 +38,7 @@ export function useSync() {
     if (key === null) return;
     if (last.current !== null && last.current !== key) {
       void qc.invalidateQueries({ queryKey: getLibraryBooksQueryKey() });
+      void qc.invalidateQueries({ queryKey: getLibraryCatalogQueryKey() });
     }
     last.current = key;
   }, [key, qc]);
@@ -53,8 +62,30 @@ const PHASE: Record<string, string> = {
 };
 
 /** Strip item + the sync card: what is downloading and how far, or how the last sync ended. */
+/** Start the sync now (update: also newer versions); re-reads the status. */
+export function useStartSync() {
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const start = async (update = false) => {
+    setBusy(true);
+    setError(null);
+    try {
+      const next = await libraryStartSync({ update });
+      qc.setQueryData(getLibrarySyncQueryKey(), next);
+      void qc.invalidateQueries({ queryKey: getLibrarySyncQueryKey() });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return { start, busy, error };
+}
+
 export function SyncStatus({ sync }: { sync: LibrarySync | undefined }) {
   const running = sync?.state === "running";
+  const retry = useStartSync();
   useStripItems(
     running
       ? [{ label: "SYNC", value: sync.count ? `${sync.index || 0}/${sync.count}` : "ON" }]
@@ -101,9 +132,19 @@ export function SyncStatus({ sync }: { sync: LibrarySync | undefined }) {
 
   if (sync.result === "problems" || sync.result === "interrupted") {
     return (
-      <Banner tone="cau" title={sync.result === "problems" ? "The last sync had problems" : "The last sync was interrupted"}>
-        {sync.message ?? ""} Run <code>./manage.sh knowledge sync</code> on the Pi to retry
-        {sync.updatedAt ? ` (${ago(sync.updatedAt).toLowerCase()})` : ""}.
+      <Banner
+        tone="cau"
+        title={sync.result === "problems" ? "The last sync had problems" : "The last sync was interrupted"}
+        action={
+          <button type="button" className="btn" disabled={retry.busy} onClick={() => void retry.start()}>
+            <Icon name="refresh" />
+            Retry
+          </button>
+        }
+      >
+        {sync.message ?? ""}
+        {sync.updatedAt ? ` (${ago(sync.updatedAt).toLowerCase()})` : ""}
+        {retry.error ? ` Retry failed: ${retry.error}` : ""}
       </Banner>
     );
   }

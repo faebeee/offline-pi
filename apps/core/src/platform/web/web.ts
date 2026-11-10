@@ -10,14 +10,14 @@ const NOT_WEB = /^\/(api|svc|socket\.io|ui)(\/|$)/;
 function webDir(): string | null {
   if (process.env.WEB_DIR) return process.env.WEB_DIR;
   try {
-    return join(dirname(require.resolve('@offline-pi/web/package.json')), 'dist');
+    return join(dirname(require.resolve('@outpost/web/package.json')), 'dist');
   } catch {
     return null;
   }
 }
 
 /**
- * Serves the web app (apps/web, @offline-pi/web) at /: its built files, and
+ * Serves the web app (apps/web, @outpost/web) at /: its built files, and
  * index.html for every other page load (client-side routes such as /maps/
  * or /mesh/ch:0), so deep links and reloads work.
  */
@@ -25,7 +25,7 @@ export function serveWeb(app: NestExpressApplication) {
   const dir = webDir();
   const index = dir && join(dir, 'index.html');
   if (!dir || !index || !existsSync(index)) {
-    Logger.warn(`web app not built (${dir ?? '@offline-pi/web not found'}): run npm run build`, 'web');
+    Logger.warn(`web app not built (${dir ?? '@outpost/web not found'}): run npm run build`, 'web');
     return;
   }
   app.useStaticAssets(dir, { index: false, redirect: false, maxAge: '1h', immutable: false });

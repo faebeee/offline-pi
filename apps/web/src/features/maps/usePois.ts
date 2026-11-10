@@ -8,7 +8,7 @@ import {
   type Poi,
   type PoisResponse,
   type UpdatePoiRequest,
-} from "@offline-pi/api-client";
+} from "@outpost/api-client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 

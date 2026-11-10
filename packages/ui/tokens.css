@@ -27,6 +27,12 @@
   /* Misc */
   --grid: rgba(140,190,165,.06);
   --map: #0E1412;
+  /* Glow (0.6): signal light on live and active elements, dark theme only */
+  --glow-acc: 0 0 10px rgba(255,176,32,.45);
+  --glow-ok: 0 0 8px rgba(63,214,138,.5);
+  --glow-info: 0 0 8px rgba(76,201,224,.45);
+  --glow-crit: 0 0 10px rgba(255,90,82,.55);
+  --scan: rgba(140,190,165,.035);   /* CRT scanlines over the frame */
 }
 
 .t-light {
@@ -50,6 +56,12 @@
   --on-crit: #FFFFFF;
   --grid: rgba(20,60,40,.06);
   --map: #F1F3EC;
+  /* no glow or scanlines in daylight */
+  --glow-acc: 0 0 0 transparent;
+  --glow-ok: 0 0 0 transparent;
+  --glow-info: 0 0 0 transparent;
+  --glow-crit: 0 0 0 transparent;
+  --scan: transparent;
 }
 
 :root {
@@ -69,4 +81,10 @@
   --target-primary: 56px;
   --strip-h: 32px;
   --nav-h: 64px;
+  /* Motion (0.6) */
+  --dur-fast: 120ms;   /* feedback: hover, press, toggles */
+  --dur: 240ms;        /* entrances, state changes */
+  --dur-slow: 600ms;   /* screen boot-in, signal sweep */
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  --ease-snap: cubic-bezier(.3, 1.5, .5, 1);
 }

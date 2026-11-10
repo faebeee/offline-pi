@@ -1,5 +1,5 @@
 {
-  "name": "@offline-pi/api-client",
+  "name": "@outpost/api-client",
   "private": true,
   "description": "Typed client for core's API: TanStack Query hooks generated from core's OpenAPI document (orval), plus typed Socket.IO namespaces",
   "type": "module",

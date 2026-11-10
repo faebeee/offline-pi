@@ -1,5 +1,5 @@
 import { Controller, Delete, Get, Param, Sse } from "@nestjs/common";
-import type { Job, JobsResponse } from "@offline-pi/maps-shared";
+import type { Job, JobsResponse } from "@outpost/maps-shared";
 import { map, type Observable } from "rxjs";
 import { JobsService } from "./jobs.service.ts";
 

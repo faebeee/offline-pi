@@ -1,0 +1,251 @@
+/* Info screen layout (tokens only). The text itself is Outpost's .doc. */
+
+.docs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.docs-main {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* ------------------------------------------------- contents and search --- */
+
+.docs-toc {
+  border: 1px solid var(--line);
+  background: var(--s1);
+}
+
+.docs-toc-summary {
+  display: flex;
+  min-height: var(--target);
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3);
+  cursor: pointer;
+  list-style: none;
+  font-weight: 500;
+}
+
+.docs-toc-summary::-webkit-details-marker {
+  display: none;
+}
+
+.docs-toc-summary > span:not(.label) {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.docs-toc[open] .docs-toc-summary {
+  border-bottom: 1px solid var(--line);
+}
+
+.docs-toc-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+
+/* the app's version, with a link to the changelog */
+.docs-version {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin: 0;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line);
+  color: var(--fg2);
+}
+
+.docs-list,
+.docs-hits {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.docs-link {
+  display: flex;
+  min-height: 36px;
+  align-items: center;
+  padding: var(--space-1) var(--space-2);
+  color: var(--fg2);
+  font-size: 14px;
+  line-height: 20px;
+  text-decoration: none;
+  transition: color var(--dur-fast), background-color var(--dur-fast), box-shadow var(--dur-fast);
+}
+
+.docs-link:hover {
+  background: var(--s2);
+  color: var(--fg);
+}
+
+.docs-link[aria-current="page"] {
+  background: var(--acc-soft);
+  box-shadow: inset 2px 0 0 var(--acc);
+  color: var(--fg);
+}
+
+/* chapters read as section heads, pages indented under them */
+.docs-item.depth-0 .docs-link,
+.docs-item.depth-1 .docs-link {
+  color: var(--fg);
+  font: 600 13px/18px var(--font-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.docs-item.depth-1:not(:first-child) {
+  margin-top: var(--space-3);
+}
+
+.docs-item.depth-2 .docs-link { padding-left: var(--space-4); }
+.docs-item.depth-3 .docs-link { padding-left: var(--space-6); font-size: 13px; }
+
+.docs-hit {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--line);
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.docs-hit:hover {
+  background: var(--s2);
+}
+
+.docs-hit-title {
+  font-weight: 500;
+}
+
+.docs-hit-snippet {
+  color: var(--fg2);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+/* --------------------------------------------------------------- page --- */
+
+.docs-trail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.docs-trail a {
+  color: var(--fg3);
+  text-decoration: none;
+}
+
+.docs-trail a:hover {
+  color: var(--fg);
+}
+
+.docs-trail a + a::before {
+  margin-right: var(--space-2);
+  color: var(--line2);
+  content: "/";
+}
+
+.docs-foot {
+  display: flex;
+  max-width: 76ch;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
+}
+
+.docs-path {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  text-transform: none;
+}
+
+.docs-path .i {
+  width: 14px;
+  height: 14px;
+}
+
+.docs-pager {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.docs-pager-link {
+  display: flex;
+  min-height: 64px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line2);
+  background: var(--s1);
+  color: var(--fg);
+  text-decoration: none;
+  transition: border-color var(--dur-fast), background-color var(--dur-fast);
+}
+
+.docs-pager-link:hover {
+  border-color: var(--fg3);
+  background: var(--s2);
+}
+
+.docs-pager-link.is-next {
+  grid-column: 2;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.docs-pager-title {
+  font-weight: 500;
+}
+
+/* ------------------------------------------------------- wide screens --- */
+
+@media (min-width: 900px) {
+  .docs {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-6);
+  }
+
+  .docs-side {
+    position: sticky;
+    top: 0;
+    max-height: calc(100dvh - var(--strip-h) - var(--nav-h) - 2 * var(--space-5));
+    overflow-y: auto;
+  }
+
+  /* always open next to the page: no summary line */
+  .docs-toc-summary {
+    display: none;
+  }
+
+  .docs-toc {
+    border: 0;
+    background: none;
+  }
+
+  .docs-toc-body {
+    padding: 0;
+  }
+}

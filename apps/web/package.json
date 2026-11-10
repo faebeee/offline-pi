@@ -1,7 +1,7 @@
 {
-  "name": "@offline-pi/web",
+  "name": "@outpost/web",
   "private": true,
-  "description": "offline-pi web app: the one UI for every module (React, TanStack Router + Query), served by core",
+  "description": "outpost web app: the one UI for every module (React, TanStack Router + Query), served by core",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,9 +10,9 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@offline-pi/api-client": "*",
-    "@offline-pi/maps-shared": "*",
-    "@offline-pi/ui": "*",
+    "@outpost/api-client": "*",
+    "@outpost/maps-shared": "*",
+    "@outpost/ui": "*",
     "@protomaps/basemaps": "^5.7.2",
     "@tanstack/react-query": "^5.107.1",
     "@tanstack/react-router": "^1.170.46",
@@ -26,6 +26,8 @@
     "pmtiles": "^4.5.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "socket.io-client": "^4.8.4",
     "typescript": "^5.9.2",
     "vite": "^8.3.7"

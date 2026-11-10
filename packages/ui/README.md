@@ -1,4 +1,4 @@
-# @offline-pi/ui: the Outpost UI package
+# @outpost/ui: the Outpost UI package
 
 One UI system for every app in this repo, implementing [`DESIGN.md`](../../DESIGN.md).
 Plain CSS and an ES module with no dependencies, so React and vanilla apps
@@ -8,7 +8,9 @@ use the same files. Nothing here loads from the network.
 |---|---|
 | `tokens.css` | Design tokens, verbatim from `DESIGN.md` section 3 |
 | `fonts.css`, `fonts/` | Chakra Petch, IBM Plex Sans, JetBrains Mono (WOFF2, latin + latin-ext, SIL OFL 1.1) |
-| `outpost.css` | Base, app frame and components. Imports `tokens.css` and `fonts.css`; load only this one |
+| `outpost.css` | Base, app frame and components. Imports `tokens.css`, `fonts.css`, `illustrations.css` and `motion.css`; load only this one |
+| `motion.css` | Motion (DESIGN.md 0.6): entrances, signal sweep, live LEDs, control feedback, boot screen. Owns every transition |
+| `illustrations.js`, `illustrations.css` | Line-art scenes (`illustration(name)` -> SVG markup), animated by CSS, coloured by tokens |
 | `icons.svg` | Icon sprite (24 px, stroke 1.75, square caps) |
 | `outpost.js` | Theme, status strip, module nav, formatters, toast, hold-to-confirm, indicators |
 | `theme-boot.js` | Classic script for `<head>`: applies the stored theme before first paint |
@@ -16,19 +18,19 @@ use the same files. Nothing here loads from the network.
 
 ## How modules get it
 
-It is the npm workspace `@offline-pi/ui` (no build step: the files are the
+It is the npm workspace `@outpost/ui` (no build step: the files are the
 package). Every image builds with the repo root as context, so nothing is
 ever copied into an app before a build:
 
-- **The web app** (`apps/web`, every screen of offline-pi) depends on it
-  (`"@offline-pi/ui": "*"`) and imports it, so Vite bundles it:
+- **The web app** (`apps/web`, every screen of outpost) depends on it
+  (`"@outpost/ui": "*"`) and imports it, so Vite bundles it:
 
   ```ts
-  import "@offline-pi/ui/outpost.css";
-  import { toast, bytes } from "@offline-pi/ui/outpost.js"; // typed by outpost.d.ts
+  import "@outpost/ui/outpost.css";
+  import { toast, bytes } from "@outpost/ui/outpost.js"; // typed by outpost.d.ts
   ```
 
-- **core** also serves it at `/ui/` on offline-pi's one origin, for any
+- **core** also serves it at `/ui/` on outpost's one origin, for any
   plain page that needs it.
 
 ## The frame
@@ -44,7 +46,7 @@ Every screen (DESIGN.md section 6):
     <div data-strip></div>                      <!-- status strip -->
     <header class="header">
       <div class="header-title">
-        <span class="label" data-module-label>Module 03 · Mesh</span>
+        <span class="label" data-module-label>Module 02 · Mesh</span>
         <h1 class="h1">Channels</h1>              <!-- the current view / title -->
       </div>
       <div class="header-actions">
@@ -67,7 +69,7 @@ Every screen (DESIGN.md section 6):
 
 `frame()` applies the stored theme (`outpost.theme`, default dark), builds the
 strip with a UTC clock, fills the module nav, wires the theme toggle and writes
-`moduleLabel(id)` ("Module 03 · Mesh", numbered by `MODULES[].num`) into every
+`moduleLabel(id)` ("Module 02 · Mesh", numbered by `MODULES[].num`) into every
 `[data-module-label]`. The nav links are paths on the same origin (core serves
 every module under its path, e.g. `/mesh/`): drawn from the built-in
 `MODULES` first, then redrawn from core's `/api/modules` (installed modules,

@@ -3,7 +3,7 @@
 Self-hosted vector map tiles with a browser viewer. Download a region once, then
 pan and zoom with no internet connection.
 
-Part of offline-pi: installed with the root `./install.sh` (pick `maps`) and
+Part of outpost: installed with the root `./install.sh` (pick `maps`) and
 reached through core at `/maps` on `PORT` (8080). Add a region from the UI:
 setup, search, download and delete all happen in the browser. See the root
 README for install, start and uninstall.
@@ -11,7 +11,7 @@ README for install, start and uninstall.
 The module has no UI of its own. The Maps screen is part of the single web
 app (`apps/web`, React + TanStack, code in `apps/web/src/features/maps/` and
 `apps/web/src/routes/maps.tsx`), built on the shared Outpost design system
-(`@offline-pi/ui`, see `DESIGN.md`). The browser talks only to core: core's
+(`@outpost/ui`, see `DESIGN.md`). The browser talks only to core: core's
 maps domain (`apps/core/src/domains/maps/`) exposes `/api/maps/...`, calls
 this backend's own `/api` on `MAPS_PORT`, and pushes job progress over the
 Socket.IO namespace `/maps`. Raw map files (tiles, pmtiles, fonts, sprites)
@@ -48,19 +48,19 @@ $MAPS_DATA_DIR/regions.json           registry: bbox, zoom range, build date, si
 $MAPS_DATA_DIR/offline-maps.db        default database: your points of interest
 $MAPS_DATA_DIR/geofabrik-index.json   catalog of 554 named regions
 $MAPS_ASSETS_DIR/fonts, .../sprites   vendored map assets
-backend/                          NestJS server + region CLI (@offline-pi/maps-backend)
-../../packages/maps-shared/       types shared by server, core and web (@offline-pi/maps-shared)
+backend/                          NestJS server + region CLI (@outpost/maps-backend)
+../../packages/maps-shared/       types shared by server, core and web (@outpost/maps-shared)
 ```
 
-The module is part of the offline-pi monorepo (npm workspaces + Turborepo,
+The module is part of the outpost monorepo (npm workspaces + Turborepo,
 see the root `AGENTS.md`): `backend` is a workspace of its own, and
-`@offline-pi/maps-shared` holds the `/api` contract (`Region`, `Theme`,
+`@outpost/maps-shared` holds the `/api` contract (`Region`, `Theme`,
 response shapes), so a registry change fails the typecheck everywhere it is
 used. From the repo root:
 
 ```sh
 npm install                                   # once, every workspace
-npx turbo run build --filter=@offline-pi/maps-backend
+npx turbo run build --filter=@outpost/maps-backend
 npx turbo run typecheck                       # every workspace
 ```
 
@@ -170,9 +170,9 @@ Keeping that promise honest costs a little discipline:
 - `synchronize` is off. Schema changes are migrations, which run on boot.
 
 ```sh
-npm run -w @offline-pi/maps-backend migration:show      # what has been applied
-npm run -w @offline-pi/maps-backend migration:run       # apply pending (also automatic on boot)
-npm run -w @offline-pi/maps-backend migration:revert    # undo the last one
+npm run -w @outpost/maps-backend migration:show      # what has been applied
+npm run -w @outpost/maps-backend migration:run       # apply pending (also automatic on boot)
+npm run -w @outpost/maps-backend migration:revert    # undo the last one
 ```
 
 ## Running
@@ -183,14 +183,14 @@ npm run dev:core    # (repo root) core, which proxies the browser to it
 npm run dev:web     # (repo root) the web app with the Maps screen
 ```
 
-Turborepo builds `@offline-pi/maps-shared` first and runs its `tsc --watch`
+Turborepo builds `@outpost/maps-shared` first and runs its `tsc --watch`
 too. Backend dev runs `tsc --watch` next to `node --watch dist/main.js`, so a saved
 `.ts` file restarts the server.
 
-### In offline-pi
+### In outpost
 
 The service `maps` in `compose.yml` in the repo root runs as container
-`offline-pi-maps` (image `localhost/offline-pi-maps`) with host networking,
+`outpost-maps` (image `localhost/outpost-maps`) with host networking,
 listening on `127.0.0.1:MAPS_PORT`; only core is reachable from the LAN.
 The image builds only the backend. `./install.sh` builds the image and runs the first-run setup
 (pmtiles binary, fonts, sprites); the same by hand:

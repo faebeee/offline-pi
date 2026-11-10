@@ -1,5 +1,5 @@
 import { Body, Controller, HttpCode, Param, Post } from "@nestjs/common";
-import type { CreateDownloadRequest, Job } from "@offline-pi/maps-shared";
+import type { CreateDownloadRequest, Job } from "@outpost/maps-shared";
 import { JobsService } from "../jobs/jobs.service.ts";
 import { DownloadService } from "./download.service.ts";
 

@@ -1,7 +1,8 @@
 {
-  "name": "offline-pi",
+  "name": "outpost",
+  "version": "0.1.0",
   "private": true,
-  "description": "offline-pi: one offline app for a Raspberry Pi, a dashboard (core) and modules behind it",
+  "description": "outpost: one offline app for a Raspberry Pi, a dashboard (core) and modules behind it",
   "packageManager": "npm@11.19.0",
   "workspaces": [
     "apps/*",
@@ -15,12 +16,12 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "typecheck": "turbo run typecheck",
-    "dev:core": "turbo run dev --filter=@offline-pi/core",
-    "dev:maps": "turbo run dev --filter=@offline-pi/maps-backend --filter=@offline-pi/maps-shared",
-    "maps:setup": "turbo run build --filter=@offline-pi/maps-shared && npm run -w @offline-pi/maps-backend setup",
-    "maps:assets:fetch": "turbo run build --filter=@offline-pi/maps-shared && npm run -w @offline-pi/maps-backend assets:fetch",
-    "dev:web": "turbo run dev --filter=@offline-pi/web",
-    "api:gen": "npm run -w @offline-pi/core build && npm run -w @offline-pi/core openapi && npm run -w @offline-pi/api-client generate"
+    "dev:core": "turbo run dev --filter=@outpost/core",
+    "dev:maps": "turbo run dev --filter=@outpost/maps-backend --filter=@outpost/maps-shared",
+    "maps:setup": "turbo run build --filter=@outpost/maps-shared && npm run -w @outpost/maps-backend setup",
+    "maps:assets:fetch": "turbo run build --filter=@outpost/maps-shared && npm run -w @outpost/maps-backend assets:fetch",
+    "dev:web": "turbo run dev --filter=@outpost/web",
+    "api:gen": "npm run -w @outpost/core build && npm run -w @outpost/core openapi && npm run -w @outpost/api-client generate"
   },
   "devDependencies": {
     "turbo": "^2.6.0"

@@ -1,8 +1,9 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, Link, Outlet } from "@tanstack/react-router";
+import { Boot } from "../app/Boot";
 import { StripProvider } from "../app/strip";
 import { Screen } from "../app/Screen";
-import { Banner } from "../ui/outpost";
+import { Banner, Illustration } from "../ui/outpost";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   component: Root,
@@ -16,6 +17,7 @@ function Root() {
       <StripProvider>
         <Outlet />
       </StripProvider>
+      <Boot />
     </div>
   );
 }
@@ -23,6 +25,7 @@ function Root() {
 function NotFound() {
   return (
     <Screen module="home" title="Not found">
+      <Illustration name="lost" className="gate-art" />
       <Banner tone="info" title="This page does not exist" action={<Link to="/" className="btn">Home</Link>} />
     </Screen>
   );

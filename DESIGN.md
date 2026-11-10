@@ -14,8 +14,8 @@ Frontend guide for the Outpost suite: offline-first apps for disasters, emergenc
 4. **Never rely on color alone.** Every status = color + icon shape + written label.
 5. **Touch targets are at least 44 x 44 px.** The main action on a screen is 56 px tall.
 6. **One primary (amber) action per view.** Amber is reserved for the main action, the user's own position, the active nav item and focus rings.
-7. **No decorative motion, blur, gradients, drop shadows, emoji or stock imagery.** They cost battery and attention.
-8. **Respect `prefers-reduced-motion`**, and keep any functional transition at or under 150 ms.
+7. **Motion and art serve the signal.** Motion follows state or a screen change (boot-in, a live LED, a pressed control); continuous loops only in illustrations and live indicators. Glow (`--glow-*`) only on live or active elements, dark theme only. No blur, emoji or stock imagery; illustrations come from `packages/ui/illustrations.js` (see 0.6).
+8. **Respect `prefers-reduced-motion`** and `html.motion-off` (low power): everything stops. Feedback transitions stay at `--dur-fast` (120 ms); entrances at most `--dur-slow`. Animate transform and opacity; never delay the user (the boot screen is skippable and once per session).
 9. **Status is always visible.** Every screen shows the status strip (link state, GNSS, battery, UTC time).
 10. **Text contrast is at least 4.5:1** in both themes, including small mono labels.
 
@@ -23,7 +23,7 @@ Frontend guide for the Outpost suite: offline-first apps for disasters, emergenc
 
 ## 2. Look and feel
 
-Tactical and futuristic, but calm. Think field instrument, not video game.
+A field terminal that survived the collapse: cyberpunk signal light on post-apocalyptic ground. Tactical and modern, never noisy. Think salvaged military instrument with a working screen, not video game.
 
 | Motif | Use |
 | --- | --- |
@@ -33,8 +33,11 @@ Tactical and futuristic, but calm. Think field instrument, not video game.
 | Caution hatch (45° stripes) | Left edge of caution banners, warning zones |
 | Status light (8 to 10 px dot) | Link, node and system state |
 | Monospace uppercase labels | All metadata, units, coordinates, timestamps |
+| Scanlines (static, `--scan`) | Over the whole frame, dark theme only |
+| Signal sweep | The header's bottom line lights up once when a screen opens; titles lock in with a short glitch |
+| Line-art illustrations | Ruins, the outpost mast, one scene per module; empty states, gates, the Home hero, faint in tiles |
 
-Shape: radius `2px` for controls, `0` for panels. Depth comes from stepping surfaces (`--s1`, `--s2`, `--s3`) plus 1 px lines. No shadows.
+Shape: radius `2px` for controls, `0` for panels. Depth comes from stepping surfaces (`--s1`, `--s2`, `--s3`) plus 1 px lines. No drop shadows; the only shadow is signal glow (`--glow-*`).
 
 ---
 
@@ -69,6 +72,12 @@ Copy this into `tokens.css` and load it in every app. Put the theme class on `<h
   /* Misc */
   --grid: rgba(140,190,165,.06);
   --map: #0E1412;
+  /* Glow (0.6): live and active elements, dark theme only */
+  --glow-acc: 0 0 10px rgba(255,176,32,.45);
+  --glow-ok: 0 0 8px rgba(63,214,138,.5);
+  --glow-info: 0 0 8px rgba(76,201,224,.45);
+  --glow-crit: 0 0 10px rgba(255,90,82,.55);
+  --scan: rgba(140,190,165,.035);   /* CRT scanlines over the frame */
 }
 
 .t-light {
@@ -92,6 +101,12 @@ Copy this into `tokens.css` and load it in every app. Put the theme class on `<h
   --on-crit: #FFFFFF;
   --grid: rgba(20,60,40,.06);
   --map: #F1F3EC;
+  /* no glow or scanlines in daylight */
+  --glow-acc: 0 0 0 transparent;
+  --glow-ok: 0 0 0 transparent;
+  --glow-info: 0 0 0 transparent;
+  --glow-crit: 0 0 0 transparent;
+  --scan: transparent;
 }
 
 :root {
@@ -111,6 +126,12 @@ Copy this into `tokens.css` and load it in every app. Put the theme class on `<h
   --target-primary: 56px;
   --strip-h: 32px;
   --nav-h: 64px;
+  /* Motion (0.6) */
+  --dur-fast: 120ms;   /* feedback: hover, press, toggles */
+  --dur: 240ms;        /* entrances, state changes */
+  --dur-slow: 600ms;   /* screen boot-in, signal sweep */
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  --ease-snap: cubic-bezier(.3, 1.5, .5, 1);
 }
 ```
 
@@ -312,7 +333,7 @@ Row min 60 px (72 px with avatar/monogram), 1 px bottom line, structure: LED or 
 - Own position: amber heading arrow + accuracy circle (`--acc-soft` fill, `--acc` stroke). Only the user's position and active route are amber.
 - Waypoints: diamond (route target, amber stroke) or square (saved place, info stroke) with mono uppercase label and a halo (`paint-order: stroke`, stroke `--map`).
 - Alerts (SOS nodes): crit octagon with dashed ring.
-- Controls: right column of 44 px icon buttons (layers, zoom group, compass), a 52 px amber locate button above the bottom sheet, scale bar bottom left.
+- Controls: right column of 44 px icon buttons (panel, zoom group, compass, layer switches such as mesh nodes), a 52 px amber locate button above the bottom sheet, scale bar bottom left.
 - Show a cache badge (`TILES CACHED · <REGION>`) so users know what works offline.
 - Night map style must be dark; never show a bright map in `.t-dark`.
 
@@ -347,7 +368,8 @@ Row min 60 px (72 px with avatar/monogram), 1 px bottom line, structure: LED or 
 - Queue outgoing actions (messages, waypoints) locally and show their state (`QUEUED`, `SENT`, `ACK`).
 - Keep bundles small; avoid heavy UI frameworks for simple modules. No external runtime dependencies.
 - Pause expensive work (map rendering, polling) when the app is hidden or in low-power mode.
-- Low-power mode: dim UI, stop animations, reduce GNSS and sync polling. Expose it as a global setting.
+- Low-power mode: dim UI, stop animations (`html.motion-off`), reduce GNSS and sync polling. Expose it as a global setting.
+- Motion is CSS only (no animation library, no requestAnimationFrame loops); browsers pause it in hidden tabs.
 
 ---
 
@@ -398,7 +420,7 @@ The visual reference (foundations, components, Hub, Maps, Library and Mesh scree
   - **Map stage and panel** (`.map-stage`, `.map-view`, `.map-panel`, `.map-panel-head` [`.is-tabs`], `.map-panel-title`, `.map-panel-body` [`.flush`], `.map-panel-actions`): from 720 px a 360 px `--s1` side panel next to the map (side by DOM order), below that a bottom sheet under the map (max 55 % height), so the locate button stays above the sheet.
   - **Map extras**: `.map-compass` (the compass icon rotates by `--map-bearing` so it points north), `.map-badge-text` (cache badge truncates with an ellipsis), round node markers `.mk-node` with age by stroke (`.is-fresh` `--ok`, `.is-old` `--cau`, `.is-stale` `--fg3` and dimmed; the label also states the age), popup content `.map-popup` whose head clears the 44 px close button.
   - **Icons** `fit` (frame all) and `list` (show the list panel).
-- 0.3 (2026-11): offline-pi becomes one app; every module is served under a path on one port.
+- 0.3 (2026-11): outpost becomes one app; every module is served under a path on one port.
   - **Module nav** is path based: Home (`/`), Maps (`/maps/`), Mesh map (`/mesh-map/`), Mesh (`/mesh/`), Library (`/library/`), System (`/system/`). `frame()` draws the built-in list right away, then redraws it from core's `/api/modules` (installed modules only, from the module manifests), so a new module needs no change in `packages/ui`. Home has no number; its header label is just "Home". A module that is installed but stopped stays in the nav, dimmed (`.nav-item.is-off`, `--fg3`), and leads to its START on the home page.
   - **Hub** (home page, core): the module tiles from 0.1 (`a.tile`), each with a state badge, plus a card of `.switch-row`s to switch modules on and off. Opening a stopped or missing module shows an info banner there with its START button.
 - 0.4 (2026-11): one web app. Every screen is a route of `apps/web` (React, TanStack Router), served by core at `/`; modules have no UI of their own any more.
@@ -409,3 +431,16 @@ The visual reference (foundations, components, Hub, Maps, Library and Mesh scree
 - 0.5 (2026-11): Logs module (`/logs`, served by core, number 06).
   - **Icon** `logs` (terminal frame with prompt and cursor line), the Logs module's nav and tile icon.
   - **Log lines** (`apps/web/src/features/logs/logs.css`, tokens only): mono 12 px lines in a scrolling `--bg` box with a `--line` border; each line is UTC time (`HH:MM:SS.mmm`, `--fg3`), the level written out in uppercase, then `[context]` (`--fg2`) and the message (pre-wrapped). Warnings get a 2 px `--cau` left edge, a caution icon and a `--cau` level word; errors and fatal a 2 px `--crit` edge, `--crit-soft` background, a critical icon and a `--crit` level word; debug and verbose messages are `--fg2`. The level is always written, so it is never colour alone. The view sticks to the newest line unless the user scrolled up.
+- 0.6 (2026-11): motion and illustrations; the look becomes "field terminal after the collapse" (section 2). Rules 7 and 8 rewritten: motion and art are allowed when they serve the signal.
+  - **Tokens**: `--glow-acc/ok/info/crit` (dark only, `transparent` in light), `--scan`, `--dur-fast/--dur/--dur-slow`, `--ease-out`, `--ease-snap`.
+  - **Motion** (`packages/ui/motion.css`, imported by `outpost.css`): screen content rises in a beat apart; the header's bottom line sweeps amber once and the H1 locks in with a short glitch (slices + `--info`/`--crit` colour split); the strip LED pings while live (ok), blinks while connecting (cau), pings fast on failure (crit), and any `.led.is-live` does the same; nav icons lift on hover, the current one glows and flickers on; buttons press down, the primary one glows and a band of light crosses it on hover, icon buttons tilt; switches snap with an overshoot and glow when on; badges pop in, `.badge.is-busy` (starting, stopping) crawls with hazard stripes; the progress cell being filled blinks; rows show a `--line2` edge on hover; banners reveal from the left, critical ones pulse their border three times; toasts rise; dialogs open like a CRT (a line, then the picture); empty states get one info scan bar; tiles close corner brackets in on hover/focus, glow their icon and colour-split their name, and hub tiles power on one after another. Static scanlines (`--scan`) cover the frame.
+  - **Illustrations** (`packages/ui/illustrations.js` + `illustrations.css`): line art in the icon style, stroked by token class (`l` far / `f` near / `a` amber = own post and route only / `i` / `o` / `c`, `g` = filled with `--il-bg` to hide what is behind), animated by class (`pulse`, `blink`, `march`, `draw`, `type`, `scan`, `float`, `flicker`, `spin`). Scenes: `hero` (the outpost at dusk: ruins, a slit sun, the mast with signal arcs, mesh nodes linked over the ruins, a drone, 960 x 220), one per module (`maps`, `library`/`knowledge`, `mesh`, `mesh-map`, `system`, `logs`), `lost` (signal lost), `generic` (mast). `illustration(name)` returns the markup; React: `Illustration` in `apps/web/src/ui/outpost.tsx`. `.il.is-off` greys a scene out and stops it (module not running). Always decorative (`aria-hidden`), never carries information.
+  - **Placements**: `.hero` on Home (scene + what is running), `.tile-art` (the module's scene, faint, behind the tile text), `.gate-art` above a module gate's banner (not installed / not running) and on "not found", `.empty .il` instead of the 40 px icon in empty states.
+  - **Boot screen** (`.boot`, apps/web `Boot`): the terminal powers up once per browser session: mast, glitching name, four status lines. Fades by itself after ~1.5 s, ends on tap or key, skipped with reduced motion or `motion-off`. Its lines only state facts the app knows.
+- 0.7 (2026-11): Info module (`/info`, served by core, number 07): the project documentation, rendered from `docs/*.md`.
+  - **Document** (`.doc`): long-form text rendered from Markdown, max 76 ch. H1 display 28 px uppercase, its first paragraph as a lead in `--fg2`; H2 display 21 px with a 1 px `--line` rule above; H3 display 17 px; H4 in label style. Links `--acc-ink`, underlined. Inline code mono on `--s2` with a `--line` border; code blocks on `--s2` with a 2 px `--line2` left edge. Blockquotes as an info note (`--info-soft`, `--info` border). Tables use `.table` in `.table-wrap`, in body font. A link to a project file outside the docs (`.doc-file`) is plain `--fg2` text with a dashed underline, since the app can't open it. Prose is the one place siblings are spaced with margins (`.doc > * + *`), because the Markdown decides the children.
+  - **Icon** `manual` (a bound field manual with text lines), the Info module's nav and tile icon. **Illustration** `info`: the open field manual with the mast's schematic and a bookmark.
+- 0.8 (2026-11): Mesh map merged into Maps. The Meshtastic nodes are a layer of the offline map, not a module of their own.
+  - **Layer switch**: an icon button `nodes` in the map's control column (`.map-ctrls`, `aria-pressed` while shown), only when Mesh is installed. The choice is remembered per browser.
+  - **Nodes tab** in the map panel next to Regions and Places while the layer is shown: one row per positioned node (monogram, name, heard/hops, age LED), "Show all nodes" fits them in view. Node markers (`.mk-node`, `.is-fresh/.is-old/.is-stale`) and the node popup (`.map-popup` + `.kv`) are unchanged.
+  - **Module numbers**: Maps 01, Mesh 02, Library 03, System 04, Logs 05, Info 06. The `mesh-map` illustration is gone.

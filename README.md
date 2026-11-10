@@ -1,4 +1,11 @@
-# offline-pi
+# outpost
+
+> **Documentation:** [`docs/`](docs/README.md), plain Markdown in chapters,
+> also shown in the app under **Info** (`/info`). Start there; it works
+> without the app too.
+>
+> **Version:** see `version` in `package.json`; what changed is in the
+> [changelog](docs/07-changelog.md) (also under **Info**).
 
 One self-hosted app for a Raspberry Pi that keeps working without internet:
 offline maps, an emergency-knowledge library, Meshtastic messaging and a live
@@ -16,10 +23,10 @@ and off on the dashboard.
 | Home | `/` | `/api/modules` | | Every installed module as a tile, with on/off switches. |
 | [System](apps/core/README.md) (core) | `/system` | `/api/system` | `8080` (public) | Realtime Pi dashboard: temperature, input voltage, throttling, PSU limits, CPU, memory, storage, network, containers and connections. Core is also the API of every module and starts/stops them. |
 | [Logs](apps/logs/README.md) (core) | `/logs` | `/api/logs` | | Log lines of core and every installed module, live, filterable by level and text, downloadable, for debugging. |
-| [Maps](apps/maps/README.md) | `/maps` | `/api/maps` | `8081` | Self-hosted vector maps: download a region once, then pan, zoom and search with no internet connection. |
-| [Mesh map](apps/mesh-map/README.md) | `/mesh-map` | `/api/mesh-map` | `8086` | Live map of the Meshtastic nodes heard by Mesh, on the regions downloaded in Maps (read-only). |
+| [Info](apps/info/README.md) (core) | `/info` | `/api/info` | | This project's documentation ([`docs/`](docs/README.md)), rendered from the Markdown files, with chapters and search. |
+| [Maps](apps/maps/README.md) | `/maps` | `/api/maps` | `8081` | Self-hosted vector maps: download a region once, then pan, zoom and search with no internet connection. With Mesh installed, the Meshtastic nodes are a layer that can be switched on and off. |
 | [Mesh](apps/mesh/README.md) | `/mesh` | `/api/mesh` | `8084` | Messaging over a USB Meshtastic LoRa node: channel and direct messages, node list, history kept on the Pi. |
-| [Library](apps/knowledge/README.md) | `/library` | `/api/library` | `8082` | Offline Wikipedia, medical and survival guides via `kiwix-serve`; the container downloads the ZIM set from `zims.txt` itself. |
+| [Library](apps/knowledge/README.md) | `/library` | `/api/library` | `8082` | Offline Wikipedia, medical and survival guides via `kiwix-serve`; you choose the books on the Library screen, the container downloads them itself. |
 
 Modules listen on `127.0.0.1` only; the LAN sees just `PORT` (8080), where
 core serves the one web app ([`apps/web`](apps/web/README.md)), the one API
@@ -32,24 +39,52 @@ join a known Wi-Fi at boot or open a hotspot so phones can reach the Pi.
 ## Quick start
 
 Requirements: a Raspberry Pi (or any Linux box) with Podman and a compose
-backend (`install.sh` offers to install both via apt). A USB Meshtastic node
-for Mesh; an SSD recommended for maps and library data.
+backend (`install.sh` offers to install both via apt or dnf). A USB
+Meshtastic node for Mesh; an SSD recommended for maps and library data.
 
 ```sh
 git clone https://github.com/faebeee/offline-pi.git
-cd offline-pi
+cd outpost
 ./install.sh
 ```
 
 Then open `http://<pi>:8080/`.
 
-`install.sh` asks for the port and bind address (first run), which modules to
-install, where each module keeps its data, and module specifics (e.g. the
-Meshtastic USB device). It builds the images and ends by running `start.sh`.
+`install.sh` walks through five steps with arrow-key menus: a system check
+(Podman, compose, Pi hardware), the web app (port, who can reach it, an
+optional control PIN; asked on the first run, later only if you want to
+change them), which modules to install (checkbox list), where each module
+keeps its data plus module specifics (e.g. the Meshtastic USB device), and a
+summary before it builds the images and runs `start.sh`. The build output
+goes to `install.log`; on an error the installer shows its end.
+
+```sh
+./install.sh --yes       # no questions: keep the current answers (defaults on a first run)
+./install.sh --plain     # line-by-line prompts instead of menus (also used without a terminal)
+./install.sh --verbose   # show the build output instead of a progress line
+```
 
 Re-run `./install.sh` any time to add or remove modules, reconfigure one, or
 move data to another disk: every data directory is asked again, defaulting to
 the current location, and existing data is moved to the new one.
+
+### macOS (development)
+
+The same scripts run on a Mac (Bash 3.2 is enough). `install.sh` offers to
+install Podman and `podman-compose` with [Homebrew](https://brew.sh) and to
+create and start the Podman machine (the Linux VM Podman runs containers
+in). Differences from a Pi:
+
+- Compose always runs through `podman-compose` with
+  [`compose.macos.yml`](compose.macos.yml) on top (the remote Podman API has
+  no `keep-groups`).
+- The containers' host network is the VM's: `start.sh` forwards `PORT` from
+  the Mac into the machine on every start.
+- Data directories must be under a path the machine shares (`/Users` by
+  default).
+- USB devices can't reach the VM: Mesh needs a node on the network (tcp).
+- Nothing starts at login: after a restart run `podman machine start` and
+  `./start.sh`.
 
 ### Upgrading from the per-app layout
 
@@ -81,6 +116,7 @@ refuses when tracked files have local changes, and prints the command to go
 back to the previous version. `--clean` rebuilds without the layer cache,
 `--rebuild` rebuilds even when up to date, `--yes` doesn't ask. A failed
 build leaves the running containers on their old images.
+What a new version changes is in the [changelog](docs/07-changelog.md).
 
 Switching a module off on the dashboard stops its container; it stays off
 after a reboot until it is switched on again. A crashed module is restarted
@@ -95,13 +131,13 @@ documents every variable. The main ones:
 |---|---|---|
 | `PORT` | `8080` | The one port on the LAN: dashboard and all modules. |
 | `BIND_ADDRESS` | `0.0.0.0` | `0.0.0.0` for LAN/hotspot, `127.0.0.1` for this Pi only. |
-| `MODULES` | `maps,knowledge,mesh-map` | Installed modules (set by `install.sh`). |
+| `MODULES` | `maps,knowledge` | Installed modules (set by `install.sh`). |
 | `CORE_LOG_LEVEL` | `log` | Least severe level core logs and the Logs screen shows for core (`debug` for more detail). |
 | `CONTROL_PIN` | empty | PIN asked before starting/stopping modules on the dashboard. |
 | `CORE_DATA_DIR` | `./data/core` | Dashboard history, power events, module on/off state. |
 | `MAPS_DATA_DIR` | `./data/maps` | Map regions (GBs) and POIs. Point at the SSD. |
 | `MAPS_ASSETS_DIR` | `./data/maps-assets` | Map fonts and sprites (~100 MB). |
-| `KNOWLEDGE_CONTENT_DIR` | `./data/knowledge` | ZIM files (tens of GB). Point at the SSD. |
+| `KNOWLEDGE_CONTENT_DIR` | `./data/knowledge` | ZIM files chosen on the Library screen (MB to hundreds of GB). Point at the SSD. |
 | `MESH_DATA_DIR` | `./data/mesh` | Message history. |
 | `MESH_CONNECTION` / `MESH_DEVICE` / `MESH_HOST` | | How Mesh reaches the node (set by `install.sh`). |
 | `*_PORT` | `8081`... | Internal (loopback) port of each module. |
@@ -142,7 +178,7 @@ Core (`apps/core`, NestJS) has one domain module per feature
 core's OpenAPI document (`packages/api-client`), so a new endpoint is one
 `npm run api:gen` away from a typed hook in the UI. The UI follows the
 Outpost design system: [`DESIGN.md`](DESIGN.md) is the spec and
-[`packages/ui`](packages/ui/README.md) (`@offline-pi/ui`) the package.
+[`packages/ui`](packages/ui/README.md) (`@outpost/ui`) the package.
 [`AGENTS.md`](AGENTS.md) describes the architecture, how to add a feature
 (domain, `api:gen`, screen) and how to add a module (an `apps/<name>/`
 directory with a `module.json` manifest, a compose service and optional

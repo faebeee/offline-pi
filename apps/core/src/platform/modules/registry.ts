@@ -16,7 +16,7 @@ export interface Module {
   label: string;
   icon: string;
   description: string;
-  /** compose service name; the container is offline-pi-<service> */
+  /** compose service name; the container is outpost-<service> */
   service: string;
   /** the module's web route, e.g. /maps/ (always has a trailing slash) */
   path: string;
@@ -40,7 +40,7 @@ export interface Module {
   requires: string[];
   /** installed modules started with it, in order */
   dependsOn: string[];
-  /** podman container name, offline-pi-<service> */
+  /** podman container name, outpost-<service> */
   containerName: string;
   /** http://MODULES_BIND_ADDRESS:<port>, only when portEnv resolves to a port */
   upstream: string | null;
@@ -76,7 +76,7 @@ function parseManifest(raw: string): Module {
     optional: json.optional ?? true,
     requires: json.requires ?? [],
     dependsOn: json.dependsOn ?? [],
-    containerName: `offline-pi-${json.service}`,
+    containerName: `outpost-${json.service}`,
     upstream: json.portEnv && Number.isFinite(port) && port > 0 ? `http://${bindAddress()}:${port}` : null,
   };
 }

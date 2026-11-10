@@ -11,7 +11,7 @@ import {
   type MeshMessage,
   type MeshNode,
   type RadioStatus,
-} from "@offline-pi/api-client";
+} from "@outpost/api-client";
 import { useInfiniteQuery, useQueryClient, type InfiniteData, type QueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { useSocketEvent } from "../../app/realtime";
@@ -85,7 +85,8 @@ export function upsertMessage(qc: QueryClient, m: MeshMessage) {
   if (m.direction === "out") meshUi.markRead(m.conv, m.id);
 }
 
-function upsertNodes(qc: QueryClient, list: MeshNode[]) {
+/** Live node updates into the cached node list (Mesh screen and the map layer). */
+export function upsertNodes(qc: QueryClient, list: MeshNode[]) {
   qc.setQueryData<MeshNode[]>(getMeshNodesQueryKey(), (old) => {
     if (!old) return old;
     const byNum = new Map(old.map((n) => [n.num, n]));

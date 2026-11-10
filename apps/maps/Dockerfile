@@ -1,6 +1,6 @@
 # Built with the repo root as context (compose.yml): `turbo prune` cuts the
 # monorepo down to the maps backend and the packages it depends on
-# (@offline-pi/maps-shared). Its UI is the web app (apps/web), served by core.
+# (@outpost/maps-shared). Its UI is the web app (apps/web), served by core.
 
 # ---------------------------------------------------------------- prune ---
 FROM node:22-slim AS prune
@@ -8,7 +8,7 @@ ARG TURBO_VERSION=2.11.10
 RUN npm install -g "turbo@${TURBO_VERSION}"
 WORKDIR /repo
 COPY . .
-RUN turbo prune @offline-pi/maps-backend --docker
+RUN turbo prune @outpost/maps-backend --docker
 
 # ---------------------------------------------------------------- build ---
 FROM node:22-slim AS build
@@ -22,8 +22,8 @@ RUN npm ci --ignore-scripts
 COPY --from=prune /repo/out/full/ ./
 # root files are not part of the pruned output
 COPY tsconfig.base.json ./
-# builds @offline-pi/maps-shared, then the backend
-RUN npx turbo run build --filter=@offline-pi/maps-backend
+# builds @outpost/maps-shared, then the backend
+RUN npx turbo run build --filter=@outpost/maps-backend
 
 # -------------------------------------------------------------- pmtiles ---
 # Linux go-pmtiles CLI, same version as UPSTREAM.pmtilesVersion
@@ -47,7 +47,7 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=prune /repo/out/json/ ./
-RUN npm ci --omit=dev --ignore-scripts --workspace @offline-pi/maps-backend \
+RUN npm ci --omit=dev --ignore-scripts --workspace @outpost/maps-backend \
  && npm cache clean --force
 
 COPY --from=build /app/packages/maps-shared/dist packages/maps-shared/dist
