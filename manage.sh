@@ -40,7 +40,7 @@ require_env() {
 }
 
 require_module() {
-  if [[ -z "${1:-}" ]] || ! all_modules | grep -qx "$1"; then
+  if [[ -z "${1:-}" ]] || ! is_module "$1"; then
     log_error "Unknown module '${1:-}'. Modules: $(all_modules | tr '\n' ' ')"
     exit 1
   fi
@@ -83,7 +83,7 @@ case "${1:-}" in
   help|-h|--help) usage ;;
   *)
     m="${1:-}"
-    if [[ -n "$m" ]] && all_modules | grep -qx "$m"; then
+    if [[ -n "$m" ]] && is_module "$m"; then
       require_env
       require_module "$m"
       shift

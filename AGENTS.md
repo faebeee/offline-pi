@@ -14,6 +14,7 @@ touching the scripts.
 
 ```
 compose.yml              # the whole stack, project "offline-pi"
+compose.macos.yml        # added on macOS (lib/common.sh): what the remote API lacks
 .env.example             # checked in; documents every var
 .env                     # gitignored; written by install.sh only
 install.sh               # choose + configure modules, build, then start.sh
@@ -22,6 +23,9 @@ update.sh                # git pull a new version, then start.sh --pull
 manage.sh                # status, start/stop, logs, module commands
 uninstall.sh             # remove containers/images; data only on confirmation
 lib/common.sh            # log helpers, compose wrapper, .env helpers
+lib/ui.sh                # prompts: inputs, menus, checkboxes, spinner (ui_*)
+lib/platform.sh          # Linux/macOS differences, Bash 3.2 stand-ins
+lib/install.sh           # install.sh's steps (host check, basics, modules)
 lib/storage.sh           # prompt_dir / resync_dir (relocatable data)
 lib/serial.sh            # USB serial device picker (mesh)
 lib/modules.sh           # module registry for the scripts, hooks, core_api
@@ -252,21 +256,28 @@ ROOT_DIR="$SCRIPT_DIR"
 
 then sources `lib/common.sh` (and what else it needs).
 
-- **`install.sh`**: idempotent. Checks/offers to install podman and a
-  compose backend (`ensure_podman`); creates `.env` from `.env.example` and
-  asks for `PORT`/`BIND_ADDRESS` on first run only; adopts old `apps/*`
-  installs (`migrate_old_apps`); asks which modules to install (every run,
-  current choice as default); runs `core_configure` and each module's
-  configure hook; detects the vcio device, Podman's storage root and socket
-  (enables `podman.socket`); builds; runs post-build hooks;
-  `ensure_autostart`; ends by `exec`'ing `start.sh`.
+- **`install.sh`** `[--yes] [--plain] [--verbose]`: idempotent, five
+  steps. 1. System check: offers to install podman and a compose backend
+  (`ensure_podman`: apt/dnf, Homebrew on macOS plus the Podman machine);
+  creates `.env` from `.env.example`; adopts old `apps/*` installs
+  (`migrate_old_apps`); detects the vcio device, Podman's storage root and
+  socket (enables `podman.socket`). 2. Web app: `PORT`, `BIND_ADDRESS`,
+  `CONTROL_PIN` on the first run, later only if the user wants to change
+  them. 3. Which modules to install (checkboxes, current choice as default).
+  4. `core_configure` and each module's configure hook. 5. A summary and a
+  confirmation, then builds (one `ui_run` per image, output in
+  `install.log`), runs post-build hooks, `ensure_autostart` and ends by
+  `exec`'ing `start.sh`.
 - **`start.sh`**: requires `.env` (`log_error "Run ./install.sh first."`,
   never prompts). Checks every `*_DIR` exists, runs prepare hooks, builds,
   `compose up -d --no-start --force-recreate <modules>`, removes containers
   of modules no longer installed, then `compose up -d --force-recreate core`
   (core starts the modules). `--force-recreate` is required: podman-compose
   only replaces a container when the compose config changed, not the image.
-  Prints the local + LAN URL.
+  On macOS it starts the Podman machine if needed and forwards `PORT` from
+  the Mac into it (`macos_expose_port`). Waits until core answers, then
+  prints the local + LAN URL. Output of the steps goes to `start.log` (or
+  `install.log` when run by install.sh).
   `./start.sh --pull` also pulls newer base images, `--no-cache` ignores
   the layer cache.
 - **`update.sh`** `[--check] [--yes] [--clean] [--rebuild]`: installs a new
@@ -295,7 +306,9 @@ then sources `lib/common.sh` (and what else it needs).
   it. Core writes only `CORE_DATA_DIR/modules.json`.
 - Every compose call goes through `compose` in `lib/common.sh`, which adds
   `-p offline-pi -f compose.yml --env-file .env` and prefers `podman compose`
-  over `podman-compose`.
+  over `podman-compose`. On macOS it always uses `podman-compose` (`podman
+  compose` may hand over to Docker Compose, which resolves bind mounts such
+  as `/` on the Mac, not in the VM) and adds `-f compose.macos.yml`.
 
 ### Logging & prompts
 
@@ -306,8 +319,27 @@ log_error() { printf '\033[1;31m[error]\033[0m %s\n' "$*" >&2; }
 log_ok()    { printf '\033[1;32m✔\033[0m %s\n' "$*"; }
 ```
 
-Plain `read -r -p` prompts with the default in brackets. Put logic in
-`lib/*.sh` rather than growing the entry scripts.
+Prompts go through `lib/ui.sh` (sourced by `lib/common.sh`), never a bare
+`read`: `ui_input QUESTION DEFAULT [VALIDATOR]`, `ui_confirm QUESTION y|n`,
+`ui_select QUESTION DEFAULT "value|label|hint"...`, `ui_multiselect
+QUESTION "value|label|hint|on"...` (answers in `UI_REPLY`), `ui_run MESSAGE
+CMD...` for long steps (spinner, output to `UI_LOG`, its end shown on
+failure; stdin is `/dev/null`, so nothing run by it may prompt). They draw on
+stderr, so they work inside `$(...)`, fall back to plain `read` prompts
+without a terminal (or `UI_PLAIN=true`, `--plain`) and take every default
+with `UI_ASSUME_YES=true` (`--yes`). Put logic in `lib/*.sh` rather than
+growing the entry scripts.
+
+### Portability (Raspberry Pi OS and macOS)
+
+The scripts run on a Pi/Linux and on a Mac, whose `/bin/bash` is 3.2 and
+whose tools are BSD. Check with `/bin/bash -n` and avoid: `mapfile`/
+`readarray` (`read_lines` in `lib/platform.sh`), associative arrays
+(`declare -A`; use `case` functions), `${var,,}`, namerefs, fractional
+`read -t`, `sed -i` (`set_env` uses awk), `stat -c` (`file_group`),
+`hostname -I` (`lan_ip`). Branch on `is_macos` / `is_pi` for host
+specifics (apt vs brew, systemd, devices). Never `producer | grep -q` under
+`pipefail`: grep exiting early fails the pipeline at random.
 
 ## Podman, not Docker
 
@@ -315,6 +347,12 @@ Plain `read -r -p` prompts with the default in brackets. Put logic in
   `docker`/`docker-compose`.
 - Rootless Podman. `podman-restart.service` (enabled by `ensure_autostart`,
   plus lingering) brings core back after a reboot; core brings the modules.
+- macOS (development): Podman runs in a VM (`podman machine`). The
+  containers' host network, `/`, the Podman socket and storage root
+  (`PODMAN_*` in `.env`) are the VM's; `*_DIR`s must be under a path the
+  machine shares (`/Users`); no USB devices. A setting Linux needs that the
+  remote API rejects goes into `compose.macos.yml` (e.g.
+  `group_add: !reset []`), not into `compose.yml`.
 
 ### Compose rules (`compose.yml`)
 

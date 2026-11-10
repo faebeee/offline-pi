@@ -44,7 +44,7 @@ fi
 # Runs from the freshly pulled update.sh, so a changed update procedure
 # applies to this very update.
 if [[ -n "$apply_from" ]]; then
-  mapfile -t new_settings < <(new_env_settings "$apply_from")
+  read_lines new_settings new_env_settings "$apply_from"
   start_flags=(--pull)
   [[ "$clean" == true ]] && start_flags+=(--no-cache)
   if [[ "$apply_from" != "$(git rev-parse HEAD)" ]]; then
@@ -76,8 +76,7 @@ if (( BEHIND == 0 )); then
   [[ "$check" == true ]] && exit 0
   if [[ "$rebuild" != true ]]; then
     if [[ "$yes" == true ]]; then exit 0; fi
-    read -r -p "Rebuild and recreate every container anyway? [y/N] " answer
-    [[ "$answer" =~ ^[Yy] ]] || exit 0
+    ui_confirm "Rebuild and recreate every container anyway?" n || exit 0
   fi
   exec "$ROOT_DIR/update.sh" --apply "$(git rev-parse HEAD)" $([[ "$clean" == true ]] && echo --clean)
 fi
@@ -91,8 +90,7 @@ fi
 if [[ "$yes" != true ]]; then
   echo "The update rebuilds every image and recreates every container: the"
   echo "modules are unavailable for a few minutes. Data and settings are kept."
-  read -r -p "Install the update now? [Y/n] " answer
-  if [[ "$answer" =~ ^[Nn] ]]; then
+  if ! ui_confirm "Install the update now?" y; then
     log_info "Nothing changed."
     exit 0
   fi

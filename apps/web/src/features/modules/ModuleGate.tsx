@@ -51,7 +51,7 @@ function Gate({
   }
   const starting = control.isPending || m.busy === "start" || (m.state === "running" && m.health === "starting");
   return fallback(
-    <div className="stack">
+    <div className="vstack">
       <Banner
         tone="info"
         title={`${m.label} is not running`}

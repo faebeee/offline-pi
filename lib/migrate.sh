@@ -12,24 +12,37 @@
 #   4. rename the old .env to .env.migrated (data is never touched here; the
 #      storage prompts offer to move it).
 
-# old app dir -> module (empty: core)
-declare -A MIGRATE_MODULE=([monitor]="" [maps]=maps [knowledge]=knowledge [mesh]=mesh [mesh-map]=mesh-map)
-# old app dir -> "OLD_VAR:NEW_VAR ..." (":dir" suffix = a path to resolve)
-declare -A MIGRATE_VARS=(
-  [monitor]="DATA_DIR:CORE_DATA_DIR:dir PORT:PORT BIND_ADDRESS:BIND_ADDRESS SAMPLE_INTERVAL_MS:SAMPLE_INTERVAL_MS"
-  [maps]="DATA_DIR:MAPS_DATA_DIR:dir ASSETS_DIR:MAPS_ASSETS_DIR:dir ALLOWED_ORIGINS:MAPS_ALLOWED_ORIGINS DATABASE_URL:MAPS_DATABASE_URL DB_LOGGING:MAPS_DB_LOGGING"
-  [knowledge]="CONTENT_DIR:KNOWLEDGE_CONTENT_DIR:dir AUTO_SYNC:KNOWLEDGE_AUTO_SYNC"
-  [mesh]="DATA_DIR:MESH_DATA_DIR:dir MESH_CONNECTION:MESH_CONNECTION MESH_DEVICE:MESH_DEVICE MESH_HOST:MESH_HOST SEND_PIN:MESH_SEND_PIN SEND_RATE_LIMIT:MESH_SEND_RATE_LIMIT"
-  [mesh-map]="MAPS_DATA_DIR:MAPS_DATA_DIR:dir MAPS_ASSETS_DIR:MAPS_ASSETS_DIR:dir"
-)
-# old app dir -> images it built or pulled
-declare -A MIGRATE_IMAGES=(
-  [monitor]="localhost/pi-monitor:latest"
-  [maps]="localhost/offline-maps:latest"
-  [knowledge]="localhost/offline-knowledge:latest ghcr.io/kiwix/kiwix-serve:3.8.2"
-  [mesh]="localhost/offline-pi-mesh:latest"
-  [mesh-map]="localhost/offline-pi-mesh-map:latest"
-)
+# Plain functions instead of associative arrays (Bash 3.2 on macOS has none).
+
+# migrate_module APP - the module an old app dir became (empty: core).
+migrate_module() {
+  case "$1" in
+    monitor) echo "" ;;
+    *) echo "$1" ;;
+  esac
+}
+
+# migrate_vars APP - "OLD_VAR:NEW_VAR ..." (":dir" suffix = a path to resolve).
+migrate_vars() {
+  case "$1" in
+    monitor) echo "DATA_DIR:CORE_DATA_DIR:dir PORT:PORT BIND_ADDRESS:BIND_ADDRESS SAMPLE_INTERVAL_MS:SAMPLE_INTERVAL_MS" ;;
+    maps) echo "DATA_DIR:MAPS_DATA_DIR:dir ASSETS_DIR:MAPS_ASSETS_DIR:dir ALLOWED_ORIGINS:MAPS_ALLOWED_ORIGINS DATABASE_URL:MAPS_DATABASE_URL DB_LOGGING:MAPS_DB_LOGGING" ;;
+    knowledge) echo "CONTENT_DIR:KNOWLEDGE_CONTENT_DIR:dir AUTO_SYNC:KNOWLEDGE_AUTO_SYNC" ;;
+    mesh) echo "DATA_DIR:MESH_DATA_DIR:dir MESH_CONNECTION:MESH_CONNECTION MESH_DEVICE:MESH_DEVICE MESH_HOST:MESH_HOST SEND_PIN:MESH_SEND_PIN SEND_RATE_LIMIT:MESH_SEND_RATE_LIMIT" ;;
+    mesh-map) echo "MAPS_DATA_DIR:MAPS_DATA_DIR:dir MAPS_ASSETS_DIR:MAPS_ASSETS_DIR:dir" ;;
+  esac
+}
+
+# migrate_images APP - images the old app built or pulled.
+migrate_images() {
+  case "$1" in
+    monitor) echo "localhost/pi-monitor:latest" ;;
+    maps) echo "localhost/offline-maps:latest" ;;
+    knowledge) echo "localhost/offline-knowledge:latest ghcr.io/kiwix/kiwix-serve:3.8.2" ;;
+    mesh) echo "localhost/offline-pi-mesh:latest" ;;
+    mesh-map) echo "localhost/offline-pi-mesh-map:latest" ;;
+  esac
+}
 # migrate in this order so mesh-map doesn't override the maps paths
 MIGRATE_ORDER=(monitor maps knowledge mesh mesh-map)
 
@@ -45,7 +58,7 @@ old_env_value() {
 # images that project used; never the new offline-pi-* containers).
 remove_old_containers() {
   local app="$1" image id name
-  for image in ${MIGRATE_IMAGES[$app]}; do
+  for image in $(migrate_images "$app"); do
     podman image exists "$image" 2>/dev/null || continue
     while read -r id name; do
       [[ -z "$id" || "$name" == offline-pi-* ]] && continue
@@ -72,7 +85,7 @@ migrate_old_apps() {
       [[ "$fresh" == fresh ]] && set_env MODULES ""
     fi
 
-    for pair in ${MIGRATE_VARS[$app]}; do
+    for pair in $(migrate_vars "$app"); do
       IFS=: read -r old new kind <<<"$pair"
       value="$(old_env_value "$env" "$old")"
       [[ -n "$value" ]] || continue
@@ -86,7 +99,7 @@ migrate_old_apps() {
       set_env "$new" "$value"
     done
 
-    module="${MIGRATE_MODULE[$app]}"
+    module="$(migrate_module "$app")"
     if [[ -n "$module" ]]; then
       modules="$(get_env MODULES)"
       if [[ ",$modules," != *",$module,"* ]]; then
@@ -103,7 +116,7 @@ migrate_old_apps() {
 
   if [[ "$found" == true ]]; then
     for app in "${MIGRATE_ORDER[@]}"; do
-      for value in ${MIGRATE_IMAGES[$app]}; do
+      for value in $(migrate_images "$app"); do
         # mesh and mesh-map keep their image names; they are rebuilt anyway
         [[ "$value" == *offline-pi-mesh* ]] && continue
         if podman image exists "$value" 2>/dev/null && podman rmi "$value" >/dev/null 2>&1; then

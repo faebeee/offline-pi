@@ -43,7 +43,7 @@ knowledge_manage() {
       log_info "Old versions are kept but no longer served; './manage.sh knowledge prune' removes them."
       ;;
     prune)
-      local plan reply
+      local plan
       plan="$(knowledge_exec prune --dry-run)"
       if [[ -z "$plan" ]]; then
         log_ok "Nothing to prune."
@@ -51,8 +51,7 @@ knowledge_manage() {
       fi
       echo "These files would be deleted (relative to $(get_env KNOWLEDGE_CONTENT_DIR)):"
       echo "$plan" | sed 's/^/  /'
-      read -r -p "Delete them? This cannot be undone. [y/N] " reply
-      if [[ ! "$reply" =~ ^[Yy] ]]; then
+      if ! ui_confirm "Delete them? This cannot be undone." n; then
         log_warn "Cancelled; nothing was deleted."
         return
       fi

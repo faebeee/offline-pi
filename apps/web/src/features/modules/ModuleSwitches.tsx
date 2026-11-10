@@ -28,7 +28,7 @@ export function ModuleSwitches() {
           {failed.message}
         </Banner>
       )}
-      <div className="stack">
+      <div className="vstack">
         {optional.map((m) => {
           const pending = m.id === pendingId ? control.variables?.action : undefined;
           const d = describe(m, pending);

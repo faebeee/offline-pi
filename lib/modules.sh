@@ -22,7 +22,10 @@
 # manifest_field FILE KEY - a string/number field of a module.json (the
 # manifests keep one key per line, so no JSON parser is needed on the host).
 manifest_field() {
-  sed -n "s/^[[:space:]]*\"$2\":[[:space:]]*\"\{0,1\}\([^\",]*\)\"\{0,1\},\{0,1\}[[:space:]]*$/\1/p" "$1" | head -n 1
+  sed -n \
+    -e "s/^[[:space:]]*\"$2\":[[:space:]]*\"\(.*\)\",\{0,1\}[[:space:]]*$/\1/p" \
+    -e "s/^[[:space:]]*\"$2\":[[:space:]]*\([^\",]*\),\{0,1\}[[:space:]]*$/\1/p" \
+    "$1" | head -n 1
 }
 
 # manifest_list FILE KEY - a one-line string array field, one item per line.
@@ -61,8 +64,19 @@ installed_modules() {
   return 0
 }
 
+# is_module SERVICE - one of the optional modules.
+is_module() {
+  [[ " $(all_modules | tr '\n' ' ') " == *" $1 "* ]]
+}
+
+# is_installed SERVICE - no `installed_modules | grep -q`: with pipefail,
+# grep exiting early makes the pipeline fail at random (SIGPIPE).
 is_installed() {
-  installed_modules | grep -qx "$1"
+  local m
+  for m in $(installed_modules); do
+    [[ "$m" == "$1" ]] && return 0
+  done
+  return 1
 }
 
 # run_hook SERVICE HOOK [ARGS...] - call the module's hook if it defines one.

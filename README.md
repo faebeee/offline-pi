@@ -32,8 +32,8 @@ join a known Wi-Fi at boot or open a hotspot so phones can reach the Pi.
 ## Quick start
 
 Requirements: a Raspberry Pi (or any Linux box) with Podman and a compose
-backend (`install.sh` offers to install both via apt). A USB Meshtastic node
-for Mesh; an SSD recommended for maps and library data.
+backend (`install.sh` offers to install both via apt or dnf). A USB
+Meshtastic node for Mesh; an SSD recommended for maps and library data.
 
 ```sh
 git clone https://github.com/faebeee/offline-pi.git
@@ -43,13 +43,41 @@ cd offline-pi
 
 Then open `http://<pi>:8080/`.
 
-`install.sh` asks for the port and bind address (first run), which modules to
-install, where each module keeps its data, and module specifics (e.g. the
-Meshtastic USB device). It builds the images and ends by running `start.sh`.
+`install.sh` walks through five steps with arrow-key menus: a system check
+(Podman, compose, Pi hardware), the web app (port, who can reach it, an
+optional control PIN; asked on the first run, later only if you want to
+change them), which modules to install (checkbox list), where each module
+keeps its data plus module specifics (e.g. the Meshtastic USB device), and a
+summary before it builds the images and runs `start.sh`. The build output
+goes to `install.log`; on an error the installer shows its end.
+
+```sh
+./install.sh --yes       # no questions: keep the current answers (defaults on a first run)
+./install.sh --plain     # line-by-line prompts instead of menus (also used without a terminal)
+./install.sh --verbose   # show the build output instead of a progress line
+```
 
 Re-run `./install.sh` any time to add or remove modules, reconfigure one, or
 move data to another disk: every data directory is asked again, defaulting to
 the current location, and existing data is moved to the new one.
+
+### macOS (development)
+
+The same scripts run on a Mac (Bash 3.2 is enough). `install.sh` offers to
+install Podman and `podman-compose` with [Homebrew](https://brew.sh) and to
+create and start the Podman machine (the Linux VM Podman runs containers
+in). Differences from a Pi:
+
+- Compose always runs through `podman-compose` with
+  [`compose.macos.yml`](compose.macos.yml) on top (the remote Podman API has
+  no `keep-groups`).
+- The containers' host network is the VM's: `start.sh` forwards `PORT` from
+  the Mac into the machine on every start.
+- Data directories must be under a path the machine shares (`/Users` by
+  default).
+- USB devices can't reach the VM: Mesh needs a node on the network (tcp).
+- Nothing starts at login: after a restart run `podman machine start` and
+  `./start.sh`.
 
 ### Upgrading from the per-app layout
 
