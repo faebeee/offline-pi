@@ -217,28 +217,30 @@ export function statusStrip(el) {
   const led = document.createElement("span");
   const text = document.createElement("span");
   link.append(led, text);
+  // host metrics (the same on every screen): whole items only, the ones
+  // that don't fit wrap onto a hidden second line
+  const host = document.createElement("span");
+  host.className = "strip-host";
   const items = document.createElement("span");
   items.className = "strip-items";
   const clock = document.createElement("span");
   clock.className = "strip-item";
-  el.replaceChildren(link, items);
+  el.replaceChildren(link, host, items);
 
   let extra = [];
   const tick = () => {
     clock.textContent = utcTime(new Date());
   };
+  const item = ({ label, value, tone }) => {
+    const s = document.createElement("span");
+    s.className = tone === "cau" || tone === "crit" ? `strip-item is-${tone}` : "strip-item";
+    const b = document.createElement("b");
+    b.textContent = value;
+    s.append(`${label} `, b);
+    return s;
+  };
   const renderItems = () => {
-    items.replaceChildren(
-      ...extra.map(({ label, value }) => {
-        const s = document.createElement("span");
-        s.className = "strip-item";
-        const b = document.createElement("b");
-        b.textContent = value;
-        s.append(`${label} `, b);
-        return s;
-      }),
-      clock,
-    );
+    items.replaceChildren(...extra.map(item), clock);
   };
 
   const api = {
@@ -249,6 +251,9 @@ export function statusStrip(el) {
     setItems(list) {
       extra = list ?? [];
       renderItems();
+    },
+    setHost(list) {
+      host.replaceChildren(...(list ?? []).map(item));
     },
   };
   api.setLink("cau", "LOCAL · CONNECTING");

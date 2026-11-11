@@ -2,7 +2,6 @@ import type { Book } from "@outpost/api-client";
 import { bytes } from "@outpost/ui/outpost.js";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
-import { useStripLink } from "../../app/strip";
 import { Badge, Banner, Icon } from "../../ui/outpost";
 import { KIWIX_ROOT, monogramFor, searchScopes, useBooks } from "./books";
 import { SearchResults } from "./SearchResults";
@@ -42,12 +41,6 @@ export function Library({ search }: { search: LibrarySearch }) {
   const books = data?.books;
   const sync = useSync();
 
-  const n = books?.length ?? 0;
-  const short = error ? (error.status ? `HTTP ${error.status}` : "NO LINK") : "";
-  useStripLink(
-    error && !books ? "crit" : books ? "ok" : "cau",
-    error && !books ? `LOCAL · ${short}` : books ? `LOCAL · ${n} ${n === 1 ? "BOOK" : "BOOKS"}` : "LOCAL · LOADING",
-  );
 
   return (
     <>

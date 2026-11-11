@@ -16,7 +16,7 @@ Frontend guide for the Outpost suite: offline-first apps for disasters, emergenc
 6. **One primary (amber) action per view.** Amber is reserved for the main action, the user's own position, the active nav item and focus rings.
 7. **Motion and art serve the signal.** Motion follows state or a screen change (boot-in, a live LED, a pressed control); continuous loops only in illustrations and live indicators. Glow (`--glow-*`) only on live or active elements, dark theme only. No blur, emoji or stock imagery; illustrations come from `packages/ui/illustrations.js` (see 0.6).
 8. **Respect `prefers-reduced-motion`** and `html.motion-off` (low power): everything stops. Feedback transitions stay at `--dur-fast` (120 ms); entrances at most `--dur-slow`. Animate transform and opacity; never delay the user (the boot screen is skippable and once per session).
-9. **Status is always visible.** Every screen shows the status strip (link state, GNSS, battery, UTC time).
+9. **Status is always visible.** Every screen shows the same status strip (link to core, host vitals, UTC time).
 10. **Text contrast is at least 4.5:1** in both themes, including small mono labels.
 
 ---
@@ -205,7 +205,7 @@ Core set: map, library (open book), mesh (antenna with arcs), hub (2x2 squares),
 Every app screen has this structure, top to bottom:
 
 ```
-┌ Status strip      32 px   --bg, mono 11 px: link state · GNSS · battery · UTC
+┌ Status strip      32 px   --bg, mono 11 px: link to core · host vitals · UTC
 ├ Header            ~64 px  --s1: back (44), label + H1, actions (44)
 ├ [Context bar]     40 px   optional --s2: radio/channel/sync info
 ├ [Pinned alert]            optional critical banner (e.g. active SOS)
@@ -217,7 +217,7 @@ Every app screen has this structure, top to bottom:
 - Phone first (390 px reference width). On tablets and desktop, the bottom nav becomes a left rail (`flex-wrap` layout, content `flex: 999 1 560px`), but it is never sticky to `100vh`.
 - Content padding 16 px on phones, 24 to 32 px on larger screens.
 - Use flex or grid with `gap`, never margins between siblings.
-- Status strip example: `● LOCAL · 3 REGIONS    GNSS ±8 M   BAT 78%   14:32Z`. The square LED shows the app's link to its own local data source: `--ok` when connected or loaded, `--cau` while connecting, reconnecting or stale, `--crit` on failure (see the 0.2 changelog).
+- Status strip example: `● CORE · LIVE    TEMP 52°C  VOLT 5.08 V  CPU 4%  MEM 7%  DISK 23/57 GB    14:32Z`. Since 0.9 it is the same on every screen; a screen's own facts go in its context line. The square LED shows the app's link to its own local data source: `--ok` when connected or loaded, `--cau` while connecting, reconnecting or stale, `--crit` on failure (see the 0.2 changelog).
 
 ---
 
@@ -444,3 +444,6 @@ The visual reference (foundations, components, Hub, Maps, Library and Mesh scree
   - **Layer switch**: an icon button `nodes` in the map's control column (`.map-ctrls`, `aria-pressed` while shown), only when Mesh is installed. The choice is remembered per browser.
   - **Nodes tab** in the map panel next to Regions and Places while the layer is shown: one row per positioned node (monogram, name, heard/hops, age LED), "Show all nodes" fits them in view. Node markers (`.mk-node`, `.is-fresh/.is-old/.is-stale`) and the node popup (`.map-popup` + `.kv`) are unchanged.
   - **Module numbers**: Maps 01, Mesh 02, Library 03, System 04, Logs 05, Info 06. The `mesh-map` illustration is gone.
+- 0.9 (2026-11): one status strip for every screen, with the host vitals. It replaces the per-screen link and items of 0.2 and 0.4: the LED is the link to core (`CORE · LIVE` ok, `CORE · CONNECTING` cau, `CORE · OFFLINE` crit), then the vitals, then UTC. A screen's own state (its data source, counts, GNSS, download or sync progress) moves to its context line or a banner.
+  - **Strip host group** (`.strip-host`, `strip.setHost()`): `TEMP`, `VOLT`, `CPU`, `MEM`, `DISK` between the link and the screen's items, most important first. It takes the room that is left and shows whole items only (the rest wraps onto a hidden line). Below 720 px it becomes a second strip row of 24 px with a 1 px `--line` above, items spread across it, letter-spacing 0.04em.
+  - **Item tone**: a strip item's value may be `.is-cau` (`--cau`) or `.is-crit` (`--crit`), using the System screen's thresholds.

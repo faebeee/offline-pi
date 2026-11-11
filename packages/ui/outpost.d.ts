@@ -6,10 +6,14 @@ export type StatusState = "info" | "ok" | "cau" | "crit" | "off";
 // built-in ids; modules added through a manifest are plain strings
 export type ModuleId = "home" | "maps" | "mesh" | "knowledge" | "system" | (string & {});
 
-export type StripItem = { label: string; value: string };
+/** `tone` colours the value: cau (elevated) or crit (act now). */
+export type StripItem = { label: string; value: string; tone?: "cau" | "crit" };
 export type Strip = {
   setLink(state: LinkState, label: string): void;
+  /** the current screen's items, right before the clock */
   setItems(items: StripItem[]): void;
+  /** host metrics shown on every screen, most important first */
+  setHost(items: StripItem[]): void;
 };
 
 export const STATUS: Record<StatusState, { icon: string; cls: string }>;

@@ -13,11 +13,20 @@ under **Unreleased**.
 
 ### Added
 
+- The status strip at the top of every screen shows the Pi's vitals:
+  CPU temperature, input voltage, CPU and memory usage and the system
+  disk, in amber or red when they need attention.
 - Maps: REQUEST POSITIONS in the NODES tab asks every Meshtastic node for
   its current position right away.
 
 ### Changed
 
+- The status strip is now exactly the same on every screen: the link to
+  the Pi (`CORE · LIVE`), its vitals and the UTC time. What used to be
+  screen-specific moved onto the screen: GNSS accuracy into the Maps
+  context line, the node count and battery into the Mesh context line,
+  error and warning counts into the Logs context line; the radio link,
+  region count, download and sync progress were already shown there.
 - Mesh map is now part of Maps: the Meshtastic nodes are a layer of the
   offline map that you switch on and off with the nodes button in the map
   controls (remembered per browser), with a NODES tab in the panel. Mesh's

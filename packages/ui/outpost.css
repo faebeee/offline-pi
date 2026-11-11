@@ -263,6 +263,7 @@ a {
 .strip-link {
   display: inline-flex;
   min-width: 0;
+  flex: 0 1 auto;
   align-items: center;
   gap: var(--space-2);
   color: var(--fg);
@@ -270,8 +271,52 @@ a {
   text-overflow: ellipsis;
 }
 
+/* takes the room left between link and items; items that don't fit wrap
+   onto a second line, which the fixed height hides */
+.strip-host {
+  display: flex;
+  height: 16px;
+  min-width: 0;
+  flex: 1 1 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  column-gap: var(--space-4);
+  overflow: hidden;
+}
+
+.strip-host:empty {
+  display: none;
+}
+
+/* phones: the host metrics get a row of their own under the link */
+@media (max-width: 719.98px) {
+  .strip:has(.strip-host:not(:empty)) {
+    height: auto;
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
+
+  .strip-link,
+  .strip-items {
+    height: var(--strip-h);
+  }
+
+  .strip-host {
+    order: 3;
+    height: 24px;
+    flex: 1 0 100%;
+    justify-content: space-between;
+    column-gap: var(--space-2);
+    border-top: 1px solid var(--line);
+    padding-top: 3px;
+    box-sizing: border-box;
+    letter-spacing: 0.04em;
+  }
+}
+
 .strip-items {
   display: flex;
+  flex: none;
   align-items: center;
   gap: var(--space-4);
   margin-left: auto;
@@ -280,6 +325,14 @@ a {
 .strip-item b {
   color: var(--fg);
   font-weight: 500;
+}
+
+.strip-item.is-cau b {
+  color: var(--cau);
+}
+
+.strip-item.is-crit b {
+  color: var(--crit);
 }
 
 .header {

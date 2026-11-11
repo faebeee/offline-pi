@@ -30,15 +30,15 @@ places sits next to it. On a phone it is a sheet at the bottom.
   installed. See [Mesh nodes](#mesh-nodes) below.
 - **Locate** (bottom right): shows your own position and follows it. The
   browser only allows this on HTTPS or on `localhost`, so on a phone
-  connected over the network it usually shows a message instead. The status
-  strip shows `GNSS ±8 M` (the accuracy) while you have a position.
+  connected over the network it usually shows a message instead. The context
+  line shows `GNSS ±8 M` (the accuracy) while you have a position.
 - **Cache badge** (top left): `TILES CACHED · <REGION>` when the map
   centre is inside a downloaded region, `NOT CACHED · OUTSIDE REGIONS` when
   it is not. Outside your regions the map is empty.
 
-The context line under the header shows the number of regions, the zoom
-level (`Z12.4`) and the coordinates of the map centre. The status strip
-shows `LOCAL · 3 REGIONS` and the disk space your regions use (`DISK`).
+The context line under the header shows the number of regions, your GNSS
+accuracy (when located), the zoom level (`Z12.4`) and the coordinates of
+the map centre. The REGIONS tab shows the disk space your regions use.
 
 All regions are shown at once on one map. The map follows the day/night
 theme: dark at night, light by day.
@@ -66,7 +66,7 @@ theme: dark at night, light by day.
 6. Press DOWNLOAD to start, or DECLINE to stop here.
 
 The download runs on the Pi with a progress bar. You can close the panel or
-even the browser: it keeps running. The strip shows `DL 42%`. Only one
+even the browser: it keeps running. Only one
 download runs at a time. Press CANCEL DOWNLOAD to stop it; the partial file
 is removed. When it is done, the map jumps to the new region and a message
 says it now works offline.
@@ -116,8 +116,8 @@ When the [Mesh](04-mesh.md) module is installed, Maps can show the
 Meshtastic nodes around you on the offline map, updated live as the radio
 hears them. Switch the layer on or off with the mesh nodes button (nodes
 icon) in the map controls. It is on by default; the browser remembers your
-choice. While it is on, the panel has a third tab, NODES, and the status
-strip shows the number of nodes on the map (`NODES`).
+choice. While it is on, the panel has a third tab, NODES, which counts the
+nodes on the map.
 
 Mesh must be running for nodes to appear (starting Maps does not start
 Mesh). If it is stopped, the NODES tab says so; start it on
@@ -165,6 +165,6 @@ on the map offline, save it as a place and use the PLACES tab.
 
 Internet is needed only for the one-time setup and for each region
 download (including the search for it). Everything else, the tiles, styles,
-fonts and your places, comes from the Pi. If the strip shows
-`LOCAL · NO ANSWER`, the Maps module does not answer: check it on
+fonts and your places, comes from the Pi. If Maps shows an error that the
+map server does not answer, the Maps module is not reachable: check it on
 [Home](01-home.md) and press RETRY.

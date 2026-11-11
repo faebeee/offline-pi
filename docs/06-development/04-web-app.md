@@ -55,18 +55,24 @@ function RadioScreen() {
 
 ## Status strip
 
-The status strip stays mounted across routes (one clock). Each screen sets
-its part while it is shown, with the hooks from `src/app/strip.tsx`:
+The status strip is the same on every screen. `StripProvider`
+(`src/app/strip.tsx`, in the root route) draws it once, so it stays mounted
+across routes (one clock), and fills it itself:
 
-```tsx
-useStripLink(data ? "ok" : "cau", data ? "LOCAL · 3 REGIONS" : "LOCAL · CONNECTING");
-useStripItems([{ label: "NODES", value: "12" }]);
-```
+- the LED: the link to core, `CORE · LIVE` (ok), `CORE · CONNECTING` (cau)
+  or `CORE · OFFLINE` (crit),
+- the host vitals `TEMP`, `VOLT`, `CPU`, `MEM`, `DISK` (`strip.setHost()`,
+  built by `hostItems()` in `src/features/system/hostItems.ts` with the
+  System screen's thresholds),
+- the UTC time.
 
-The rule for the link: the LED is the screen's link to **its own local data
-source**, written `<SOURCE> · <STATE>`. `ok` when connected or loaded,
-`cau` while connecting or stale, `crit` on failure with a short reason.
-Other facts go in the items, never in the link text.
+Both come from `GET /api/system/snapshot`, polled every 5 s (paused in
+hidden tabs) rather than over the `/system` socket, whose `init` history
+belongs to the System screen.
+
+Screens don't write to the strip. What belongs to one screen (its data
+source's state, counts, download or sync progress) goes in its context line
+(`<Screen context=...>`) or a banner.
 
 ## Data
 

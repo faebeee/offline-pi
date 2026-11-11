@@ -21,22 +21,27 @@ header, the content and the module nav.
 
 ### Status strip
 
-The thin bar at the very top. On the left is a square LED with a short
-text, written `SOURCE · STATE`, for example `LOCAL · 3 REGIONS`,
-`RADIO · LINKED` or `CORE · LIVE`. It shows the link between the screen and
-its own data source on the Pi.
+The thin bar at the very top. It is exactly the same on every screen, so
+you always see how the Pi is doing.
 
-| LED | Meaning | Examples |
+On the left is a square LED with the link between your browser and the Pi:
+
+| LED | Text | Meaning |
 |---|---|---|
-| Green | Connected, data is loaded | `CORE · LIVE`, `LOCAL · 12 BOOKS`, `MESH · LIVE` |
-| Amber | Connecting, reconnecting or the data may be stale | `LOCAL · CONNECTING`, `RADIO · CONNECTING` |
-| Red | The source does not answer, with a short reason | `LOCAL · NO ANSWER`, `RADIO · PI UNREACHABLE` |
+| Green | `CORE · LIVE` | The Pi answers |
+| Amber | `CORE · CONNECTING` | Reaching the Pi |
+| Red | `CORE · OFFLINE` | The Pi does not answer |
 
-On the right the strip shows extra facts for the current screen, such as
-`DISK 1.2 GB` on Maps, `NODES 14` on Mesh or `TEMP 52.3°C` on System. Items
-only appear when the screen has a real value for them. The last item is
-always the time in UTC (`14:32Z`). All times in the app are UTC, so they
-match between devices and radio messages.
+Then the Pi's vitals: CPU temperature (`TEMP`), input voltage (`VOLT`), CPU
+and memory usage (`CPU`, `MEM`) and the system disk (`DISK 23/57 GB`), in
+amber or red when they need attention (see [System](05-system.md)). On a
+phone they get a second line. The last item is always the time in UTC
+(`14:32Z`). All times in the app are UTC, so they match between devices and
+radio messages.
+
+What belongs to one screen (its regions, the radio link, sync progress) is
+shown on the screen itself, in the context line under the header or in a
+banner.
 
 ### Header
 

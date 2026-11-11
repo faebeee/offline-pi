@@ -20,19 +20,13 @@ Mesh has two tabs: MESSAGES and NODES. The tab label shows a count, for
 example `MESSAGES · 3` for unread messages and `NODES · 14` for nodes heard.
 
 The context line shows the radio's region and modem preset as the radio
-reports them, and the open conversation. The status strip shows the
-radio link:
+reports them, then the open conversation or the number of nodes heard
+(`14 NODES`), and the battery of the Pi's node (`BAT 78%`) while the radio
+is connected.
 
-| Strip | Meaning |
-|---|---|
-| `RADIO · LINKED` | The radio is connected and ready |
-| `RADIO · CONNECTING` | Connecting to the radio |
-| `RADIO · DISCONNECTED` | The radio is unplugged or does not answer. A `Radio not connected` banner explains more |
-| `RADIO · PI UNREACHABLE` | Your browser lost the live link to the Pi. The app reconnects by itself |
-| `RADIO · MODULE OFF` | The Mesh module is not running |
-
-The strip also shows the Pi's node name (`NODE`), its battery (`BAT`) and
-the number of nodes heard (`NODES`).
+When something is wrong, a banner says so: `Radio not connected` (the radio
+is unplugged or does not answer), `Lost connection to the Pi` (your browser
+lost the live link; it reconnects by itself) or `Could not reach the Pi`.
 
 The history is stored on the Pi, so you can read old messages even while
 the radio is unplugged. Sending works again once it is back.

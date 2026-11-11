@@ -1,8 +1,6 @@
-import type { LinkState, StripItem } from "@outpost/ui/outpost.js";
 import { Link, Outlet, useLocation, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useRef, type KeyboardEvent } from "react";
 import { Screen } from "../../app/Screen";
-import { useStripItems, useStripLink } from "../../app/strip";
 import { Banner, Icon } from "../../ui/outpost";
 import { ModuleGate } from "../modules/ModuleGate";
 import { isRunning, useModule } from "../modules/useModules";
@@ -36,22 +34,6 @@ export function MeshLayout() {
   const s = mesh.status;
   const radio = s.state || "connecting";
 
-  // the strip LED: this module's own data source, the radio through this Pi
-  let link: [LinkState, string];
-  if (!running) link = ["cau", "RADIO · MODULE OFF"];
-  else if (ui.live === "closed") link = ["crit", "RADIO · PI UNREACHABLE"];
-  else if (radio === "connected") link = ["ok", "RADIO · LINKED"];
-  else if (radio === "connecting" || (ui.live !== "open" && !s.state)) link = ["cau", "RADIO · CONNECTING"];
-  else link = ["crit", "RADIO · DISCONNECTED"];
-  useStripLink(link[0], link[1]);
-
-  const items: StripItem[] = [];
-  const me = s.nodeNum != null ? mesh.nodes.get(s.nodeNum) : undefined;
-  const bat = batteryText(me?.battery);
-  if (radio === "connected" && (s.shortName || s.nodeId)) items.push({ label: "NODE", value: (s.shortName || s.nodeId)! });
-  if (bat) items.push({ label: "BAT", value: bat === "EXT POWER" ? "EXT" : bat });
-  if (mesh.nodes.size) items.push({ label: "NODES", value: String(mesh.nodes.size) });
-  useStripItems(running ? items : []);
 
   useEffect(() => {
     const before = document.title;
@@ -63,11 +45,17 @@ export function MeshLayout() {
 
   const title = view === "nodes" ? "Nodes" : conv ? mesh.convTitle(conv) : "Messages";
 
+  // the radio's facts (the status strip is the same on every screen)
+  const me = s.nodeNum != null ? mesh.nodes.get(s.nodeNum) : undefined;
+  const bat = radio === "connected" ? batteryText(me?.battery) : null;
   const context = [s.region, s.preset];
   if (conv) {
     const { kind, num } = parseConv(conv);
     context.push(kind === "ch" ? `CH ${num} · ${mesh.channelName(num)}` : `DM · ${hex(num)}`);
+  } else if (mesh.nodes.size) {
+    context.push(`${mesh.nodes.size} ${mesh.nodes.size === 1 ? "NODE" : "NODES"}`);
   }
+  if (bat) context.push(`BAT ${bat}`);
   const contextText = context.filter(Boolean).join(" · ");
 
   const back = conv ? (

@@ -33,7 +33,7 @@ Terms used across these docs and in the project, in alphabetical order.
 | **Region** | A map area downloaded on the Maps screen (a country or a smaller area), stored as one `.pmtiles` file in `MAPS_DATA_DIR`. |
 | **requires** | A manifest field: settings that must be set before a module may start (mesh requires `MESH_CONNECTION`). |
 | **Running** | A module whose container is up. |
-| **Status strip** | The thin line at the top of every screen: the link LED (`<SOURCE> · <STATE>`), other facts and the UTC clock. |
+| **Status strip** | The thin line at the top of every screen: the same everywhere: the link LED to core (`CORE · LIVE`), the Pi's vitals (temperature, voltage, CPU, memory, disk) and the UTC clock. |
 | **Switched on / off** | Whether an installed module should run. Chosen on the home page, stored in `CORE_DATA_DIR/modules.json`, kept across reboots. |
 | **Turborepo** | The build tool that runs `build`, `typecheck` and `dev` across the npm workspaces in the right order. |
 | **Workspace** | One npm package of the monorepo (`@outpost/<name>`), in `apps/` or `packages/`. |

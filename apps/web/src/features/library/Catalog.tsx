@@ -12,7 +12,6 @@ import type { StatusState } from "@outpost/ui/outpost.js";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { useStripLink } from "../../app/strip";
 import { Badge, Banner, HoldButton, Icon } from "../../ui/outpost";
 import { isRunning, useModule } from "../modules/useModules";
 import { SyncStatus, useStartSync, useSync } from "./SyncStatus";
@@ -68,10 +67,6 @@ export function Catalog() {
   const [failure, setFailure] = useState<string | null>(null);
   const updates = useStartSync();
 
-  useStripLink(
-    error && !data ? "crit" : data ? "ok" : "cau",
-    error && !data ? "LOCAL · NO LINK" : data ? "LOCAL · CATALOG" : "LOCAL · LOADING",
-  );
 
   const books = useMemo(() => data?.groups.flatMap((g) => g.books) ?? [], [data]);
   const saved = useMemo(() => new Set(books.filter((b) => b.selected).map((b) => b.key)), [books]);

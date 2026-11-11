@@ -48,9 +48,9 @@ level of the error above them.
   context contains the text, for example `timeout`.
 - **Lines to load**: LAST 200, 500, 1000, 2000 or 5000.
 
-The status strip shows the source and its state, for example
-`MESH · LIVE`, and counts the loaded lines (`LINES`), errors (`ERR`) and
-warnings (`WARN`).
+The context line counts the errors (`ERR`) and warnings (`WARN`) among the
+loaded lines; the LINES card shows the state (`LIVE`, `PAUSED`, ...) and
+how many lines are loaded.
 
 ## Pause and resume
 

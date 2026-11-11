@@ -94,7 +94,15 @@ data source**, written `<SOURCE> · <STATE>`.
 | crit | failed, with a short reason | `LOCAL · NO ANSWER`, `MESH · ACCESS BLOCKED`, `RADIO · PI UNREACHABLE` |
 
 Other facts (GNSS, battery, counts) go in `strip.setItems()`, never in the
-link text.
+link text. Host vitals go in `strip.setHost()`
+(between the link and the items, most important first; whole items only,
+those that don't fit are hidden; below 720 px they get a second row). Both
+take `{ label, value, tone? }`, where `tone` `"cau"`/`"crit"` colours the
+value.
+
+The outpost web app (`apps/web`) uses one strip for every screen: the link
+to core (`CORE · LIVE`), the host vitals and the clock, no per-screen
+link or items (DESIGN.md 0.9).
 
 ## React
 

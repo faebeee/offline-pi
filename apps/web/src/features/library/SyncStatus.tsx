@@ -10,7 +10,6 @@ import { ago, bytes } from "@outpost/ui/outpost.js";
 import type { StatusState } from "@outpost/ui/outpost.js";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { useStripItems } from "../../app/strip";
 import { isRunning, useModule } from "../modules/useModules";
 import { Badge, Banner, Icon, Progress } from "../../ui/outpost";
 
@@ -86,11 +85,6 @@ export function useStartSync() {
 export function SyncStatus({ sync }: { sync: LibrarySync | undefined }) {
   const running = sync?.state === "running";
   const retry = useStartSync();
-  useStripItems(
-    running
-      ? [{ label: "SYNC", value: sync.count ? `${sync.index || 0}/${sync.count}` : "ON" }]
-      : [],
-  );
   if (!sync || sync.state === "unknown") return null;
 
   if (running) {

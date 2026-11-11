@@ -10,7 +10,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   notFoundComponent: NotFound,
 });
 
-/** The Outpost frame: the status strip stays, screens change below it. */
+/** The Outpost frame: the status strip (the same on every screen) stays, screens change below it. */
 function Root() {
   return (
     <div className="frame">

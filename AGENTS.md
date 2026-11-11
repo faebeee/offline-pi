@@ -435,9 +435,10 @@ apps/web/src/
   module, `<ModuleGate id="<id>">`, which shows "not installed / not
   running / START" instead of the screen. The nav and home tiles come from
   `/api/modules`, so a new module needs no change in `packages/ui`.
-- Follow the status strip link rule in `packages/ui/README.md`
-  (`useStripLink`): the LED is the screen's link to its own local data
-  source, `<SOURCE> · <STATE>`.
+- The status strip is **the same on every screen** (`src/app/strip.tsx`):
+  the link to core, the host vitals and the UTC time. Screens don't add to
+  it; a screen's own state (its data source, counts, progress) goes in its
+  context line or a banner.
 - No runtime network requests: no CDNs, web fonts or remote icons.
 - Dev: `npm run dev:core` (API on :8080) and `npm run dev:web` (Vite on
   :5173, proxies `/api`, `/socket.io`, `/svc`, `/ui` to core).

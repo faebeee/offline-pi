@@ -6,7 +6,7 @@ import {
   type MeshNode,
   type RadioStatus,
 } from "@outpost/api-client";
-import { onVisibility, type StripItem } from "@outpost/ui/outpost.js";
+import { onVisibility } from "@outpost/ui/outpost.js";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSocketEvent } from "../../../app/realtime";
@@ -128,11 +128,6 @@ export function useMeshLayer(): MeshLayer {
     meshPath: available && mesh ? mesh.path : null,
     setLink,
   };
-}
-
-/** Strip item for the node count while the layer is shown. */
-export function meshStripItem(layer: MeshLayer): StripItem | null {
-  return layer.active && layer.state !== "stopped" ? { label: "NODES", value: String(layer.rows.length) } : null;
 }
 
 /**

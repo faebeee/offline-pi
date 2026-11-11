@@ -10,12 +10,11 @@ import {
   type Region,
   type RegionsResponse,
 } from "@outpost/api-client";
-import { bytes, coords, toast, type StripItem } from "@outpost/ui/outpost.js";
+import { bytes, coords, toast } from "@outpost/ui/outpost.js";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { LngLatBounds, type Map as MapLibreMap } from "../../app/maplibre";
 import { Screen } from "../../app/Screen";
-import { useStripItems, useStripLink } from "../../app/strip";
 import { Banner, HoldButton, Icon, Illustration, useTheme } from "../../ui/outpost";
 import { ModuleGate } from "../modules/ModuleGate";
 import { isRunning, useModule } from "../modules/useModules";
@@ -26,7 +25,7 @@ import { MapView, type Cursor, type Fix, type RegionFocus } from "./MapView";
 import "./maps.css";
 import { MeshMarkers, NodeList, RequestPositionsButton } from "./mesh/MeshNodes";
 import { nodeId, type Positioned } from "./mesh/nodes";
-import { MeshFeed, meshStripItem, useMeshLayer } from "./mesh/useMeshLayer";
+import { MeshFeed, useMeshLayer } from "./mesh/useMeshLayer";
 import { PoiDialog, type PoiDraft } from "./PoiDialog";
 import { SetupGate } from "./SetupGate";
 import { useJob } from "./useJob";
@@ -149,23 +148,6 @@ export function MapsScreen({ linkedNode }: { linkedNode?: string }) {
   const downloading = !!job && job.type === "download" && !isJobFinished(job);
   const totalBytes = regions?.reduce((sum, r) => sum + r.bytes, 0) ?? 0;
 
-  // Status strip: the link to this module's own data source (the map server)
-  // plus what it actually knows.
-  useStripLink(
-    error ? "crit" : regions ? "ok" : "cau",
-    error
-      ? "LOCAL · NO ANSWER"
-      : regions
-        ? `LOCAL · ${regions.length} ${regions.length === 1 ? "REGION" : "REGIONS"}`
-        : "LOCAL · CONNECTING",
-  );
-  const items: StripItem[] = [];
-  if (fix) items.push({ label: "GNSS", value: `±${Math.round(fix.accuracy)} M` });
-  if (downloading && job?.progress) items.push({ label: "DL", value: `${Math.round(job.progress.percent)}%` });
-  if (regions?.length) items.push({ label: "DISK", value: bytes(totalBytes) });
-  const nodesItem = meshStripItem(mesh);
-  if (nodesItem) items.push(nodesItem);
-  useStripItems(items);
 
   async function remove(region: Region) {
     setPendingDelete(null);
@@ -493,6 +475,7 @@ export function MapsScreen({ linkedNode }: { linkedNode?: string }) {
       ) : (
         regions && <span>{regions.length ? `${regions.length} regions` : "No regions"}</span>
       )}
+      {fix && <span>GNSS ±{Math.round(fix.accuracy)} M</span>}
       {cursor && (
         <>
           <span>Z{cursor.zoom.toFixed(1)}</span>

@@ -1,9 +1,7 @@
 import { useLogsSources, type LogEntry, type LogSource } from "@outpost/api-client";
-import type { LinkState } from "@outpost/ui/outpost.js";
 import { useNavigate } from "@tanstack/react-router";
 import { useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Screen } from "../../app/Screen";
-import { useStripItems, useStripLink } from "../../app/strip";
 import { Banner, Icon } from "../../ui/outpost";
 import { useLogs, type FollowState } from "./useLogs";
 import "./logs.css";
@@ -25,7 +23,6 @@ const TAILS = [200, 500, 1000, 2000, 5000];
 /** Lines drawn at once; filters and search still see every loaded line. */
 const MAX_DRAWN = 2000;
 
-const LINK: Record<FollowState, LinkState> = { live: "ok", connecting: "cau", paused: "cau", ended: "cau" };
 const WORD: Record<FollowState, string> = { live: "LIVE", connecting: "CONNECTING", paused: "PAUSED", ended: "ENDED" };
 
 const pad = (n: number, w = 2) => String(n).padStart(w, "0");
@@ -93,15 +90,6 @@ export function LogsScreen({ source }: { source: string }) {
   }, [logs.entries]);
 
   const failed = logs.error || logs.page?.available === false;
-  useStripLink(
-    failed ? "crit" : LINK[logs.state],
-    `${label.toUpperCase()} · ${failed ? "NO LOGS" : logs.isLoading ? "LOADING" : WORD[logs.state]}`,
-  );
-  useStripItems([
-    { label: "LINES", value: String(logs.entries.length) },
-    { label: "ERR", value: String(counts.errors) },
-    { label: "WARN", value: String(counts.warnings) },
-  ]);
 
   // stick to the newest line unless the user scrolled up
   const viewRef = useRef<HTMLDivElement>(null);
@@ -124,6 +112,7 @@ export function LogsScreen({ source }: { source: string }) {
     <Screen
       module="logs"
       title={label}
+      context={failed ? undefined : `${counts.errors} ERR · ${counts.warnings} WARN`}
       actions={
         <>
           <button
@@ -233,7 +222,7 @@ export function LogsScreen({ source }: { source: string }) {
           <div className="card-head">
             <h2 className="h2">Lines</h2>
             <span className="status label">
-              <span className={`led led-${LINK[logs.state] === "ok" ? "ok" : "cau"} is-live`} aria-hidden="true" />
+              <span className={`led led-${logs.state === "live" ? "ok" : "cau"} is-live`} aria-hidden="true" />
               <span>
                 {WORD[logs.state]} · {shown.length === logs.entries.length ? shown.length : `${shown.length} / ${logs.entries.length}`}
                 {shown.length > MAX_DRAWN && ` · newest ${MAX_DRAWN} shown`}

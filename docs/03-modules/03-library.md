@@ -21,7 +21,7 @@ The screen starts with a `Works offline` banner, then:
 - The CHOOSE BOOKS button, to add or remove books.
 
 The context line shows the number of books, their total size and the date
-of the newest one. The status strip shows `LOCAL · 12 BOOKS`.
+of the newest one.
 
 ## Choosing books
 
@@ -55,7 +55,7 @@ from `download.kiwix.org/zim/` without the date and `.zim`, for example
 Downloads need internet and run in the background on the Pi. You can keep
 using the Library, or close the browser. While books download, a card
 shows `SYNCING`, which book (`BOOK 2 OF 5`), the file name and the
-progress, and the strip shows `SYNC 2/5`. Each book appears in the list as
+progress. Each book appears in the list as
 soon as it is complete.
 
 On some disks (for example exFAT drives) the progress bar is missing, but

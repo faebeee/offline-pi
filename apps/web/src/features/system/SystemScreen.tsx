@@ -1,8 +1,7 @@
 import type { HistoryPoint, PowerEvent, Snapshot } from "@outpost/api-client";
-import { ago, STATUS, utcClock, utcDate, utcDateTime, type LinkState as StripLink } from "@outpost/ui/outpost.js";
+import { ago, STATUS, utcClock, utcDate, utcDateTime } from "@outpost/ui/outpost.js";
 import { useEffect, useState } from "react";
 import { Screen } from "../../app/Screen";
-import { useStripItems, useStripLink } from "../../app/strip";
 import { Icon } from "../../ui/outpost";
 import { ConnectionsCard } from "./ConnectionsCard";
 import { ContainersCard } from "./ContainersCard";
@@ -24,14 +23,6 @@ import { LineChart, type Range, type Series } from "./LineChart";
 import { Bar, Kv, Notice, Readout, SignalBars, SmBadge } from "./parts";
 import { useSystemLive, type LinkState } from "./useSystemLive";
 import "./system.css";
-
-// Link to this screen's own data source: core's /system live feed.
-const LINK: Record<LinkState, [StripLink, string]> = {
-  live: ["ok", "CORE · LIVE"],
-  connecting: ["cau", "CORE · CONNECTING"],
-  reconnecting: ["cau", "CORE · RECONNECTING"],
-  error: ["crit", "CORE · NO LINK"],
-};
 
 const RANGE_KEY = "pi-monitor-range";
 function readRange(): Range {
@@ -66,8 +57,6 @@ export function SystemScreen() {
     }
   };
 
-  useStripLink(...LINK[link]);
-  useStripItems(stripItems(s, link));
 
   useEffect(() => {
     if (!s) return;
@@ -113,18 +102,6 @@ export function SystemScreen() {
       </div>
     </Screen>
   );
-}
-
-// ------------------------------------------------------------- strip
-function stripItems(s: Snapshot | null, link: LinkState) {
-  const items: { label: string; value: string }[] = [];
-  if (!s) return items;
-  if (s.temps.cpu != null) items.push({ label: "TEMP", value: `${fmtNum(s.temps.cpu, 1)}°C` });
-  if (s.power.inputVolts != null) items.push({ label: "VOLT", value: `${fmtNum(s.power.inputVolts, 2)} V` });
-  else if (s.power.coreVolts != null) items.push({ label: "VCORE", value: `${fmtNum(s.power.coreVolts, 3)} V` });
-  if (s.power.psuMaxCurrentMa != null) items.push({ label: "PSU", value: `${(s.power.psuMaxCurrentMa / 1000).toFixed(1)} A` });
-  if (link !== "live") items.push({ label: "DATA", value: ago(s.ts / 1000) });
-  return items;
 }
 
 // ------------------------------------------------------------- health

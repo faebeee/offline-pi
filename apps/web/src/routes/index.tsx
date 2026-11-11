@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Screen } from "../app/Screen";
-import { useStripLink } from "../app/strip";
 import { describe } from "../features/modules/describe";
 import { ModuleSwitches } from "../features/modules/ModuleSwitches";
 import { useModules } from "../features/modules/useModules";
@@ -11,7 +10,6 @@ export const Route = createFileRoute("/")({ component: Home });
 /** Home (hub): every installed module as a tile, and the on/off switches. */
 function Home() {
   const { data, isError } = useModules();
-  useStripLink(isError ? "crit" : data ? "ok" : "cau", isError ? "CORE · OFFLINE" : data ? "CORE · LIVE" : "CORE · CONNECTING");
 
   const installed = (data?.modules ?? []).filter((m) => m.installed);
   const optional = installed.filter((m) => m.optional);

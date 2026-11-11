@@ -11,11 +11,24 @@ operating system and the uptime. Values refresh every 2 seconds
 
 ## Status and banners
 
-The status strip shows `CORE · LIVE` while readings arrive, then the CPU
-temperature (`TEMP`), the input voltage (`VOLT`) and the current the power
-supply negotiated (`PSU`). If the link drops, it shows
-`CORE · RECONNECTING` or `CORE · NO LINK`, and `DATA` shows the age of the
-last reading.
+The status strip at the top is the same on every screen, not only here: the
+link to core (`CORE · LIVE`), the Pi's vitals, updated every 5 seconds, and
+the UTC time.
+
+| Item | What it shows | Amber | Red |
+|---|---|---|---|
+| `TEMP` | CPU temperature | from 70 °C | from 80 °C |
+| `VOLT` | Input voltage of the power supply (`VCORE` on a Pi without that reading) | below 4.85 V | below 4.75 V, or under-voltage right now |
+| `CPU` | CPU usage, all cores | from 80 % | from 90 % |
+| `MEM` | Memory in use | from 80 % | from 90 % |
+| `DISK` | Used and total size of the system disk | from 80 % full | from 90 % full |
+
+On a phone they get a second line under the link; on a very narrow screen
+the last ones are left out. They disappear while core does not answer,
+rather than showing old values.
+
+If this screen loses its live feed, a banner says so and shows the age of
+the last reading.
 
 Above the cards, banners sum up the state:
 

@@ -2,7 +2,6 @@ import { useInfoIndex, useInfoPage, useInfoSearch, type InfoEntry } from "@outpo
 import { Link } from "@tanstack/react-router";
 import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { Screen } from "../../app/Screen";
-import { useStripLink } from "../../app/strip";
 import { Banner, Icon, Illustration } from "../../ui/outpost";
 import { Markdown } from "./Markdown";
 import "./info.css";
@@ -13,10 +12,6 @@ export function InfoScreen({ slug }: { slug: string }) {
   const page = useInfoPage({ slug });
   const entries = index.data?.entries ?? [];
 
-  useStripLink(
-    index.isError ? "crit" : index.data ? "ok" : "cau",
-    index.isError ? "DOCS · NO ANSWER" : index.data ? `DOCS · ${entries.length} PAGES` : "DOCS · LOADING",
-  );
 
   // a new page starts at its top, or at the heading in the URL's #hash
   const article = useRef<HTMLElement>(null);
