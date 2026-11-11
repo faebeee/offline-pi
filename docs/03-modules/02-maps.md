@@ -71,6 +71,10 @@ download runs at a time. Press CANCEL DOWNLOAD to stop it; the partial file
 is removed. When it is done, the map jumps to the new region and a message
 says it now works offline.
 
+If the connection to the map server drops during the download, it starts
+over by itself (up to 3 tries in total; the log says so). Only after the
+third failure does it stop with an error and START OVER.
+
 ## Storage needs
 
 Rough sizes at the default level Z15: a city like Berlin is about 65 MB, a

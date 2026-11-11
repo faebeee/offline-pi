@@ -44,6 +44,9 @@ under **Unreleased**.
 
 ### Fixed
 
+- Maps: downloading a large region no longer fails with `stream error:
+  ... PROTOCOL_ERROR`. The download now uses HTTP/1.1 and starts over by
+  itself (up to 3 tries) when the connection to the map server drops.
 - Maps showed no Meshtastic nodes because the radio rarely hears their
   position broadcasts. Mesh now asks recently heard nodes without a known
   position for it, so they appear on the map within a few minutes.

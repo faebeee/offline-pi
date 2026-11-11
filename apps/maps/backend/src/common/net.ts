@@ -7,6 +7,8 @@ import { formatBytes } from "./terminal.ts";
 export type RunOptions = {
   quiet?: boolean;
   cwd?: string;
+  /** Extra environment variables for the child (merged over process.env). */
+  env?: Record<string, string>;
   /** Aborting kills the child process. */
   signal?: AbortSignal;
   /** Called with every stdout/stderr chunk, progress-bar redraws included. */
@@ -21,7 +23,11 @@ export function run(cmd: string, args: string[], opts: RunOptions = {}): Promise
       return;
     }
 
-    const child = spawn(cmd, args, { cwd: opts.cwd, stdio: ["ignore", "pipe", "pipe"] });
+    const child = spawn(cmd, args, {
+      cwd: opts.cwd,
+      env: opts.env ? { ...process.env, ...opts.env } : process.env,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
     let output = "";
     const collect = (chunk: Buffer) => {
       const text = chunk.toString();

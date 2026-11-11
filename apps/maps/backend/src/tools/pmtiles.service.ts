@@ -29,6 +29,42 @@ export type ExtractHooks = {
   onLog?: (chunk: string) => void;
 };
 
+/**
+ * go-pmtiles talks HTTP/2 to the planet build's CDN, which now and then
+ * resets a stream during a long extract ("stream error: stream ID 37;
+ * PROTOCOL_ERROR"). HTTP/1.1 doesn't have that failure mode, so force it.
+ */
+const PMTILES_ENV = {
+  GODEBUG: [process.env.GODEBUG, "http2client=0"].filter(Boolean).join(","),
+};
+
+/** How often an extract is tried before the download fails. */
+const EXTRACT_ATTEMPTS = 3;
+
+/** Failures of the connection rather than of the request: worth another try. */
+const TRANSIENT =
+  /stream error|PROTOCOL_ERROR|GOAWAY|connection reset|broken pipe|unexpected EOF|i\/o timeout|TLS handshake timeout|timeout awaiting|server closed|status(?: code)?:? 5\d\d/i;
+
+function isTransientError(err: unknown): boolean {
+  return TRANSIENT.test(err instanceof Error ? err.message : String(err));
+}
+
+/** Waits, but stops early (with an error) when the job is cancelled. */
+function pause(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) return reject(new Error("cancelled"));
+    const done = () => {
+      clearTimeout(timer);
+      reject(new Error("cancelled"));
+    };
+    const timer = setTimeout(() => {
+      signal?.removeEventListener("abort", done);
+      resolve();
+    }, ms);
+    signal?.addEventListener("abort", done, { once: true });
+  });
+}
+
 /** Maps the current platform onto a go-pmtiles release asset name. */
 function releaseAsset(version: string): string {
   const arch = os.arch() === "arm64" ? "arm64" : "x86_64";
@@ -121,6 +157,7 @@ export class PmtilesService {
   async estimate(options: ExtractOptions, hooks: ExtractHooks = {}): Promise<ExtractEstimate> {
     const output = await run(PATHS.pmtilesBin, [...this.args(options), "--dry-run"], {
       quiet: true,
+      env: PMTILES_ENV,
       signal: hooks.signal,
       onOutput: (chunk) => hooks.onLog?.(chunk),
     });
@@ -131,8 +168,30 @@ export class PmtilesService {
    * Runs the real extract. go-pmtiles draws a progress bar on stderr; we read
    * the percentage out of it and fall back to watching the output file grow,
    * so progress degrades rather than disappears if that format ever changes.
+   *
+   * go-pmtiles can't resume, so after a dropped connection the extract
+   * starts over, up to EXTRACT_ATTEMPTS times.
    */
   async extract(options: ExtractOptions, hooks: ExtractHooks = {}): Promise<void> {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        await this.extractOnce(options, hooks);
+        return;
+      } catch (err) {
+        if (hooks.signal?.aborted || attempt >= EXTRACT_ATTEMPTS || !isTransientError(err)) throw err;
+        const wait = attempt * 10;
+        hooks.onLog?.(
+          `\nconnection to the map server dropped (attempt ${attempt} of ${EXTRACT_ATTEMPTS}), ` +
+            `starting over in ${wait} s\n`,
+        );
+        await fs.rm(options.outFile, { force: true });
+        hooks.onProgress?.({ bytes: 0, total: hooks.totalBytes ?? 0, percent: 0 });
+        await pause(wait * 1000, hooks.signal);
+      }
+    }
+  }
+
+  private async extractOnce(options: ExtractOptions, hooks: ExtractHooks): Promise<void> {
     const total = hooks.totalBytes ?? 0;
     let percent: number | undefined;
     let bytes = 0;
@@ -157,6 +216,7 @@ export class PmtilesService {
     try {
       await run(PATHS.pmtilesBin, this.args(options), {
         quiet: true,
+        env: PMTILES_ENV,
         signal: hooks.signal,
         onOutput: (chunk) => {
           hooks.onLog?.(chunk);
