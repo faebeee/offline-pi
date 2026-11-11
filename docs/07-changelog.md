@@ -18,6 +18,10 @@ under **Unreleased**.
   disk, in amber or red when they need attention.
 - Maps: REQUEST POSITIONS in the NODES tab asks every Meshtastic node for
   its current position right away.
+- `host/usb-storage`: mounts a USB stick or SSD automatically at every
+  boot and whenever it is plugged in, so maps and library data can live on
+  it. Run `sudo host/usb-storage/install-usb-storage.sh`, then
+  `./install.sh` to point the data directories at the drive.
 
 ### Changed
 

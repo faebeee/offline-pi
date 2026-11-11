@@ -50,12 +50,57 @@ MAPS_DATA_DIR=/mnt/ssd/outpost/maps
 KNOWLEDGE_CONTENT_DIR=/mnt/ssd/outpost/knowledge
 ```
 
-## Mount the SSD permanently
+## Mount the drive automatically
 
-outpost does not mount drives. Mount the SSD the way your system does it
-(for example with an `/etc/fstab` entry by UUID) so that it is there at
-every boot, before outpost starts. Use a subfolder of the mount point as
-the data directory, not the mount point itself (see the next section).
+outpost itself does not mount drives, but the project folder has a helper
+for the Pi: `host/usb-storage` mounts a USB stick or SSD at every boot and
+whenever it is plugged in.
+
+```sh
+sudo host/usb-storage/install-usb-storage.sh
+```
+
+It finds the USB drive (pass `--device /dev/sda1` if there are several),
+shows what it will do and asks once. Then it:
+
+1. adds an `/etc/fstab` entry by UUID, mounted at `/media/<label>` (for
+   example `/media/Data`; change it with `--mount`). The entry has
+   `nofail`, so the Pi still boots without the drive, and it is mounted
+   before the containers start,
+2. comments out other fstab entries for the same mount point (an old
+   drive), keeping a backup of `/etc/fstab` next to it,
+3. adds a udev rule that mounts the drive when it is plugged in later,
+4. mounts it now and creates an `outpost` folder on it owned by you.
+
+exFAT, FAT32 and NTFS drives are mounted with your user as the owner, so
+the containers can write to them. ext4 is mounted as is; the installer
+gives you the drive's root folder.
+
+At the end it prints the paths to give `./install.sh` in step 4, for
+example:
+
+```ini
+MAPS_DATA_DIR=/media/Data/outpost/maps
+MAPS_ASSETS_DIR=/media/Data/outpost/maps-assets
+KNOWLEDGE_CONTENT_DIR=/media/Data/outpost/knowledge
+```
+
+Use a subfolder of the mount point as the data directory, not the mount
+point itself (see the next section).
+
+If you plug the drive in while outpost is already running, the maps and
+library containers still see the folder as it was when they started. Stop
+and start them on the dashboard (or run `./start.sh`).
+
+### Undo the automount
+
+```sh
+sudo host/usb-storage/uninstall-usb-storage.sh
+```
+
+It removes the fstab entry and the udev rule and restores fstab entries it
+had commented out. The drive stays mounted until you unplug it or reboot.
+Nothing on the drive is deleted.
 
 ## When the drive is not there
 

@@ -57,6 +57,8 @@ The data directories it knows are `CORE_DATA_DIR`, `MAPS_DATA_DIR`,
   `systemctl --user disable --now podman.socket`.
 - The Wi-Fi hotspot fallback. It has its own uninstaller, see
   [Network and hotspot](../02-installation/03-network-and-hotspot.md#uninstall).
+- The USB drive automount. It has its own uninstaller, see
+  [Storage](../02-installation/02-storage.md#undo-the-automount).
 
 Leftover build layers can take a lot of space. Clean them up with:
 
