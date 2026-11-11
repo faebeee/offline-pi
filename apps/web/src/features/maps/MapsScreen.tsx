@@ -24,7 +24,7 @@ import { JobView } from "./JobView";
 import { formatBuild, isJobFinished, pmtilesUrl, toBbox, type Bbox } from "./lib";
 import { MapView, type Cursor, type Fix, type RegionFocus } from "./MapView";
 import "./maps.css";
-import { MeshMarkers, NodeList } from "./mesh/MeshNodes";
+import { MeshMarkers, NodeList, RequestPositionsButton } from "./mesh/MeshNodes";
 import { nodeId, type Positioned } from "./mesh/nodes";
 import { MeshFeed, meshStripItem, useMeshLayer } from "./mesh/useMeshLayer";
 import { PoiDialog, type PoiDraft } from "./PoiDialog";
@@ -429,10 +429,13 @@ export function MapsScreen({ linkedNode }: { linkedNode?: string }) {
 
               <div className="map-panel-actions">
                 {panelView === "nodes" ? (
-                  <button type="button" className="btn btn-block" disabled={!mesh.rows.length} onClick={fitNodes}>
-                    <Icon name="fit" />
-                    Show all nodes
-                  </button>
+                  <>
+                    <RequestPositionsButton layer={mesh} />
+                    <button type="button" className="btn btn-block" disabled={!mesh.rows.length} onClick={fitNodes}>
+                      <Icon name="fit" />
+                      Show all nodes
+                    </button>
+                  </>
                 ) : panelView === "regions" ? (
                   <button type="button" className="btn btn-primary btn-block" onClick={() => setView("add")}>
                     <Icon name="plus" />

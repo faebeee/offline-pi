@@ -11,7 +11,10 @@ LAN to:
 - see which nodes are around: last heard, hops, signal, battery, distance,
   and "Show on map": to Maps (`/maps?node=<id>`), which turns on its mesh
   nodes layer (every node with a position, updated live) and opens that
-  node. Without Maps installed the links are hidden.
+  node. Without Maps installed the links are hidden. A node heard in the
+  last two hours without a known position is asked for it directly
+  (position request, one every 30 s at most, the same node every 30 min),
+  because nodes broadcast their position rarely.
 
 The message history and node list are kept on the Pi (SQLite), so they
 survive restarts and are readable even while the radio is unplugged.
@@ -123,6 +126,8 @@ don't spam: `MESH_SEND_RATE_LIMIT` limits each browser.
 - API (on `MESH_PORT`, called by core): `GET /api/status`, `GET /api/conversations`,
   `GET /api/messages?conv=ch:0|dm:<node num>&before=<id>`, `GET /api/nodes`,
   `POST /api/messages {conv, text}` (header `X-Send-Pin` if set),
+  `POST /api/positions/request` (ask every node for its position, one per
+  5 s; answers `{queued, seconds}`),
   `WS /api/live` (status, message, node events).
 - The send rate limit is per client: when the peer is loopback (core), the
   key is the first `X-Forwarded-For` entry (`client_key` in `app/main.py`).

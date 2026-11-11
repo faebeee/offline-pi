@@ -29,6 +29,7 @@ import type {
   MeshMessage,
   MeshMessagesParams,
   MeshNode,
+  PositionRequestResult,
   RadioStatus,
   SendMessageRequest
 } from '../model';
@@ -548,3 +549,78 @@ export function useMeshNodes<TData = Awaited<ReturnType<typeof meshNodes>>, TErr
 
 
 
+export const getMeshRequestPositionsUrl = () => {
+
+
+
+
+  return `/api/mesh/positions/request`
+}
+
+/**
+ * @summary Ask every node for its current position. The requests go out one every
+5 s; replies update the nodes (event `node`). 503 radio down.
+ */
+export const meshRequestPositions = async ( options?: Parameters<typeof apiFetch>[1]): Promise<PositionRequestResult> => {
+
+  return apiFetch<PositionRequestResult>(getMeshRequestPositionsUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getMeshRequestPositionsMutationKey = () => ['meshRequestPositions'] as const;
+
+export const getMeshRequestPositionsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof meshRequestPositions>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof meshRequestPositions>>, TError,void, TContext> => {
+
+const mutationKey = getMeshRequestPositionsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof meshRequestPositions>>, void> = () => {
+
+
+          return  meshRequestPositions(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MeshRequestPositionsMutationResult = NonNullable<Awaited<ReturnType<typeof meshRequestPositions>>>
+
+    export type MeshRequestPositionsMutationError = ErrorType<unknown>
+
+
+    /**
+ * @summary Ask every node for its current position. The requests go out one every
+5 s; replies update the nodes (event `node`). 503 radio down.
+ */
+export const useMeshRequestPositions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof meshRequestPositions>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof meshRequestPositions>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getMeshRequestPositionsMutationOptions(options), queryClient);
+    }

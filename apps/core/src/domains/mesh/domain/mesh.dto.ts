@@ -105,3 +105,10 @@ export class SendMessageRequest {
 export class MeshLink {
   connected!: boolean;
 }
+
+export class PositionRequestResult {
+  /** nodes queued for a position request (one is asked every 5 s) */
+  queued!: number;
+  /** about how long until every queued node has been asked */
+  seconds!: number;
+}

@@ -1,6 +1,7 @@
-import { ago, coords, utcDateTime } from "@outpost/ui/outpost.js";
+import { useMeshRequestPositions } from "@outpost/api-client";
+import { ago, coords, toast, utcDateTime } from "@outpost/ui/outpost.js";
 import { Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Marker, Popup, type Map as MapLibreMap } from "../../../app/maplibre";
 import { Icon } from "../../../ui/outpost";
@@ -242,5 +243,54 @@ export function NodeList({
         </ul>
       )}
     </>
+  );
+}
+
+/**
+ * Asks every node for its position now (nodes broadcast it rarely). Mesh
+ * sends the requests one every 5 s; the replies move the markers live. The
+ * button stays busy until every node has been asked.
+ */
+export function RequestPositionsButton({ layer }: { layer: MeshLayer }) {
+  const [until, setUntil] = useState(0);
+  const [now, setNow] = useState(() => Date.now());
+  const request = useMeshRequestPositions({
+    mutation: {
+      onSuccess: ({ queued, seconds }) => {
+        if (!queued) {
+          toast("No nodes to ask yet");
+          return;
+        }
+        setUntil(Date.now() + seconds * 1000);
+        toast(`Asking ${queued} ${queued === 1 ? "node" : "nodes"} for their position`);
+      },
+      onError: (err) => toast(err instanceof Error ? err.message : "Request failed"),
+    },
+  });
+
+  const left = Math.max(0, Math.ceil((until - now) / 1000));
+  useEffect(() => {
+    if (!until) return;
+    const timer = window.setInterval(() => {
+      setNow(Date.now());
+      if (Date.now() >= until) {
+        setUntil(0);
+        window.clearInterval(timer);
+      }
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [until]);
+
+  const busy = request.isPending || left > 0;
+  return (
+    <button
+      type="button"
+      className="btn btn-block"
+      disabled={busy || layer.state !== "live" || layer.total < 2}
+      onClick={() => request.mutate()}
+    >
+      <Icon name="refresh" />
+      {left > 0 ? `Asking nodes · ${left} s` : "Request positions"}
+    </button>
   );
 }

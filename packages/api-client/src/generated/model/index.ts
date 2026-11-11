@@ -89,6 +89,7 @@ export * from './placesResponse';
 export * from './pmtilesStatus';
 export * from './poi';
 export * from './poisResponse';
+export * from './positionRequestResult';
 export * from './powerEvent';
 export * from './powerEventKind';
 export * from './powerInfo';

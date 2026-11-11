@@ -27,6 +27,15 @@ Emit = Callable[[str, Any], None]
 BACKOFF_MIN = 2
 BACKOFF_MAX = 30
 
+# Nodes broadcast their position rarely (firmware scales the interval up on
+# busy or default channels), so a node can be heard for hours without one.
+# Ask such nodes directly, sparingly: LoRa airtime is shared by everyone.
+POSITION_REQUEST_GAP = 30  # seconds between two requests (any node)
+POSITION_RETRY = 30 * 60  # seconds before asking the same node again
+POSITION_MAX_AGE = 2 * 60 * 60  # only ask nodes heard within this many seconds
+# "Request all positions" asks every node, one per tick of the connection
+# loop (5 s), so a long node list doesn't flood the channel.
+
 
 def camel(enum_name: str) -> str:
     """LONG_FAST -> LongFast (how Meshtastic apps name preset channels)."""
@@ -90,6 +99,10 @@ class Radio:
         # Held while sending + storing an outgoing message, and while
         # handling acks, so an ack can't arrive before its message is stored.
         self._send_lock = threading.Lock()
+        self._position_asked: dict[int, float] = {}  # node num -> last request
+        self._last_position_request = 0.0
+        self._position_queue: list[int] = []  # nodes still to ask (request all)
+        self._queue_lock = threading.Lock()
         self._thread: threading.Thread | None = None
         pub.subscribe(self._on_receive, "meshtastic.receive")
         pub.subscribe(self._on_node, "meshtastic.node.updated")
@@ -148,6 +161,7 @@ class Radio:
             # Wait until the library reports the link lost (reader thread hit
             # an I/O error), or the device node vanished (unplugged).
             while not self._stop.is_set() and not self._lost.wait(5):
+                self.request_positions()
                 if self.settings.connection == "serial" and not os.path.exists(self.settings.device):
                     log.warning("Radio device %s disappeared", self.settings.device)
                     break
@@ -157,6 +171,8 @@ class Radio:
                 self._stop.wait(BACKOFF_MIN)
 
     def _close(self) -> None:
+        with self._queue_lock:
+            self._position_queue.clear()
         iface, self.iface = self.iface, None
         if iface is not None:
             try:
@@ -219,6 +235,78 @@ class Radio:
             "device": self.settings.host if self.settings.connection == "tcp" else self.settings.device,
             **self.info,
         }
+
+    # -------------------------------------------------------------- positions
+
+    def request_all_positions(self) -> int:
+        """Queue a position request to every node but our own, most recently
+        heard first; they go out one per connection-loop tick. Returns how
+        many are queued (a running sweep is kept, not restarted)."""
+        if self.iface is None or self.state != "connected":
+            raise RadioError("Radio is not connected")
+        with self._queue_lock:
+            queued = set(self._position_queue)
+            for node in self.store.nodes():
+                if node["num"] != self.my_num and node["num"] not in queued:
+                    self._position_queue.append(node["num"])
+            return len(self._position_queue)
+
+    def request_positions(self, now: float | None = None) -> int | None:
+        """Ask one node for its position (the reply arrives as a normal
+        POSITION_APP packet): the next one queued by request_all_positions,
+        else a recently heard node without a known position. Returns the
+        node num asked, or None. Called every few seconds while connected."""
+        now = time.time() if now is None else now
+        iface = self.iface
+        if iface is None or self.state != "connected":
+            return None
+        with self._queue_lock:
+            num = self._position_queue.pop(0) if self._position_queue else None
+        if num is not None:
+            self._ask_position(iface, num, now)
+            return num
+        if now - self._last_position_request < POSITION_REQUEST_GAP:
+            return None
+        for node in self.store.nodes():
+            num = node["num"]
+            if (
+                num == self.my_num
+                or node["latitude"] is not None
+                or not node["last_heard"]
+                or now - node["last_heard"] > POSITION_MAX_AGE
+                or now - self._position_asked.get(num, 0) < POSITION_RETRY
+            ):
+                continue
+            self._ask_position(iface, num, now)
+            return num
+        return None
+
+    def _ask_position(self, iface, num: int, now: float) -> None:
+        self._last_position_request = now
+        self._position_asked[num] = now
+        try:
+            self._send_position_request(iface, num)
+            log.info("Asked !%08x for its position", num)
+        except Exception:  # noqa: BLE001 - a failed request is retried later
+            log.warning("Position request to %s failed", num, exc_info=True)
+
+    def _send_position_request(self, iface, num: int) -> None:
+        from meshtastic.protobuf import mesh_pb2, portnums_pb2
+
+        # Like the Meshtastic apps: send our own position (if known) and ask
+        # for theirs. An empty position would overwrite ours on their side.
+        pos = mesh_pb2.Position()
+        own = ((iface.nodesByNum or {}).get(self.my_num) or {}).get("position") or {}
+        if own.get("latitudeI") or own.get("longitudeI"):
+            pos.latitude_i = own.get("latitudeI", 0)
+            pos.longitude_i = own.get("longitudeI", 0)
+            if own.get("altitude"):
+                pos.altitude = own["altitude"]
+        with self._send_lock:
+            iface.sendData(
+                pos, destinationId=num, portNum=portnums_pb2.PortNum.POSITION_APP,
+                wantResponse=True, channelIndex=0,
+            )
 
     # ---------------------------------------------------------------- events
 

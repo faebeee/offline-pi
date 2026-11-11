@@ -1,6 +1,13 @@
-import { Body, Controller, Get, Headers, Ip, ParseIntPipe, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Headers, HttpCode, Ip, ParseIntPipe, Post, Query } from '@nestjs/common';
 import { ApiHeader, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { Conversation, MeshMessage, MeshNode, RadioStatus, SendMessageRequest } from '../domain/mesh.dto';
+import {
+  Conversation,
+  MeshMessage,
+  MeshNode,
+  PositionRequestResult,
+  RadioStatus,
+  SendMessageRequest,
+} from '../domain/mesh.dto';
 import { MeshClient } from '../infrastructure/mesh.client';
 
 /**
@@ -40,6 +47,16 @@ export class MeshController {
   @Get('nodes')
   nodes(): Promise<MeshNode[]> {
     return this.mesh.nodes();
+  }
+
+  /**
+   * Ask every node for its current position. The requests go out one every
+   * 5 s; replies update the nodes (event `node`). 503 radio down.
+   */
+  @Post('positions/request')
+  @HttpCode(202)
+  requestPositions(): Promise<PositionRequestResult> {
+    return this.mesh.requestPositions();
   }
 
   /** Send a text to a channel or a node. 401 wrong PIN, 429 rate limit, 503 radio down. */

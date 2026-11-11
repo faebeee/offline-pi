@@ -51,6 +51,9 @@ class FakeInterface:
         self.sent.append((text, destinationId, wantAck, channelIndex))
         return SimpleNamespace(id=self._next_id)
 
+    def sendData(self, data, destinationId, portNum, wantResponse, channelIndex):
+        self.sent.append(("data", destinationId, portNum, wantResponse, channelIndex))
+
     def close(self):
         self.closed = True
 
@@ -182,6 +185,46 @@ def test_pin_and_rate_limit(tmp_path):
         assert client.post("/api/messages", json=body, headers=ok).status_code == 201
         assert client.post("/api/messages", json=body, headers=ok).status_code == 201
         assert client.post("/api/messages", json=body, headers=ok).status_code == 429
+
+
+def test_requests_missing_positions(setup):
+    client, radio, fakes = setup
+    fake = fakes[-1]
+    lost, old, silent = 0x33333333, 0x44444444, 0x55555555
+    now = 10_000_000
+    radio.store.upsert_node(lost, {"node_id": "!33333333", "last_heard": now - 60})
+    radio.store.upsert_node(old, {"node_id": "!44444444", "last_heard": now - 3 * 3600})
+    radio.store.upsert_node(silent, {"node_id": "!55555555"})
+    radio.store.upsert_node(OTHER, {"last_heard": now - 60})  # has a position
+    fake.sent.clear()
+    radio._last_position_request = 0
+    assert radio.request_positions(now) == lost
+    assert [s[:2] for s in fake.sent] == [("data", lost)]
+    assert fake.sent[0][3] is True  # wantResponse
+    # nothing else qualifies; the same node waits POSITION_RETRY
+    assert radio.request_positions(now + 60) is None
+    assert radio.request_positions(now + 31 * 60) == lost
+    # the reply fills in the position and ends the requests
+    fake.nodesByNum[lost] = {"num": lost, "position": {"latitude": 47.2, "longitude": 8.6}}
+    radio.handle_packet({"from": lost, "to": MY, "id": 9, "decoded": {"portnum": "POSITION_APP"}})
+    node = {n["num"]: n for n in client.get("/api/nodes").json()}[lost]
+    assert (node["latitude"], node["longitude"]) == (47.2, 8.6)
+    assert radio.request_positions(now + 120 * 60) is None
+
+
+def test_request_all_positions(setup):
+    client, radio, fakes = setup
+    fake = fakes[-1]
+    third = 0x33333333
+    radio.store.upsert_node(third, {"node_id": "!33333333"})
+    r = client.post("/api/positions/request")
+    assert r.status_code == 202
+    assert r.json() == {"queued": 2, "seconds": 10}
+    assert client.post("/api/positions/request").json()["queued"] == 2  # no duplicates
+    fake.sent.clear()
+    asked = [radio.request_positions(), radio.request_positions()]
+    assert sorted(asked) == sorted([OTHER, third])  # every node, even with a position; never MY
+    assert [s[:2] for s in fake.sent] == [("data", n) for n in asked]
 
 
 def test_reconnect_after_loss(setup):

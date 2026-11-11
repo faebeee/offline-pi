@@ -138,6 +138,15 @@ def create_app(settings: Settings | None = None, interface_factory=None, start_r
     def get_nodes() -> list[dict[str, Any]]:
         return store.nodes()
 
+    @app.post("/api/positions/request", status_code=202)
+    def request_positions() -> dict[str, Any]:
+        """Ask every node for its position, one every few seconds."""
+        try:
+            queued = radio.request_all_positions()
+        except RadioError as exc:
+            raise HTTPException(503, str(exc)) from exc
+        return {"queued": queued, "seconds": queued * 5}
+
     @app.post("/api/messages", status_code=201)
     async def post_message(body: SendBody, request: Request, x_send_pin: str = Header("")) -> dict[str, Any]:
         if settings.send_pin and not hmac.compare_digest(x_send_pin.encode(), settings.send_pin.encode()):

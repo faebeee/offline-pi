@@ -740,6 +740,28 @@
         ]
       }
     },
+    "/api/mesh/positions/request": {
+      "post": {
+        "operationId": "meshRequestPositions",
+        "parameters": [],
+        "responses": {
+          "202": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PositionRequestResult"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Ask every node for its current position. The requests go out one every\n5 s; replies update the nodes (event `node`). 503 radio down.",
+        "tags": [
+          "mesh"
+        ]
+      }
+    },
     "/api/library/books": {
       "get": {
         "operationId": "libraryBooks",
@@ -2910,6 +2932,23 @@
           "latitude",
           "longitude",
           "altitude"
+        ]
+      },
+      "PositionRequestResult": {
+        "type": "object",
+        "properties": {
+          "queued": {
+            "type": "number",
+            "description": "nodes queued for a position request (one is asked every 5 s)"
+          },
+          "seconds": {
+            "type": "number",
+            "description": "about how long until every queued node has been asked"
+          }
+        },
+        "required": [
+          "queued",
+          "seconds"
         ]
       },
       "SendMessageRequest": {

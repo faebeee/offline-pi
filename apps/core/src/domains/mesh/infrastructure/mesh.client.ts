@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { UpstreamClient, UpstreamService } from '../../../platform/upstream/upstream.service';
-import type { Conversation, MeshMessage, MeshNode, RadioStatus } from '../domain/mesh.dto';
+import type { Conversation, MeshMessage, MeshNode, PositionRequestResult, RadioStatus } from '../domain/mesh.dto';
 import { toConversation, toMessage, toNode, toStatus } from './mesh.mappers';
 
 type Raw = Record<string, unknown>;
@@ -28,6 +28,11 @@ export class MeshClient {
 
   async nodes(): Promise<MeshNode[]> {
     return (await this.c.get<Raw[]>('/api/nodes')).map(toNode);
+  }
+
+  /** Ask every node for its position (sent one by one by the container). */
+  requestPositions(): Promise<PositionRequestResult> {
+    return this.c.post<PositionRequestResult>('/api/positions/request');
   }
 
   /**

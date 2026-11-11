@@ -11,6 +11,11 @@ under **Unreleased**.
 
 ## Unreleased
 
+### Added
+
+- Maps: REQUEST POSITIONS in the NODES tab asks every Meshtastic node for
+  its current position right away.
+
 ### Changed
 
 - Mesh map is now part of Maps: the Meshtastic nodes are a layer of the
@@ -24,6 +29,9 @@ under **Unreleased**.
 
 ### Fixed
 
+- Maps showed no Meshtastic nodes because the radio rarely hears their
+  position broadcasts. Mesh now asks recently heard nodes without a known
+  position for it, so they appear on the map within a few minutes.
 - `./update.sh` and `./start.sh --pull` failed with podman-compose
   (`argument --pull: invalid choice: 'core'`).
 - Mesh: unplugging and replugging the radio stopped working after the

@@ -136,8 +136,10 @@ Each node that shares its position is a round marker with its short name
 
 Positions are the last ones the radio heard, not live tracking. Many nodes
 share only an approximate position: on the public `LongFast` channel the
-position is rounded to about 1 to 2 km. Nodes whose owners do not share a
-position are not on the map; the NODES tab counts them as
+position is rounded to about 1 to 2 km. Nodes broadcast their position
+rarely, so outpost asks a node heard in the last two hours without a known
+position for it directly (at most every 30 minutes per node). Nodes whose
+owners do not share a position are not on the map; the NODES tab counts them as
 `WITHOUT POSITION`.
 
 - **Details**: tap a marker for status, when it was last heard (UTC),
@@ -146,7 +148,10 @@ position are not on the map; the NODES tab counts them as
   the Pi's own node).
 - **NODES tab**: the nodes on the map, the Pi's own node first, then the
   most recently heard. Tap a node to fly to it. SHOW ALL NODES fits every
-  node into view.
+  node into view. REQUEST POSITIONS asks every node for its position right
+  away instead of waiting for its next broadcast: one node every 5 seconds,
+  so with many nodes it takes a while (the button counts down). Nodes that
+  are switched off or out of range don't answer.
 - **From Mesh**: SHOW ON MAP on Mesh's NODES tab opens Maps with the layer
   on, centred on that node with its details open.
 
