@@ -3,6 +3,7 @@
 // adapt it to React's lifecycle.
 import { useEffect, useRef, useState } from "react";
 import {
+  applyTheme,
   getTheme,
   holdToConfirm,
   iconHref,
@@ -10,7 +11,8 @@ import {
   STATUS,
   type StatusState,
   type Theme,
-  themeToggle,
+  type ThemeMode,
+  THEMES,
 } from "@outpost/ui/outpost.js";
 import { illustration } from "@outpost/ui/illustrations.js";
 
@@ -51,6 +53,12 @@ export function useTheme(): Theme {
     return () => window.removeEventListener("outpost:theme", onTheme);
   }, []);
   return theme;
+}
+
+/** "dark" or "light": the family of the current theme (map style, art). */
+export function useThemeMode(): ThemeMode {
+  const theme = useTheme();
+  return THEMES.find((t) => t.id === theme)?.mode ?? "dark";
 }
 
 /**
@@ -115,16 +123,86 @@ export function Banner({
   );
 }
 
-/** Day/night toggle (the package's themeToggle owns the button's content). */
+/**
+ * Theme picker: the header's 44 px icon button (moon in dark themes, sun in
+ * light) opens a dialog with every theme. A choice applies at once.
+ */
 export function ThemeToggle() {
-  const ref = useRef<HTMLButtonElement>(null);
-  const bound = useRef(false);
+  const theme = useTheme();
+  const current = THEMES.find((t) => t.id === theme) ?? THEMES[0]!;
+  const [open, setOpen] = useState(false);
+  const label = `Theme: ${current.label}. Change theme`;
+  return (
+    <>
+      <button
+        type="button"
+        className="btn btn-icon"
+        aria-label={label}
+        title={label}
+        aria-haspopup="dialog"
+        onClick={() => setOpen(true)}
+      >
+        <Icon name={current.mode === "dark" ? "moon" : "sun"} />
+      </button>
+      {open && <ThemeDialog current={theme} onClose={() => setOpen(false)} />}
+    </>
+  );
+}
+
+function ThemeDialog({ current, onClose }: { current: Theme; onClose: () => void }) {
+  const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
-    if (!ref.current || bound.current) return;
-    bound.current = true;
-    themeToggle(ref.current);
+    const dialog = ref.current;
+    if (dialog && !dialog.open) dialog.showModal();
+    return () => dialog?.close();
   }, []);
-  return <button ref={ref} type="button" />;
+
+  return (
+    <dialog
+      ref={ref}
+      className="dialog"
+      aria-labelledby="theme-title"
+      onCancel={(e) => {
+        e.preventDefault();
+        onClose();
+      }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="dialog-head">
+        <h2 className="h2" id="theme-title">
+          Theme
+        </h2>
+        <button type="button" className="btn btn-icon" aria-label="Close" onClick={onClose}>
+          <Icon name="close" />
+        </button>
+      </div>
+      <div className="theme-list" role="radiogroup" aria-labelledby="theme-title">
+        {THEMES.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            role="radio"
+            aria-checked={t.id === current}
+            className="theme-option"
+            onClick={() => applyTheme(t.id)}
+          >
+            <span className={`theme-swatch t-${t.id}`} aria-hidden="true">
+              <span>Aa</span>
+              <span />
+              <span />
+              <span />
+              <span />
+            </span>
+            <span className="theme-option-text">
+              <span className="theme-option-name">{t.label}</span>
+              <span className="theme-option-hint">{t.hint}</span>
+            </span>
+            <Icon name="ok" className="theme-option-check" />
+          </button>
+        ))}
+      </div>
+    </dialog>
+  );
 }
 
 /**

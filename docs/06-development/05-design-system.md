@@ -20,8 +20,8 @@ The non-negotiable rules from `DESIGN.md`, in short:
 1. **Offline is the default.** No runtime requests to CDNs, font services,
    analytics or icon services. Everything ships with the app.
 2. **Tokens only.** Never hard-code a colour, font or spacing value.
-3. **Both themes work.** Every screen is tested in `.t-dark` (default) and
-   `.t-light`.
+3. **Every theme works.** Every screen is tested in `.t-dark` (default),
+   `.t-light` and the neon themes.
 4. **Never colour alone.** Every status is colour plus icon shape plus a
    written label.
 5. **Touch targets of at least 44 x 44 px**; the main action is 56 px tall.
@@ -33,7 +33,7 @@ The non-negotiable rules from `DESIGN.md`, in short:
 8. **Respect reduced motion** (`prefers-reduced-motion`, and
    `html.motion-off` for low power): everything stops.
 9. **Status is always visible**: every screen shows the status strip.
-10. **Text contrast of at least 4.5:1** in both themes.
+10. **Text contrast of at least 4.5:1** in every theme.
 
 ## Tokens and themes
 
@@ -52,8 +52,16 @@ Tokens are CSS custom properties in `packages/ui/tokens.css`, copied from
 | Motion | `--dur-fast` (120 ms), `--dur`, `--dur-slow`, `--ease-out`, `--ease-snap` |
 
 The theme is a class on `<html>`: `.t-dark` by default, `.t-light` for day.
-The choice is stored in `localStorage` (`outpost.theme`) and applied before
-the first paint, so a stored day theme doesn't flash dark.
+The neon themes (`neon`, `netrun`, `toxic`) add their own class next to
+`.t-dark` (`<html class="t-dark t-neon">`), which redefines every colour
+token; `.t-dark` stays, so color-scheme and the dark map still apply. The
+list is `THEMES` in `outpost.js` (`id`, `label`, `mode`, `hint`);
+`getTheme()` returns the id, `getThemeMode()` `"dark"` or `"light"`. The
+choice is stored in `localStorage` (`outpost.theme`) and applied before the
+first paint (`theme-boot.js`, inlined in `apps/web/index.html`), so a
+stored theme doesn't flash. A new theme is one token block in `tokens.css`,
+one `THEMES` entry and its id in both boot snippets; components don't
+change.
 
 Type: Chakra Petch for display, headings and buttons (uppercase), IBM Plex
 Sans for body text, JetBrains Mono for labels and every number, time, ID and

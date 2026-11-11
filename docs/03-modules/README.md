@@ -47,10 +47,18 @@ banner.
 
 Below the strip: the module name as a small label, the screen title, and on
 the right the screen's own buttons (for example a back button) and the
-day/night toggle. The toggle switches between the dark theme (the default)
-and the light theme. Your choice is stored in this browser. Use the light
-theme in bright sunlight and the dark theme at night. Maps follow the theme
-too.
+theme button (a moon, or a sun in the light theme). It opens a list of five
+themes; a choice applies at once and is stored in this browser:
+
+| Theme | Colours |
+|---|---|
+| Outpost (default) | Amber on night green |
+| Daylight | Light, for bright sunlight |
+| Neon | Magenta on violet |
+| Netrunner | Cyan on deep blue |
+| Toxic | Acid lime on black |
+
+Maps use the dark map for every theme except Daylight.
 
 Some screens have a context line under the header with more detail, such
 as the map zoom and coordinates, or the radio region and preset on Mesh.

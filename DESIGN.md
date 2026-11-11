@@ -10,14 +10,14 @@ Frontend guide for the Outpost suite: offline-first apps for disasters, emergenc
 
 1. **Offline is the default.** No runtime requests to CDNs, Google Fonts, analytics, icon services or external APIs. Every font, icon, script and style ships inside the app.
 2. **Use tokens only.** Never hard-code a hex color, font or spacing value in a component. Reference the CSS custom properties in section 3.
-3. **Both themes must work.** Every screen is tested in `.t-dark` (default) and `.t-light`.
+3. **Every theme must work.** Every screen is tested in `.t-dark` (default), `.t-light` and the neon themes (1.0).
 4. **Never rely on color alone.** Every status = color + icon shape + written label.
 5. **Touch targets are at least 44 x 44 px.** The main action on a screen is 56 px tall.
 6. **One primary (amber) action per view.** Amber is reserved for the main action, the user's own position, the active nav item and focus rings.
 7. **Motion and art serve the signal.** Motion follows state or a screen change (boot-in, a live LED, a pressed control); continuous loops only in illustrations and live indicators. Glow (`--glow-*`) only on live or active elements, dark theme only. No blur, emoji or stock imagery; illustrations come from `packages/ui/illustrations.js` (see 0.6).
 8. **Respect `prefers-reduced-motion`** and `html.motion-off` (low power): everything stops. Feedback transitions stay at `--dur-fast` (120 ms); entrances at most `--dur-slow`. Animate transform and opacity; never delay the user (the boot screen is skippable and once per session).
 9. **Status is always visible.** Every screen shows the same status strip (link to core, host vitals, UTC time).
-10. **Text contrast is at least 4.5:1** in both themes, including small mono labels.
+10. **Text contrast is at least 4.5:1** in every theme, including small mono labels.
 
 ---
 
@@ -152,8 +152,31 @@ Copy this into `tokens.css` and load it in every app. Put the theme class on `<h
 
 - Default to `.t-dark`. Persist the user's choice locally (e.g. `localStorage` key `outpost.theme`, wrapped in try/catch).
 - Optionally follow `prefers-color-scheme` on first run.
-- The toggle is a 44 px icon button in the header: moon icon in dark mode, sun icon in light, `aria-label="Switch to day theme"` or `"Switch to night theme"`.
-- Possible later theme: `.t-red` (red-only night vision). Add it by redefining the same tokens; components must not change.
+- The theme button is a 44 px icon button in the header: moon icon in dark themes, sun icon in light, `aria-label="Theme: <name>. Change theme"`. It opens the theme picker (a `.dialog` with `.theme-list`); a choice applies at once.
+- Themes (`THEMES` in `ui/outpost.js`): Outpost (`dark`, default), Daylight (`light`), and the neon themes (1.0) Neon (`neon`, magenta on violet), Netrunner (`netrun`, cyan on deep blue, violet info) and Toxic (`toxic`, acid lime on black, purple info). A neon theme is a class next to `.t-dark` on `<html>` that redefines every colour token (block below); its status colours stay distinct from its accent.
+- A new theme (for example `.t-red`, red-only night vision) redefines the same tokens; components must not change.
+
+```css
+.t-neon {
+  --bg: #0B0712; --s1: #130C1E; --s2: #1B1229; --s3: #261A38; --line: #30214A; --line2: #4A3768;
+  --fg: #F3E9FF; --fg2: #C4B2DD; --fg3: #9C88BA;
+  --acc: #FF2BD6; --acc-ink: #FF5BE0; --on-acc: #1A0016; --acc-soft: rgba(255,43,214,.14);
+  --info: #2DE2FF; --ok: #3DFFA8; --cau: #FFE45C; --crit: #FF5A3C; --on-crit: #1A0500;
+  /* -soft = colour at .12-.14; --grid, --map, --glow-*, --scan in the accent hue */
+}
+.t-netrun {
+  --bg: #050A12; --s1: #0A1220; --s2: #0F1A2C; --s3: #17253B; --line: #1D2E48; --line2: #2F4768;
+  --fg: #E2F4FF; --fg2: #A6C3D9; --fg3: #7F9CB5;
+  --acc: #00E5FF; --acc-ink: #3DEBFF; --on-acc: #001A1F; --acc-soft: rgba(0,229,255,.12);
+  --info: #A78BFF; --ok: #2BFF88; --cau: #FFD23F; --crit: #FF3D6E; --on-crit: #1A0008;
+}
+.t-toxic {
+  --bg: #08080A; --s1: #101014; --s2: #17171D; --s3: #212129; --line: #2A2A34; --line2: #44444F;
+  --fg: #F0F2E6; --fg2: #B9BDA8; --fg3: #8E9280;
+  --acc: #C6FF1A; --acc-ink: #D4FF4D; --on-acc: #141A00; --acc-soft: rgba(198,255,26,.12);
+  --info: #B26BFF; --ok: #19F5B0; --cau: #FFB020; --crit: #FF3B5C; --on-crit: #1A0006;
+}
+```
 
 ---
 
@@ -448,3 +471,4 @@ The visual reference (foundations, components, Hub, Maps, Library and Mesh scree
   - **Strip host group** (`.strip-host`, `strip.setHost()`): `TEMP`, `VOLT`, `CPU`, `MEM`, `DISK` between the link and the screen's items, most important first. It takes the room that is left and shows whole items only (the rest wraps onto a hidden line). Below 720 px it becomes a second strip row of 24 px with a 1 px `--line` above, items spread across it, letter-spacing 0.04em.
   - **Item tone**: a strip item's value may be `.is-cau` (`--cau`) or `.is-crit` (`--crit`), using the System screen's thresholds.
   - **Scrolling dialog** (`.dialog.dialog-scroll`): for long lists (e.g. every power event); the head and actions stay in place, only `.dialog-body` scrolls.
+- 1.0 (2026-11): theme picker and three neon themes. The header's theme button opens a `.dialog` with **`.theme-list`**: one **`.theme-option`** per theme (`role="radio"`, `aria-checked`; checked = `--acc` border, `--acc-soft` ground, `--glow-acc`), each with a **`.theme-swatch`** that carries its theme's class and so shows that theme's ground, text, accent, info, ok and crit. New themes Neon, Netrunner and Toxic (tokens in section 3, theme switching); every text token keeps at least 4.5:1. `getThemeMode()` gives the light/dark family for the map style; `themeToggle()` (pages without the picker) now steps through every theme.

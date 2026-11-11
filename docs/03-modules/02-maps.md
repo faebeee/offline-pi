@@ -40,8 +40,8 @@ The context line under the header shows the number of regions, your GNSS
 accuracy (when located), the zoom level (`Z12.4`) and the coordinates of
 the map centre. The REGIONS tab shows the disk space your regions use.
 
-All regions are shown at once on one map. The map follows the day/night
-theme: dark at night, light by day.
+All regions are shown at once on one map. The map follows the theme: the
+light map with Daylight, the dark map with every other theme.
 
 ## Downloading a region
 

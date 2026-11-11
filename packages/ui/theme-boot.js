@@ -6,5 +6,7 @@
 (function () {
   var t = null;
   try { t = localStorage.getItem("outpost.theme"); } catch (e) {}
-  document.documentElement.className = (document.documentElement.className.replace(/\bt-(dark|light)\b/g, "") + " t-" + (t === "light" ? "light" : "dark")).trim();
+  var neon = /^(neon|netrun|toxic)$/.test(t || "");
+  var cls = t === "light" ? " t-light" : " t-dark" + (neon ? " t-" + t : "");
+  document.documentElement.className = (document.documentElement.className.replace(/\bt-(dark|light|neon|netrun|toxic)\b/g, "") + cls).trim();
 })();

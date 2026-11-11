@@ -1,6 +1,9 @@
 // Types for outpost.js (for TypeScript apps that import the synced copy).
 
-export type Theme = "dark" | "light";
+export type ThemeMode = "dark" | "light";
+export type Theme = "dark" | "light" | "neon" | "netrun" | "toxic";
+export type ThemeInfo = { id: Theme; label: string; mode: ThemeMode; hint: string };
+export const THEMES: readonly ThemeInfo[];
 export type LinkState = "ok" | "cau" | "crit";
 export type StatusState = "info" | "ok" | "cau" | "crit" | "off";
 // built-in ids; modules added through a manifest are plain strings
@@ -30,6 +33,7 @@ export function escapeHtml(text: string): string;
 export function badge(state: StatusState, text: string, className?: string): HTMLSpanElement;
 
 export function getTheme(): Theme;
+export function getThemeMode(): ThemeMode;
 export function initTheme(): Theme;
 export function applyTheme(theme: Theme, persist?: boolean): void;
 export function themeToggle(button: HTMLButtonElement): HTMLButtonElement;

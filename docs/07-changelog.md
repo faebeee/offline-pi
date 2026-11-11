@@ -13,6 +13,9 @@ under **Unreleased**.
 
 ### Added
 
+- Themes: the theme button in the header opens a theme picker with three
+  new neon themes next to Outpost and Daylight: Neon (magenta on violet),
+  Netrunner (cyan on deep blue) and Toxic (acid lime on black).
 - The status strip at the top of every screen shows the Pi's vitals:
   CPU temperature, input voltage, CPU and memory usage and the system
   disk, in amber or red when they need attention.

@@ -64,6 +64,94 @@
   --scan: transparent;
 }
 
+/* Neon themes (1.0): dark, cyberpunk palettes. Each sets every colour token,
+   so a theme class also works on a swatch inside another theme. They sit
+   on <html> next to .t-dark (the mode), so anything keyed on .t-dark holds. */
+
+.t-neon {           /* magenta on violet night */
+  --bg: #0B0712;
+  --s1: #130C1E;
+  --s2: #1B1229;
+  --s3: #261A38;
+  --line: #30214A;
+  --line2: #4A3768;
+  --fg: #F3E9FF;
+  --fg2: #C4B2DD;
+  --fg3: #9C88BA;
+  --acc: #FF2BD6;
+  --acc-ink: #FF5BE0;
+  --on-acc: #1A0016;
+  --acc-soft: rgba(255,43,214,.14);
+  --info: #2DE2FF;  --info-soft: rgba(45,226,255,.12);
+  --ok:   #3DFFA8;  --ok-soft:   rgba(61,255,168,.12);
+  --cau:  #FFE45C;  --cau-soft:  rgba(255,228,92,.12);
+  --crit: #FF5A3C;  --crit-soft: rgba(255,90,60,.14);
+  --on-crit: #1A0500;
+  --grid: rgba(200,120,255,.07);
+  --map: #120B1C;
+  --glow-acc: 0 0 12px rgba(255,43,214,.6);
+  --glow-ok: 0 0 8px rgba(61,255,168,.55);
+  --glow-info: 0 0 8px rgba(45,226,255,.55);
+  --glow-crit: 0 0 10px rgba(255,90,60,.6);
+  --scan: rgba(200,120,255,.045);
+}
+
+.t-netrun {         /* cyan on deep blue, violet info */
+  --bg: #050A12;
+  --s1: #0A1220;
+  --s2: #0F1A2C;
+  --s3: #17253B;
+  --line: #1D2E48;
+  --line2: #2F4768;
+  --fg: #E2F4FF;
+  --fg2: #A6C3D9;
+  --fg3: #7F9CB5;
+  --acc: #00E5FF;
+  --acc-ink: #3DEBFF;
+  --on-acc: #001A1F;
+  --acc-soft: rgba(0,229,255,.12);
+  --info: #A78BFF;  --info-soft: rgba(167,139,255,.14);
+  --ok:   #2BFF88;  --ok-soft:   rgba(43,255,136,.12);
+  --cau:  #FFD23F;  --cau-soft:  rgba(255,210,63,.12);
+  --crit: #FF3D6E;  --crit-soft: rgba(255,61,110,.14);
+  --on-crit: #1A0008;
+  --grid: rgba(0,229,255,.06);
+  --map: #08101C;
+  --glow-acc: 0 0 12px rgba(0,229,255,.55);
+  --glow-ok: 0 0 8px rgba(43,255,136,.5);
+  --glow-info: 0 0 8px rgba(167,139,255,.55);
+  --glow-crit: 0 0 10px rgba(255,61,110,.6);
+  --scan: rgba(0,229,255,.035);
+}
+
+.t-toxic {          /* acid lime on black, purple info */
+  --bg: #08080A;
+  --s1: #101014;
+  --s2: #17171D;
+  --s3: #212129;
+  --line: #2A2A34;
+  --line2: #44444F;
+  --fg: #F0F2E6;
+  --fg2: #B9BDA8;
+  --fg3: #8E9280;
+  --acc: #C6FF1A;
+  --acc-ink: #D4FF4D;
+  --on-acc: #141A00;
+  --acc-soft: rgba(198,255,26,.12);
+  --info: #B26BFF;  --info-soft: rgba(178,107,255,.14);
+  --ok:   #19F5B0;  --ok-soft:   rgba(25,245,176,.12);
+  --cau:  #FFB020;  --cau-soft:  rgba(255,176,32,.12);
+  --crit: #FF3B5C;  --crit-soft: rgba(255,59,92,.14);
+  --on-crit: #1A0006;
+  --grid: rgba(198,255,26,.05);
+  --map: #0C0C10;
+  --glow-acc: 0 0 12px rgba(198,255,26,.5);
+  --glow-ok: 0 0 8px rgba(25,245,176,.5);
+  --glow-info: 0 0 8px rgba(178,107,255,.55);
+  --glow-crit: 0 0 10px rgba(255,59,92,.6);
+  --scan: rgba(198,255,26,.03);
+}
+
 :root {
   /* Type */
   --font-display: 'Chakra Petch', system-ui, sans-serif;

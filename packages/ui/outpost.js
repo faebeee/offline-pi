@@ -70,19 +70,46 @@ export function badge(state, text, className = "") {
 
 // ------------------------------------------------------------------ theme --
 
+/**
+ * The themes, in picker order. `mode` is the light/dark family: <html> gets
+ * `t-<mode>` (color-scheme, map style, everything keyed on .t-dark) and,
+ * for the neon themes, `t-<id>` on top, which redefines the colour tokens.
+ */
+export const THEMES = [
+  { id: "dark", label: "Outpost", mode: "dark", hint: "Amber on night green" },
+  { id: "light", label: "Daylight", mode: "light", hint: "For bright sun" },
+  { id: "neon", label: "Neon", mode: "dark", hint: "Magenta on violet" },
+  { id: "netrun", label: "Netrunner", mode: "dark", hint: "Cyan on deep blue" },
+  { id: "toxic", label: "Toxic", mode: "dark", hint: "Acid lime on black" },
+];
+
+const THEME_CLASSES = THEMES.map((t) => `t-${t.id}`);
+
+function themeInfo(id) {
+  return THEMES.find((t) => t.id === id) ?? THEMES[0];
+}
+
 function readTheme() {
   try {
     const v = localStorage.getItem(THEME_KEY);
-    if (v === "dark" || v === "light") return v;
+    if (THEMES.some((t) => t.id === v)) return v;
   } catch {
     // storage blocked: fall through
   }
   return null;
 }
 
-/** "dark" or "light". */
+/** The current theme id ("dark", "light", "neon", ...). */
 export function getTheme() {
-  return document.documentElement.classList.contains("t-light") ? "light" : "dark";
+  const classes = document.documentElement.classList;
+  const neon = THEMES.find((t) => t.id !== t.mode && classes.contains(`t-${t.id}`));
+  if (neon) return neon.id;
+  return classes.contains("t-light") ? "light" : "dark";
+}
+
+/** "dark" or "light": the family of the current theme. */
+export function getThemeMode() {
+  return themeInfo(getTheme()).mode;
 }
 
 /**
@@ -94,32 +121,41 @@ export function initTheme() {
   return getTheme();
 }
 
-/** Switch theme, persist it, fire `outpost:theme` on window ({detail: theme}). */
+/** Switch theme, persist it, fire `outpost:theme` on window ({detail: id}). */
 export function applyTheme(theme, persist = true) {
+  const t = themeInfo(theme);
   const root = document.documentElement;
-  root.classList.toggle("t-light", theme === "light");
-  root.classList.toggle("t-dark", theme !== "light");
+  root.classList.remove(...THEME_CLASSES);
+  root.classList.add(`t-${t.mode}`);
+  if (t.id !== t.mode) root.classList.add(`t-${t.id}`);
   if (persist) {
     try {
-      localStorage.setItem(THEME_KEY, theme);
+      localStorage.setItem(THEME_KEY, t.id);
     } catch {
       // not remembered, still applied
     }
   }
-  window.dispatchEvent(new CustomEvent("outpost:theme", { detail: theme }));
+  window.dispatchEvent(new CustomEvent("outpost:theme", { detail: t.id }));
 }
 
-/** Wire a 44 px .btn-icon as the theme toggle (moon in dark, sun in light). */
+/**
+ * Wire a 44 px .btn-icon as a theme button for pages without the picker:
+ * each press moves to the next theme (moon in dark themes, sun in light).
+ */
 export function themeToggle(button) {
   const render = () => {
-    const dark = getTheme() === "dark";
-    button.replaceChildren(icon(dark ? "moon" : "sun"));
-    button.setAttribute("aria-label", dark ? "Switch to day theme" : "Switch to night theme");
+    const current = themeInfo(getTheme());
+    const next = THEMES[(THEMES.indexOf(current) + 1) % THEMES.length];
+    button.replaceChildren(icon(current.mode === "dark" ? "moon" : "sun"));
+    button.setAttribute("aria-label", `Theme: ${current.label}. Switch to ${next.label}`);
     button.title = button.getAttribute("aria-label");
   };
   button.classList.add("btn", "btn-icon");
   button.type = "button";
-  button.addEventListener("click", () => applyTheme(getTheme() === "dark" ? "light" : "dark"));
+  button.addEventListener("click", () => {
+    const current = themeInfo(getTheme());
+    applyTheme(THEMES[(THEMES.indexOf(current) + 1) % THEMES.length].id);
+  });
   window.addEventListener("outpost:theme", render);
   render();
   return button;

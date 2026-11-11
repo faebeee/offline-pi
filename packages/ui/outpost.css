@@ -1410,6 +1410,93 @@ a {
 }
 
 /* =========================================================== dialogs === */
+/* Addition (DESIGN.md changelog 1.0): theme picker in a .dialog. Each
+   swatch carries its theme's class, so it shows that theme's tokens. */
+
+.theme-list {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+}
+
+.theme-option {
+  display: flex;
+  width: 100%;
+  min-height: var(--target-primary);
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line2);
+  border-radius: var(--radius);
+  background: var(--s2);
+  color: var(--fg);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.theme-option:hover {
+  border-color: var(--fg3);
+}
+
+.theme-option[aria-checked="true"] {
+  border-color: var(--acc);
+  background: var(--acc-soft);
+  box-shadow: var(--glow-acc);
+}
+
+.theme-swatch {
+  display: grid;
+  width: 88px;
+  height: 36px;
+  flex: none;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  border: 1px solid var(--line2);
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.theme-swatch > span:nth-child(1) {
+  display: grid;
+  place-items: center;
+  color: var(--fg);
+  font: 700 14px/1 var(--font-display);
+}
+
+.theme-swatch > span:nth-child(2) { background: var(--acc); box-shadow: var(--glow-acc); }
+.theme-swatch > span:nth-child(3) { background: var(--info); }
+.theme-swatch > span:nth-child(4) { background: var(--ok); }
+.theme-swatch > span:nth-child(5) { background: var(--crit); }
+
+.theme-option-text {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.theme-option-name {
+  font: 600 15px/20px var(--font-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.theme-option-hint {
+  color: var(--fg3);
+  font: 400 12px/16px var(--font-mono);
+}
+
+.theme-option-check {
+  flex: none;
+  color: var(--acc-ink);
+  visibility: hidden;
+}
+
+.theme-option[aria-checked="true"] .theme-option-check {
+  visibility: visible;
+}
+
 /* Addition (DESIGN.md changelog 0.2): modal sheet on <dialog>. */
 
 .dialog {

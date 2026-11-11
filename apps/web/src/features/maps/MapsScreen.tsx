@@ -15,7 +15,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { LngLatBounds, type Map as MapLibreMap } from "../../app/maplibre";
 import { Screen } from "../../app/Screen";
-import { Banner, HoldButton, Icon, Illustration, useTheme } from "../../ui/outpost";
+import { Banner, HoldButton, Icon, Illustration, useThemeMode } from "../../ui/outpost";
 import { ModuleGate } from "../modules/ModuleGate";
 import { isRunning, useModule } from "../modules/useModules";
 import { AddRegion, JobBadge } from "./AddRegion";
@@ -48,7 +48,7 @@ type PanelView = "regions" | "places" | "nodes" | "add";
  */
 export function MapsScreen({ linkedNode }: { linkedNode?: string }) {
   const qc = useQueryClient();
-  const theme = useTheme();
+  const theme = useThemeMode();
   const running = isRunning(useModule("maps"));
 
   const regionsQuery = useMapsRegions({ query: { enabled: running } });
