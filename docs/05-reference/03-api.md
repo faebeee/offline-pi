@@ -105,6 +105,14 @@ The configuration, read only (only `install.sh` writes `.env`).
 | `GET` | `settings` | Every `.env` variable with its comment and default from `.env.example` (PINs, passwords, tokens and database URLs only as "set"), and every `*_DIR` with its path on the Pi, drive and free space |
 | `GET` | `settings/sizes` | Disk usage of every `*_DIR`, like `du`; measured on request and kept for 5 minutes |
 
+## diagnostics
+
+Troubleshooting checks, read only.
+
+| Method | Path | What it does |
+|---|---|---|
+| `GET` | `diagnostics` | Runs every check (setup, modules, storage, host) and returns each with `status` (`ok`, `info`, `warn`, `fail`), a summary, details and a fix; parallel requests share one run |
+
 ## Live updates
 
 Socket.IO on `/socket.io`, one namespace per domain. The payloads are the

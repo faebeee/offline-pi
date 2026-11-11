@@ -1,3 +1,4 @@
+export * from './diagnostics/diagnostics';
 export * from './info/info';
 export * from './library/library';
 export * from './logs/logs';

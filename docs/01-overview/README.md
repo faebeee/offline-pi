@@ -49,6 +49,7 @@ on the home page.
 | Logs | `/logs` | Log lines of core and every installed module, live and filterable. |
 | Info | `/info` | This documentation. |
 | Settings | `/settings` | Every setting of the Pi, the data folders and their size. Read only. |
+| Diagnostics | `/diagnostics` | What works and what does not: modules, folder permissions, free space, the USB drive, power. With a fix for each problem. |
 
 The pages of [chapter 3](../03-modules/README.md) explain each screen.
 

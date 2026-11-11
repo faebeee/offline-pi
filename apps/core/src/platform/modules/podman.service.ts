@@ -40,6 +40,17 @@ export class PodmanService implements OnModuleInit {
     return !!this.selfId && fullId === this.selfId;
   }
 
+  /** Whether podman's API answers (libpod `_ping`); resolves with the reason when not. */
+  async ping(): Promise<string | null> {
+    if (!this.socket) return this.unavailableReason;
+    try {
+      const { status } = await this.call('GET', '/v4.0.0/libpod/_ping', 5_000);
+      return status === 200 ? null : `podman answered HTTP ${status}`;
+    } catch (err) {
+      return (err as Error).message;
+    }
+  }
+
   /** Start or stop a container by name or id; resolves once podman is done. */
   async run(fullId: string, action: ContainerAction): Promise<void> {
     const query = action === 'stop' ? `?timeout=${STOP_TIMEOUT_SEC}` : '';

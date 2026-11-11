@@ -32,6 +32,7 @@ app.
 | Logs | `/logs` | `logs` | core |
 | Info | `/info`, `/info/<chapter>/<page>` | `info` | core |
 | Settings | `/settings` | `settings` | core (reads `.env` through the read-only host mount) |
+| Diagnostics | `/diagnostics` | `diagnostics` | core (reads the host through the read-only host mount) |
 
 The screens are routes of the one web app. The last column says where the
 data behind the screen comes from. The user guide for each screen is in

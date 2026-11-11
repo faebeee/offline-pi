@@ -40,6 +40,7 @@ tsconfig.base.json       # shared TypeScript base config
 apps/<name>/             # one module: Dockerfile, code, module.json, README
 apps/core/               # the API (domains), passthrough, supervisor (always on)
 apps/logs/               # a screen served by core: module.json + README only
+apps/diagnostics/        # the same: troubleshooting checks (core domain diagnostics)
 apps/info/               # the docs screen, served by core (reads docs/)
 apps/web/                # the web app: every screen of every module
 apps/maps/backend/       # a module's container code (API, data, jobs)

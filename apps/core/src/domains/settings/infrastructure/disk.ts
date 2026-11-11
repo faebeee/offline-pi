@@ -6,6 +6,8 @@ export interface MountInfo {
   device: string;
   mountPoint: string;
   fsType: string;
+  /** mount options, e.g. ['rw', 'noatime'] */
+  options: string[];
 }
 
 /** The host's mount table (pid 1's: core runs with pid: host). */
@@ -17,10 +19,11 @@ export async function readMounts(): Promise<MountInfo[]> {
     .split('\n')
     .map((line) => line.split(' '))
     .filter((f) => f.length >= 3)
-    .map(([device, mountPoint, fsType]) => ({
+    .map(([device, mountPoint, fsType, options]) => ({
       device: unescape(device!),
       mountPoint: unescape(mountPoint!),
       fsType: fsType!,
+      options: (options ?? '').split(','),
     }));
 }
 

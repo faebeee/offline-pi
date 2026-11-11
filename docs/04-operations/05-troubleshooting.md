@@ -7,6 +7,7 @@ places to look below; they often point straight at the problem.
 
 | Where | What it tells you |
 |---|---|
+| The Diagnostics screen (`/diagnostics`) | Start here: checks every module, data folder (mounted, writable, free space), the USB drive, power and clock, with a fix for each problem. REPORT downloads the result as a text file. |
 | `./manage.sh status` | Which modules are installed and the state of each container. |
 | The home page | Each module's badge: Running, Off, Stopped, Not configured, No container, Unhealthy. |
 | The Logs screen (`/logs`) | Live log lines of core and every module, filterable by level. |

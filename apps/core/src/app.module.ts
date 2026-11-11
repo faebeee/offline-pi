@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { DiagnosticsModule } from './domains/diagnostics/diagnostics.module';
 import { InfoModule } from './domains/info/info.module';
 import { LibraryModule } from './domains/library/library.module';
 import { LogsModule } from './domains/logs/logs.module';
@@ -16,6 +17,6 @@ import { PlatformModule } from './platform/platform.module';
  * feature = a new domain module listed here (see AGENTS.md).
  */
 @Module({
-  imports: [PlatformModule, ModulesModule, SystemModule, MapsModule, MeshModule, LibraryModule, LogsModule, InfoModule, SettingsModule],
+  imports: [PlatformModule, ModulesModule, SystemModule, MapsModule, MeshModule, LibraryModule, LogsModule, InfoModule, SettingsModule, DiagnosticsModule],
 })
 export class AppModule {}

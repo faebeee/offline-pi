@@ -1,0 +1,11 @@
+{
+  "id": "diagnostics",
+  "num": 8,
+  "label": "Diagnostics",
+  "icon": "pulse",
+  "description": "What works and what doesn't: modules, folder permissions, free space, power, with a fix for each problem.",
+  "service": "core",
+  "path": "/diagnostics/",
+  "dirs": [],
+  "optional": false
+}

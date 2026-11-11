@@ -9,5 +9,6 @@ import { SystemEvents } from './system.events';
 @Module({
   controllers: [SystemController],
   providers: [CollectorService, HistoryService, InternetService, SystemEvents],
+  exports: [CollectorService, InternetService],
 })
 export class SystemModule {}

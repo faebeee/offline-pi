@@ -18,6 +18,13 @@ under **Unreleased**.
   ones marked, PINs and passwords hidden) and every data folder with its
   path, drive, free space and size. Rebuild with `./start.sh` (or
   `./update.sh`) to get it.
+- Diagnostics (`/diagnostics`): a new screen for troubleshooting. It
+  checks whether every installed module runs and answers, whether each
+  data folder exists, sits on its drive (not on the SD card because the
+  USB drive is not mounted), is writable for the containers and has free
+  space, plus the USB drive, Podman, power supply, temperature, memory and
+  clock. Each problem comes with what to do; REPORT downloads the result as
+  a text file. Rebuild with `./start.sh` (or `./update.sh`) to get it.
 - The status strip shows `NET ONLINE` or `NET OFFLINE`: whether the Pi
   gets out to the internet. Core checks about once a minute against the map
   and library download servers; set `CORE_INTERNET_CHECK_URLS` empty to

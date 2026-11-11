@@ -3,7 +3,7 @@
 outpost is one web app. Open `http://<pi>:8080` in any browser on the
 same network or hotspot as the Pi (the port is `PORT` in `.env`, 8080 by
 default). Every module is a screen of that app: Maps, Library, Mesh, Mesh
-map, plus System, Logs, Info and Settings, which are always there. This chapter
+map, plus System, Logs, Info, Settings and Diagnostics, which are always there. This chapter
 explains how to use each screen.
 
 Nothing in the app loads from the internet. Fonts, icons, map styles and
@@ -112,3 +112,4 @@ starts or stops a module. See [Home](01-home.md#the-control-pin).
   problems.
 - [Info](07-info.md): this documentation inside the app.
 - [Settings](08-settings.md): every setting of the Pi, the data folders and their size.
+- [Diagnostics](09-diagnostics.md): checks what works and what does not, with a fix for each problem.

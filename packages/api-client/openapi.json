@@ -1149,6 +1149,28 @@
           "settings"
         ]
       }
+    },
+    "/api/diagnostics": {
+      "get": {
+        "operationId": "diagnosticsRun",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiagnosticsReport"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Runs every check (setup, modules, storage, host); takes a few seconds.",
+        "tags": [
+          "diagnostics"
+        ]
+      }
     }
   },
   "info": {
@@ -1952,9 +1974,9 @@
             "type": "string",
             "description": "checking = no answer yet; disabled = CORE_INTERNET_CHECK_URLS is empty",
             "enum": [
-              "checking",
               "online",
               "offline",
+              "checking",
               "disabled"
             ]
           },
@@ -2328,18 +2350,18 @@
           },
           "type": {
             "enum": [
-              "download",
-              "setup"
+              "setup",
+              "download"
             ],
             "type": "string"
           },
           "state": {
             "enum": [
               "running",
+              "done",
               "failed",
               "estimating",
               "awaiting-confirmation",
-              "done",
               "cancelled"
             ],
             "type": "string"
@@ -3134,9 +3156,9 @@
           "state": {
             "description": "running = downloading or checking now; unknown = no status yet (never synced, or not readable)",
             "enum": [
+              "unknown",
               "running",
-              "idle",
-              "unknown"
+              "idle"
             ],
             "type": "string"
           },
@@ -3255,11 +3277,11 @@
           "state": {
             "type": "string",
             "enum": [
+              "available",
+              "missing",
               "downloading",
               "installed",
-              "queued",
-              "missing",
-              "available"
+              "queued"
             ]
           }
         },
@@ -3458,10 +3480,10 @@
             "description": "parsed from the line (Nest, JSON, Python logging); \"log\" when unknown",
             "enum": [
               "error",
+              "warn",
               "verbose",
               "debug",
               "log",
-              "warn",
               "fatal"
             ]
           },
@@ -3917,48 +3939,126 @@
           "sizes"
         ]
       },
-      "LogBatch": {
+      "DiagCounts": {
         "type": "object",
         "properties": {
-          "source": {
+          "ok": {
+            "type": "number"
+          },
+          "info": {
+            "type": "number"
+          },
+          "warn": {
+            "type": "number"
+          },
+          "fail": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "ok",
+          "info",
+          "warn",
+          "fail"
+        ]
+      },
+      "DiagCheck": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "stable id, e.g. module:maps or dir:MAPS_DATA_DIR"
+          },
+          "group": {
+            "type": "string",
+            "enum": [
+              "modules",
+              "host",
+              "setup",
+              "storage"
+            ]
+          },
+          "title": {
             "type": "string"
           },
-          "entries": {
+          "status": {
+            "type": "string",
+            "description": "ok = fine, info = worth knowing, warn = will cause trouble, fail = broken now",
+            "enum": [
+              "info",
+              "ok",
+              "warn",
+              "fail"
+            ]
+          },
+          "summary": {
+            "type": "string",
+            "description": "one line: what was found"
+          },
+          "details": {
+            "description": "the findings behind it (one per line), or null",
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/LogEntry"
+              "type": "string"
+            }
+          },
+          "fix": {
+            "type": "string",
+            "nullable": true,
+            "description": "what to do about it, or null when nothing is needed"
+          },
+          "module": {
+            "type": "string",
+            "nullable": true,
+            "description": "module id the check is about, or null"
+          }
+        },
+        "required": [
+          "id",
+          "group",
+          "title",
+          "status",
+          "summary",
+          "details",
+          "fix",
+          "module"
+        ]
+      },
+      "DiagnosticsReport": {
+        "type": "object",
+        "properties": {
+          "checkedAt": {
+            "type": "string",
+            "description": "ISO time the checks ran"
+          },
+          "durationMs": {
+            "type": "number"
+          },
+          "version": {
+            "type": "string",
+            "nullable": true
+          },
+          "hostname": {
+            "type": "string",
+            "nullable": true
+          },
+          "counts": {
+            "$ref": "#/components/schemas/DiagCounts"
+          },
+          "checks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DiagCheck"
             }
           }
         },
         "required": [
-          "source",
-          "entries"
-        ]
-      },
-      "LogFollowError": {
-        "type": "object",
-        "properties": {
-          "source": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "source",
-          "message"
-        ]
-      },
-      "MeshLink": {
-        "type": "object",
-        "properties": {
-          "connected": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "connected"
+          "checkedAt",
+          "durationMs",
+          "version",
+          "hostname",
+          "counts",
+          "checks"
         ]
       },
       "SystemInit": {
@@ -4003,6 +4103,50 @@
           "intervalMs",
           "snapshot",
           "live"
+        ]
+      },
+      "LogBatch": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LogEntry"
+            }
+          }
+        },
+        "required": [
+          "source",
+          "entries"
+        ]
+      },
+      "LogFollowError": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "message"
+        ]
+      },
+      "MeshLink": {
+        "type": "object",
+        "properties": {
+          "connected": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "connected"
         ]
       }
     }
