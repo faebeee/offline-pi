@@ -437,7 +437,7 @@ apps/web/src/
   running / START" instead of the screen. The nav and home tiles come from
   `/api/modules`, so a new module needs no change in `packages/ui`.
 - The status strip is **the same on every screen** (`src/app/strip.tsx`):
-  the link to core, the host vitals and the UTC time. Screens don't add to
+  the link to core, internet (`NET`), the host vitals and the UTC time. Screens don't add to
   it; a screen's own state (its data source, counts, progress) goes in its
   context line or a banner.
 - No runtime network requests: no CDNs, web fonts or remote icons.

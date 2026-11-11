@@ -8,12 +8,14 @@ const tone = (lvl: Level | null): StripItem["tone"] =>
   lvl === "warning" ? "cau" : lvl === "serious" || lvl === "critical" ? "crit" : undefined;
 
 /**
- * The host's vitals for the status strip (app/strip.tsx): TEMP, VOLT, CPU,
- * MEM and DISK (the root file system), most important first, coloured with
- * the System screen's thresholds.
+ * The host's vitals for the status strip (app/strip.tsx): NET (outgoing
+ * internet), TEMP, VOLT, CPU, MEM and DISK (the root file system), most
+ * important first, coloured with the System screen's thresholds.
  */
 export function hostItems(s: Snapshot): StripItem[] {
   const items: StripItem[] = [];
+  const net = internetItem(s);
+  if (net) items.push(net);
   const t = s.temps.cpu;
   if (t != null) items.push({ label: "TEMP", value: `${fmtNum(t, 0)}°C`, tone: tone(tempLevel(t)) });
 
@@ -45,4 +47,22 @@ export function hostItems(s: Snapshot): StripItem[] {
     });
   }
   return items;
+}
+
+/**
+ * Outgoing internet, as core last checked it: NET ONLINE in --ok, OFFLINE
+ * plain (normal for an offline box, not a fault), "..." until the first
+ * answer. Hidden when the check is switched off.
+ */
+function internetItem(s: Snapshot): StripItem | null {
+  switch (s.internet?.state) {
+    case "online":
+      return { label: "NET", value: "ONLINE", tone: "ok" };
+    case "offline":
+      return { label: "NET", value: "OFFLINE" };
+    case "checking":
+      return { label: "NET", value: "..." };
+    default:
+      return null;
+  }
 }

@@ -28,6 +28,8 @@ ENV_EXAMPLE="$ROOT_DIR/.env.example"
 # Compose, which resolves bind mounts like / on the Mac instead of in the
 # Podman machine), plus compose.macos.yml for what the remote API lacks.
 compose() {
+  # core's Settings screen reads .env and resolves relative *_DIRs from here
+  export OUTPOST_DIR="$ROOT_DIR"
   local -a args=(-p "$PROJECT_NAME" -f "$ROOT_DIR/compose.yml")
   is_macos && args+=(-f "$ROOT_DIR/compose.macos.yml")
   [[ -f "$ENV_FILE" ]] && args+=(--env-file "$ENV_FILE")

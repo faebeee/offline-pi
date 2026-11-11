@@ -327,6 +327,10 @@ a {
   font-weight: 500;
 }
 
+.strip-item.is-ok b {
+  color: var(--ok);
+}
+
 .strip-item.is-cau b {
   color: var(--cau);
 }

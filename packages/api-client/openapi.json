@@ -1105,6 +1105,50 @@
           "info"
         ]
       }
+    },
+    "/api/settings": {
+      "get": {
+        "operationId": "settingsOverview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsOverview"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Every .env variable with its documentation, and every data directory with its drive.",
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/api/settings/sizes": {
+      "get": {
+        "operationId": "settingsSizes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsSizes"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Disk usage of every data directory (measured on request, kept for 5 minutes).",
+        "tags": [
+          "settings"
+        ]
+      }
     }
   },
   "info": {
@@ -1901,6 +1945,42 @@
           "remoteHosts"
         ]
       },
+      "InternetInfo": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "description": "checking = no answer yet; disabled = CORE_INTERNET_CHECK_URLS is empty",
+            "enum": [
+              "checking",
+              "online",
+              "offline",
+              "disabled"
+            ]
+          },
+          "checkedAt": {
+            "type": "number",
+            "nullable": true,
+            "description": "when the last check finished (ms since epoch)"
+          },
+          "latencyMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "round trip of the answering request, ms"
+          },
+          "target": {
+            "type": "string",
+            "nullable": true,
+            "description": "host that answered, e.g. build.protomaps.com"
+          }
+        },
+        "required": [
+          "state",
+          "checkedAt",
+          "latencyMs",
+          "target"
+        ]
+      },
       "Snapshot": {
         "type": "object",
         "properties": {
@@ -1990,6 +2070,9 @@
                 "$ref": "#/components/schemas/ConnectionsInfo"
               }
             ]
+          },
+          "internet": {
+            "$ref": "#/components/schemas/InternetInfo"
           }
         },
         "required": [
@@ -2007,7 +2090,8 @@
           "wifi",
           "vcgencmd",
           "containers",
-          "connections"
+          "connections",
+          "internet"
         ]
       },
       "HistoryPoint": {
@@ -3587,6 +3671,250 @@
         "required": [
           "query",
           "hits"
+        ]
+      },
+      "SettingVar": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string",
+            "nullable": true,
+            "description": "the value in effect; null when unset or secret (see `secret`)"
+          },
+          "isSet": {
+            "type": "boolean",
+            "description": "true when the value is non-empty"
+          },
+          "secret": {
+            "type": "boolean",
+            "description": "a PIN, password, token or URL with credentials: the value is never sent"
+          },
+          "defaultValue": {
+            "type": "string",
+            "nullable": true,
+            "description": "the value in .env.example; null when the variable isn't documented there"
+          },
+          "description": {
+            "type": "string",
+            "description": "the comment above it in .env.example, '' if none"
+          },
+          "changed": {
+            "type": "boolean",
+            "description": "true when the value differs from .env.example's"
+          }
+        },
+        "required": [
+          "key",
+          "value",
+          "isSet",
+          "secret",
+          "defaultValue",
+          "description",
+          "changed"
+        ]
+      },
+      "SettingSection": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "the block's name in .env.example, e.g. \"maps\"; \"other\" for variables only in .env"
+          },
+          "title": {
+            "type": "string",
+            "description": "the module's label when the block belongs to a module, else the id"
+          },
+          "module": {
+            "type": "string",
+            "nullable": true,
+            "description": "module id when the block belongs to a module, else null"
+          },
+          "installed": {
+            "type": "boolean",
+            "description": "false for an optional module not in MODULES"
+          },
+          "vars": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SettingVar"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "module",
+          "installed",
+          "vars"
+        ]
+      },
+      "SettingPath": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "module": {
+            "type": "string",
+            "nullable": true,
+            "description": "module id from its section, null for core-wide dirs"
+          },
+          "installed": {
+            "type": "boolean",
+            "description": "false when its module is not installed"
+          },
+          "description": {
+            "type": "string",
+            "description": "first sentence of its .env.example comment"
+          },
+          "value": {
+            "type": "string",
+            "description": "the value as written in .env (may be relative to the project folder)"
+          },
+          "hostPath": {
+            "type": "string",
+            "nullable": true,
+            "description": "absolute path on the Pi; null when it can't be resolved"
+          },
+          "exists": {
+            "type": "boolean",
+            "description": "the directory exists (false: drive not mounted, or never created)"
+          },
+          "device": {
+            "type": "string",
+            "nullable": true,
+            "description": "block device of the filesystem it is on, e.g. /dev/sda1"
+          },
+          "fsType": {
+            "type": "string",
+            "nullable": true
+          },
+          "mountPoint": {
+            "type": "string",
+            "nullable": true,
+            "description": "where that filesystem is mounted, e.g. /media/Data"
+          },
+          "totalBytes": {
+            "type": "number",
+            "nullable": true,
+            "description": "size of that filesystem in bytes"
+          },
+          "freeBytes": {
+            "type": "number",
+            "nullable": true,
+            "description": "free space on it for unprivileged users, in bytes"
+          }
+        },
+        "required": [
+          "key",
+          "module",
+          "installed",
+          "description",
+          "value",
+          "hostPath",
+          "exists",
+          "device",
+          "fsType",
+          "mountPoint",
+          "totalBytes",
+          "freeBytes"
+        ]
+      },
+      "SettingsOverview": {
+        "type": "object",
+        "properties": {
+          "project": {
+            "type": "string",
+            "nullable": true,
+            "description": "the project folder (git checkout) on the Pi; null when unknown"
+          },
+          "source": {
+            "type": "string",
+            "description": "where the values come from: the .env file itself or core's environment",
+            "enum": [
+              "env-file",
+              "environment"
+            ]
+          },
+          "envFile": {
+            "type": "string",
+            "nullable": true,
+            "description": "path of the .env file on the Pi; null when it couldn't be read"
+          },
+          "version": {
+            "type": "string",
+            "nullable": true,
+            "description": "the app's version (root package.json); null if unknown"
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SettingSection"
+            }
+          },
+          "paths": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SettingPath"
+            }
+          }
+        },
+        "required": [
+          "project",
+          "source",
+          "envFile",
+          "version",
+          "sections",
+          "paths"
+        ]
+      },
+      "SettingPathSize": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "bytes": {
+            "type": "number",
+            "nullable": true,
+            "description": "bytes used on disk (like du); null when the directory can't be read"
+          },
+          "files": {
+            "type": "number",
+            "description": "files counted"
+          },
+          "complete": {
+            "type": "boolean",
+            "description": "false when the walk stopped at its time or file limit (bytes is then a lower bound)"
+          },
+          "measuredAt": {
+            "type": "string",
+            "description": "when it was measured (ISO 8601)"
+          }
+        },
+        "required": [
+          "key",
+          "bytes",
+          "files",
+          "complete",
+          "measuredAt"
+        ]
+      },
+      "SettingsSizes": {
+        "type": "object",
+        "properties": {
+          "sizes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SettingPathSize"
+            }
+          }
+        },
+        "required": [
+          "sizes"
         ]
       },
       "LogBatch": {

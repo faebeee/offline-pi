@@ -119,6 +119,18 @@ export class WifiInfo {
 }
 
 /** One full reading of the host, pushed to every dashboard client per tick. */
+/** Outgoing internet access, checked by core about once a minute. */
+export class InternetInfo {
+  /** checking = no answer yet; disabled = CORE_INTERNET_CHECK_URLS is empty */
+  state!: 'online' | 'offline' | 'checking' | 'disabled';
+  /** when the last check finished (ms since epoch) */
+  checkedAt!: number | null;
+  /** round trip of the answering request, ms */
+  latencyMs!: number | null;
+  /** host that answered, e.g. build.protomaps.com */
+  target!: string | null;
+}
+
 export class Snapshot {
   ts!: number;
   system!: SystemInfo;
@@ -135,6 +147,7 @@ export class Snapshot {
   vcgencmd!: boolean;
   containers!: ContainersInfo;
   connections!: ConnectionsInfo | null;
+  internet!: InternetInfo;
 }
 
 /** Compact sample kept in the history ring buffers. */

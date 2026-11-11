@@ -48,6 +48,7 @@ on the home page.
 | System | `/system` | Pi health: temperature, input voltage, throttling, CPU, memory, storage, network, containers. |
 | Logs | `/logs` | Log lines of core and every installed module, live and filterable. |
 | Info | `/info` | This documentation. |
+| Settings | `/settings` | Every setting of the Pi, the data folders and their size. Read only. |
 
 The pages of [chapter 3](../03-modules/README.md) explain each screen.
 

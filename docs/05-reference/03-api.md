@@ -33,7 +33,7 @@ when `CONTROL_PIN` is set (see [Control headers](#control-headers)).
 | Method | Path | What it does |
 |---|---|---|
 | `GET` | `system/status` | Cheap liveness check used by core's health check: `503` when sampling stalled |
-| `GET` | `system/snapshot` | The latest snapshot of the Pi (`null` right after start) |
+| `GET` | `system/snapshot` | The latest snapshot of the Pi (`null` right after start), including `internet` (outgoing internet: `online`, `offline`, `checking`, `disabled`) |
 | `GET` | `system/history` | One point per minute for 24 h, and the power events |
 
 ## logs
@@ -95,6 +95,15 @@ These docs, for the Info screen.
 | `GET` | `info` | Every page in reading order, for the chapter navigation |
 | `GET` | `info/page?slug=` | One page's Markdown, with the pages before and after it |
 | `GET` | `info/search?q=` | Pages whose title or text contains every word of the query |
+
+## settings
+
+The configuration, read only (only `install.sh` writes `.env`).
+
+| Method | Path | What it does |
+|---|---|---|
+| `GET` | `settings` | Every `.env` variable with its comment and default from `.env.example` (PINs, passwords, tokens and database URLs only as "set"), and every `*_DIR` with its path on the Pi, drive and free space |
+| `GET` | `settings/sizes` | Disk usage of every `*_DIR`, like `du`; measured on request and kept for 5 minutes |
 
 ## Live updates
 

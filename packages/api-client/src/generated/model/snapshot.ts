@@ -11,6 +11,7 @@ import type { CpuInfo } from './cpuInfo';
 import type { DiskInfo } from './diskInfo';
 import type { DiskIo } from './diskIo';
 import type { FanInfo } from './fanInfo';
+import type { InternetInfo } from './internetInfo';
 import type { MemoryInfo } from './memoryInfo';
 import type { NetworkInfo } from './networkInfo';
 import type { PowerInfo } from './powerInfo';
@@ -41,4 +42,5 @@ export interface Snapshot {
   containers: ContainersInfo;
   /** @nullable */
   connections: ConnectionsInfo | null;
+  internet: InternetInfo;
 }

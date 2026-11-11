@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as LogsRouteImport } from './routes/logs'
 import { Route as MapsRouteImport } from './routes/maps'
 import { Route as MeshRouteImport } from './routes/mesh'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SystemRouteImport } from './routes/system'
 import { Route as InfoIndexRouteImport } from './routes/info.index'
 import { Route as InfoSplatRouteImport } from './routes/info.$'
@@ -40,6 +41,11 @@ const MapsRoute = MapsRouteImport.update({
 const MeshRoute = MeshRouteImport.update({
   id: '/mesh',
   path: '/mesh',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SystemRoute = SystemRouteImport.update({
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/logs': typeof LogsRoute
   '/maps': typeof MapsRoute
   '/mesh': typeof MeshRouteWithChildren
+  '/settings': typeof SettingsRoute
   '/system': typeof SystemRoute
   '/info/$': typeof InfoSplatRoute
   '/library/catalog': typeof LibraryCatalogRoute
@@ -101,6 +108,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/logs': typeof LogsRoute
   '/maps': typeof MapsRoute
+  '/settings': typeof SettingsRoute
   '/system': typeof SystemRoute
   '/info/$': typeof InfoSplatRoute
   '/library/catalog': typeof LibraryCatalogRoute
@@ -116,6 +124,7 @@ export interface FileRoutesById {
   '/logs': typeof LogsRoute
   '/maps': typeof MapsRoute
   '/mesh': typeof MeshRouteWithChildren
+  '/settings': typeof SettingsRoute
   '/system': typeof SystemRoute
   '/info/$': typeof InfoSplatRoute
   '/library/catalog': typeof LibraryCatalogRoute
@@ -132,6 +141,7 @@ export interface FileRouteTypes {
     | '/logs'
     | '/maps'
     | '/mesh'
+    | '/settings'
     | '/system'
     | '/info/$'
     | '/library/catalog'
@@ -145,6 +155,7 @@ export interface FileRouteTypes {
     | '/'
     | '/logs'
     | '/maps'
+    | '/settings'
     | '/system'
     | '/info/$'
     | '/library/catalog'
@@ -159,6 +170,7 @@ export interface FileRouteTypes {
     | '/logs'
     | '/maps'
     | '/mesh'
+    | '/settings'
     | '/system'
     | '/info/$'
     | '/library/catalog'
@@ -174,6 +186,7 @@ export interface RootRouteChildren {
   LogsRoute: typeof LogsRoute
   MapsRoute: typeof MapsRoute
   MeshRoute: typeof MeshRouteWithChildren
+  SettingsRoute: typeof SettingsRoute
   SystemRoute: typeof SystemRoute
   InfoSplatRoute: typeof InfoSplatRoute
   LibraryCatalogRoute: typeof LibraryCatalogRoute
@@ -210,6 +223,13 @@ declare module '@tanstack/react-router' {
       path: '/mesh'
       fullPath: '/mesh'
       preLoaderRoute: typeof MeshRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/system': {
@@ -288,6 +308,7 @@ const rootRouteChildren: RootRouteChildren = {
   LogsRoute: LogsRoute,
   MapsRoute: MapsRoute,
   MeshRoute: MeshRouteWithChildren,
+  SettingsRoute: SettingsRoute,
   SystemRoute: SystemRoute,
   InfoSplatRoute: InfoSplatRoute,
   LibraryCatalogRoute: LibraryCatalogRoute,

@@ -10,7 +10,7 @@ export type StatusState = "info" | "ok" | "cau" | "crit" | "off";
 export type ModuleId = "home" | "maps" | "mesh" | "knowledge" | "system" | (string & {});
 
 /** `tone` colours the value: cau (elevated) or crit (act now). */
-export type StripItem = { label: string; value: string; tone?: "cau" | "crit" };
+export type StripItem = { label: string; value: string; tone?: "ok" | "cau" | "crit" };
 export type Strip = {
   setLink(state: LinkState, label: string): void;
   /** the current screen's items, right before the clock */

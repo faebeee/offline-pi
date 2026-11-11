@@ -43,6 +43,9 @@ services:
       PODMAN_SOCKET: ${PODMAN_SOCKET:-}
       CONTROL_PIN: ${CONTROL_PIN:-}
       MODULES: ${MODULES:-}
+      # the project folder (set by lib/common.sh): the Settings screen reads
+      # its .env through /hostfs and resolves relative *_DIRs against it
+      OUTPOST_DIR: ${OUTPOST_DIR:-}
     volumes:
       - ${CORE_DATA_DIR:-./data/core}:/app/data
       # Host root, read-only: /sys, /etc/os-release, every mounted filesystem

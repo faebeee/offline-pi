@@ -13,6 +13,15 @@ under **Unreleased**.
 
 ### Added
 
+- Settings (`/settings`): a new screen with every setting of the Pi, read
+  only. It lists the `.env` values with their meaning and default (changed
+  ones marked, PINs and passwords hidden) and every data folder with its
+  path, drive, free space and size. Rebuild with `./start.sh` (or
+  `./update.sh`) to get it.
+- The status strip shows `NET ONLINE` or `NET OFFLINE`: whether the Pi
+  gets out to the internet. Core checks about once a minute against the map
+  and library download servers; set `CORE_INTERNET_CHECK_URLS` empty to
+  switch it off.
 - Themes: the theme button in the header opens a theme picker with three
   new neon themes next to Outpost and Daylight: Neon (magenta on violet),
   Netrunner (cyan on deep blue) and Toxic (acid lime on black).

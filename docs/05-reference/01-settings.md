@@ -45,6 +45,8 @@ connection and send PIN are asked while mesh is not configured yet.
 | `SAMPLE_INTERVAL_MS` | `2000` | How often the Pi is sampled and pushed to open dashboards, in milliseconds (minimum 500). |
 | `CORE_LOG_LEVEL` | `log` | Least severe level core logs: `verbose`, `debug`, `log`, `warn`, `error`, `fatal`. The Logs screen shows core's lines from this level up. |
 | `CONTROL_PIN` | empty | PIN asked before starting or stopping a module from the web app. Empty: anyone who can open the web app can start and stop modules. |
+| `CORE_INTERNET_CHECK_URLS` | `https://build.protomaps.com/,https://download.kiwix.org/` | Servers asked whether the Pi gets out to the internet, for `NET` in the status strip: a HEAD request to the first that answers. These are servers outpost downloads from anyway. Empty: no check, no `NET` item. |
+| `CORE_INTERNET_CHECK_INTERVAL_MS` | `60000` | How often that check runs, in milliseconds (minimum 10000). |
 | `PODMAN_GRAPH_ROOT` | empty | Podman's storage root on the host; its `db.sql` lists the containers. Empty: core searches the default locations. Detected. |
 | `PODMAN_SOCKET` | empty | Host path of the Podman API socket, used to start and stop modules. Detected. |
 | `VCIO_DEVICE` | `/dev/null` | Firmware mailbox for `vcgencmd` (voltages, throttling). `/dev/null` when the host is not a Raspberry Pi. Detected. |

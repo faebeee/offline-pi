@@ -3,7 +3,7 @@
 outpost is one web app. Open `http://<pi>:8080` in any browser on the
 same network or hotspot as the Pi (the port is `PORT` in `.env`, 8080 by
 default). Every module is a screen of that app: Maps, Library, Mesh, Mesh
-map, plus System, Logs and Info, which are always there. This chapter
+map, plus System, Logs, Info and Settings, which are always there. This chapter
 explains how to use each screen.
 
 Nothing in the app loads from the internet. Fonts, icons, map styles and
@@ -31,6 +31,12 @@ On the left is a square LED with the link between your browser and the Pi:
 | Green | `CORE · LIVE` | The Pi answers |
 | Amber | `CORE · CONNECTING` | Reaching the Pi |
 | Red | `CORE · OFFLINE` | The Pi does not answer |
+
+Next is `NET`: whether the Pi itself gets out to the internet. `ONLINE`
+(green) or `OFFLINE`; `...` until the first check. The Pi checks about once a
+minute by asking the servers it downloads maps and books from
+(`CORE_INTERNET_CHECK_URLS`). Offline is normal for outpost: everything
+except downloads works without internet.
 
 Then the Pi's vitals: CPU temperature (`TEMP`), input voltage (`VOLT`), CPU
 and memory usage (`CPU`, `MEM`) and the system disk (`DISK 23/57 GB`), in
@@ -105,3 +111,4 @@ starts or stops a module. See [Home](01-home.md#the-control-pin).
 - [Logs](06-logs.md): the log lines of core and every module, for finding
   problems.
 - [Info](07-info.md): this documentation inside the app.
+- [Settings](08-settings.md): every setting of the Pi, the data folders and their size.

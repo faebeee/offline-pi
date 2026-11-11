@@ -16,6 +16,7 @@ import {
 import { RuntimeService } from '../../../platform/runtime/runtime.service';
 import { Snapshot, ThrottleFlags, ThrottleState } from '../domain/snapshot.dto';
 import { Vcgencmd } from '../infrastructure/vcgencmd';
+import { InternetService } from './internet.service';
 
 const INTERVAL_MS = Math.max(500, Number(process.env.SAMPLE_INTERVAL_MS) || 2000);
 
@@ -51,7 +52,10 @@ export class CollectorService implements OnModuleInit, OnModuleDestroy {
   readonly snapshots$ = new Subject<Snapshot>();
   latest: Snapshot | null = null;
 
-  constructor(private readonly runtime: RuntimeService) {}
+  constructor(
+    private readonly runtime: RuntimeService,
+    private readonly internet: InternetService,
+  ) {}
 
   async onModuleInit() {
     this.staticInfo = {
@@ -168,6 +172,7 @@ export class CollectorService implements OnModuleInit, OnModuleDestroy {
       vcgencmd: this.vc.available,
       containers: this.runtime.containers,
       connections: this.runtime.connections,
+      internet: this.internet.state,
     };
   }
 

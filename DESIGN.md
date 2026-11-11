@@ -240,7 +240,7 @@ Every app screen has this structure, top to bottom:
 - Phone first (390 px reference width). On tablets and desktop, the bottom nav becomes a left rail (`flex-wrap` layout, content `flex: 999 1 560px`), but it is never sticky to `100vh`.
 - Content padding 16 px on phones, 24 to 32 px on larger screens.
 - Use flex or grid with `gap`, never margins between siblings.
-- Status strip example: `● CORE · LIVE    TEMP 52°C  VOLT 5.08 V  CPU 4%  MEM 7%  DISK 23/57 GB    14:32Z`. Since 0.9 it is the same on every screen; a screen's own facts go in its context line. The square LED shows the app's link to its own local data source: `--ok` when connected or loaded, `--cau` while connecting, reconnecting or stale, `--crit` on failure (see the 0.2 changelog).
+- Status strip example: `● CORE · LIVE    NET ONLINE  TEMP 52°C  VOLT 5.08 V  CPU 4%  MEM 7%  DISK 23/57 GB    14:32Z`. Since 0.9 it is the same on every screen; a screen's own facts go in its context line. The square LED shows the app's link to its own local data source: `--ok` when connected or loaded, `--cau` while connecting, reconnecting or stale, `--crit` on failure (see the 0.2 changelog).
 
 ---
 
@@ -472,3 +472,4 @@ The visual reference (foundations, components, Hub, Maps, Library and Mesh scree
   - **Item tone**: a strip item's value may be `.is-cau` (`--cau`) or `.is-crit` (`--crit`), using the System screen's thresholds.
   - **Scrolling dialog** (`.dialog.dialog-scroll`): for long lists (e.g. every power event); the head and actions stay in place, only `.dialog-body` scrolls.
 - 1.0 (2026-11): theme picker and three neon themes. The header's theme button opens a `.dialog` with **`.theme-list`**: one **`.theme-option`** per theme (`role="radio"`, `aria-checked`; checked = `--acc` border, `--acc-soft` ground, `--glow-acc`), each with a **`.theme-swatch`** that carries its theme's class and so shows that theme's ground, text, accent, info, ok and crit. New themes Neon, Netrunner and Toxic (tokens in section 3, theme switching); every text token keeps at least 4.5:1. `getThemeMode()` gives the light/dark family for the map style; `themeToggle()` (pages without the picker) now steps through every theme.
+- 1.1 (2026-11): the status strip starts its host group with **`NET`** (outgoing internet from the Pi, checked by core): `ONLINE` in `--ok`, `OFFLINE` plain (an offline box is normal, not a fault), `...` while checking, hidden when the check is off. Strip items take `tone: "ok"` (`.strip-item.is-ok`) besides `cau` and `crit`. New icon **`sliders`** (Settings module).

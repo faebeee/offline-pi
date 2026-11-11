@@ -269,7 +269,7 @@ export function statusStrip(el) {
   };
   const item = ({ label, value, tone }) => {
     const s = document.createElement("span");
-    s.className = tone === "cau" || tone === "crit" ? `strip-item is-${tone}` : "strip-item";
+    s.className = tone === "ok" || tone === "cau" || tone === "crit" ? `strip-item is-${tone}` : "strip-item";
     const b = document.createElement("b");
     b.textContent = value;
     s.append(`${label} `, b);

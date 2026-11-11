@@ -24,6 +24,7 @@ and off on the dashboard.
 | [System](apps/core/README.md) (core) | `/system` | `/api/system` | `8080` (public) | Realtime Pi dashboard: temperature, input voltage, throttling, PSU limits, CPU, memory, storage, network, containers and connections. Core is also the API of every module and starts/stops them. |
 | [Logs](apps/logs/README.md) (core) | `/logs` | `/api/logs` | | Log lines of core and every installed module, live, filterable by level and text, downloadable, for debugging. |
 | [Info](apps/info/README.md) (core) | `/info` | `/api/info` | | This project's documentation ([`docs/`](docs/README.md)), rendered from the Markdown files, with chapters and search. |
+| [Settings](apps/settings/README.md) (core) | `/settings` | `/api/settings` | | Every setting of the Pi, read only: the `.env` values with their meaning and default, the data folders with their drive, free space and size. |
 | [Maps](apps/maps/README.md) | `/maps` | `/api/maps` | `8081` | Self-hosted vector maps: download a region once, then pan, zoom and search with no internet connection. With Mesh installed, the Meshtastic nodes are a layer that can be switched on and off. |
 | [Mesh](apps/mesh/README.md) | `/mesh` | `/api/mesh` | `8084` | Messaging over a USB Meshtastic LoRa node: channel and direct messages, node list, history kept on the Pi. |
 | [Library](apps/knowledge/README.md) | `/library` | `/api/library` | `8082` | Offline Wikipedia, medical and survival guides via `kiwix-serve`; you choose the books on the Library screen, the container downloads them itself. |
@@ -136,6 +137,7 @@ documents every variable. The main ones:
 | `MODULES` | `maps,knowledge` | Installed modules (set by `install.sh`). |
 | `CORE_LOG_LEVEL` | `log` | Least severe level core logs and the Logs screen shows for core (`debug` for more detail). |
 | `CONTROL_PIN` | empty | PIN asked before starting/stopping modules on the dashboard. |
+| `CORE_INTERNET_CHECK_URLS` | Protomaps, Kiwix | Servers asked about once a minute for the `NET` item in the status strip. Empty: no check. |
 | `CORE_DATA_DIR` | `./data/core` | Dashboard history, power events, module on/off state. |
 | `MAPS_DATA_DIR` | `./data/maps` | Map regions (GBs) and POIs. Point at the SSD. |
 | `MAPS_ASSETS_DIR` | `./data/maps-assets` | Map fonts and sprites (~100 MB). |

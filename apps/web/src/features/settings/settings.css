@@ -1,0 +1,112 @@
+/* Settings screen: tokens only (DESIGN.md). */
+
+.set {
+  display: flex;
+  max-width: 1100px;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.set code {
+  font-family: var(--font-mono);
+  overflow-wrap: anywhere;
+}
+
+.set-paths {
+  display: flex;
+  flex-direction: column;
+}
+
+.set-path {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+}
+
+.set-path-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.set-key {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--acc-ink);
+  overflow-wrap: anywhere;
+}
+
+.set-size {
+  margin-left: auto;
+  color: var(--fg);
+  font-size: 16px;
+}
+
+.set-value {
+  color: var(--fg);
+  overflow-wrap: anywhere;
+}
+
+.set-value.is-empty {
+  color: var(--fg3);
+}
+
+.set-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.set-tools .seg > button {
+  white-space: nowrap;
+}
+
+.set-tools .search {
+  min-width: min(100%, 260px);
+  flex: 1;
+}
+
+.set-vars {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.set-var {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) 2fr;
+  gap: var(--space-1) var(--space-4);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--line);
+}
+
+.set-var dd {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+}
+
+.set-default {
+  color: var(--fg3);
+  text-transform: none;
+  letter-spacing: 0.04em;
+}
+
+.set-section.is-off .set-value {
+  color: var(--fg2);
+}
+
+@media (max-width: 720px) {
+  .set-var {
+    grid-template-columns: 1fr;
+  }
+}

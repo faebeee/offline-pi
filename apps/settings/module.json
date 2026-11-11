@@ -1,0 +1,11 @@
+{
+  "id": "settings",
+  "num": 7,
+  "label": "Settings",
+  "icon": "sliders",
+  "description": "Every setting of this Pi: the .env values, the data folders, their drive and size.",
+  "service": "core",
+  "path": "/settings/",
+  "dirs": [],
+  "optional": false
+}
