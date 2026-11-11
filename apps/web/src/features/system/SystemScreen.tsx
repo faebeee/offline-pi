@@ -1,8 +1,7 @@
 import type { HistoryPoint, PowerEvent, Snapshot } from "@outpost/api-client";
-import { ago, STATUS, utcClock, utcDate, utcDateTime } from "@outpost/ui/outpost.js";
+import { ago, utcClock, utcDate } from "@outpost/ui/outpost.js";
 import { useEffect, useState } from "react";
 import { Screen } from "../../app/Screen";
-import { Icon } from "../../ui/outpost";
 import { ConnectionsCard } from "./ConnectionsCard";
 import { ContainersCard } from "./ContainersCard";
 import {
@@ -20,6 +19,7 @@ import {
   type Level,
 } from "./format";
 import { LineChart, type Range, type Series } from "./LineChart";
+import { PowerEventsCard } from "./PowerEvents";
 import { Bar, Kv, Notice, Readout, SignalBars, SmBadge } from "./parts";
 import { useSystemLive, type LinkState } from "./useSystemLive";
 import "./system.css";
@@ -171,13 +171,6 @@ const FLAGS = [
   ["softTempLimit", "Soft temp limit", "cau"],
 ] as const;
 
-const EVENT_TEXT: Record<string, [string, string, "crit" | "cau"]> = {
-  "under-voltage": ["Under-voltage", "cleared", "crit"],
-  throttled: ["CPU throttled", "ended", "crit"],
-  "freq-capped": ["Frequency capped", "ended", "cau"],
-  "soft-temp-limit": ["Soft temperature limit", "ended", "cau"],
-};
-
 function Dashboard({
   s,
   chart,
@@ -231,8 +224,6 @@ function Dashboard({
       : p.coreVolts != null
         ? { label: "Core voltage", value: fmtNum(p.coreVolts, 3), ratio: null, meta: voltExtras }
         : { label: "Voltage", value: "--", ratio: null, meta: s.vcgencmd ? "No reading" : "vcgencmd unavailable" };
-
-  const events100 = [...events].reverse().slice(0, 100);
 
   return (
     <>
@@ -569,43 +560,7 @@ function Dashboard({
           />
         </article>
 
-        <article className="card">
-          <div className="card-head">
-            <h2 className="h2">Power events</h2>
-          </div>
-          <p className="help">Changes of the firmware's under-voltage and throttling flags, newest first.</p>
-          <ul className="list">
-            {events100.length ? (
-              events100.map((e, i) => {
-                const [name, endWord, tone] = EVENT_TEXT[e.kind] ?? [e.kind, "ended", "cau"];
-                const tn = e.active ? tone : "ok";
-                return (
-                  <li key={`${e.t}-${e.kind}-${i}`}>
-                    <div className="row static">
-                      <Icon name={STATUS[tn].icon} className={`i-${tn}`} />
-                      <div className="row-main">
-                        <span className="row-title">
-                          {name}
-                          {e.active ? "" : ` ${endWord}`}
-                        </span>
-                        <span className="row-meta">{utcDateTime(e.t)}</span>
-                      </div>
-                      <span className="row-value">
-                        <SmBadge tone={tn}>{e.active ? "Started" : endWord}</SmBadge>
-                      </span>
-                    </div>
-                  </li>
-                );
-              })
-            ) : (
-              <li>
-                <div className="row static">
-                  <span className="row-main fg2 body-sm">No events recorded.</span>
-                </div>
-              </li>
-            )}
-          </ul>
-        </article>
+        <PowerEventsCard events={events} />
       </div>
     </>
   );

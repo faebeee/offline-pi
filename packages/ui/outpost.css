@@ -1445,6 +1445,19 @@ a {
   padding: var(--space-4);
 }
 
+/* a long list: head and actions stay, the body scrolls (DESIGN.md 0.9) */
+.dialog-scroll[open] {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dialog-scroll .dialog-body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
 .dialog-actions {
   display: flex;
   flex-wrap: wrap;

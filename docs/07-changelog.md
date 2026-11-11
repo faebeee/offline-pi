@@ -21,6 +21,8 @@ under **Unreleased**.
 
 ### Changed
 
+- System: the Power events card shows the latest 5 events; ALL in its
+  header opens a window with every recorded event.
 - The status strip is now exactly the same on every screen: the link to
   the Pi (`CORE · LIVE`), its vitals and the UTC time. What used to be
   screen-specific moved onto the screen: GNSS accuracy into the Maps

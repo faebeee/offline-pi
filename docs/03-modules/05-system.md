@@ -71,7 +71,7 @@ into it.
 | Apps and containers | Every container on the Pi: module, state, health, path or ports, uptime, CPU, memory and image |
 | Connections | Open ports and active network connections |
 | System | Hostname, model, OS, kernel, architecture, uptime, processes and the time of the last reading |
-| Power events | When under-voltage, throttling, frequency capping or the soft temperature limit started and ended, newest first |
+| Power events | When under-voltage, throttling, frequency capping or the soft temperature limit started and ended: the latest 5, newest first. ALL opens a window with every recorded event (up to 200) |
 
 Values the Pi cannot measure show `--` or `n/a`. Voltage and throttle
 readings need the Pi's firmware tool (`vcgencmd`); on other hardware they
