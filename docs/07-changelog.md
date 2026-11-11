@@ -34,6 +34,10 @@ under **Unreleased**.
   position for it, so they appear on the map within a few minutes.
 - `./update.sh` and `./start.sh --pull` failed with podman-compose
   (`argument --pull: invalid choice: 'core'`).
+- `./update.sh` and `./start.sh --pull` failed with podman-compose 1.3
+  (Raspberry Pi OS) with `argument --pull: ignored explicit argument
+  'always'`. The build now uses the pull option the installed compose
+  understands.
 - Mesh: unplugging and replugging the radio stopped working after the
   first connection, since Podman mapped the USB device to a fixed
   major:minor at container creation and a replug usually gets a new

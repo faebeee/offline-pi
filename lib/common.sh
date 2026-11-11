@@ -40,6 +40,20 @@ compose() {
   fi
 }
 
+# compose_pull_flag - the `compose build` option that always pulls newer
+# base images. The backends disagree: podman-compose 1.3 (Raspberry Pi OS)
+# has a plain `--pull` switch and rejects `--pull=always`, 1.5+ takes
+# `--pull[=policy]` and still accepts the older `--pull-always`, Docker
+# Compose has only the switch.
+compose_pull_flag() {
+  local help
+  help="$(compose build --help 2>&1 || true)"
+  case "$help" in
+    *--pull-always*) printf '%s\n' --pull-always ;;
+    *) printf '%s\n' --pull ;;
+  esac
+}
+
 # offer_install LABEL PACKAGE - install a missing requirement with the
 # host's package manager after asking, or explain and exit.
 offer_install() {
