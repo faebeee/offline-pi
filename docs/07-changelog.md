@@ -63,6 +63,13 @@ under **Unreleased**.
 
 ### Fixed
 
+- Maps: the setup failed with `ENOTEMPTY: directory not empty, rmdir
+  '.../assets/fonts/Noto Sans Regular'` when the map assets live on a
+  damaged exFAT drive (after a power cut). The setup now puts the new
+  fonts and sprites in place without deleting the old ones first and only
+  leaves an undeletable old copy behind (`fonts.old-*`). A failed setup no
+  longer always blames the internet connection: drive errors point to
+  Diagnostics.
 - Maps: downloading a large region no longer fails with `stream error:
   ... PROTOCOL_ERROR`. The download now uses HTTP/1.1 and starts over by
   itself (up to 3 tries) when the connection to the map server drops.

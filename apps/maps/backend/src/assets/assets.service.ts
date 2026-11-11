@@ -3,7 +3,7 @@ import path from "node:path";
 import { Injectable } from "@nestjs/common";
 import { PATHS } from "../config/paths.ts";
 import { UPSTREAM } from "../config/upstream.ts";
-import { exists, moveDir } from "../common/files.ts";
+import { exists, replaceDir } from "../common/files.ts";
 import { download, run } from "../common/net.ts";
 import { c, formatBytes, log, type Report } from "../common/terminal.ts";
 
@@ -34,12 +34,16 @@ export class AssetsService {
       });
       await run("tar", ["-xzf", tarball, "-C", staging, "--strip-components=1"], { quiet: true });
 
-      await fs.rm(PATHS.fonts, { recursive: true, force: true });
-      await fs.rm(PATHS.sprites, { recursive: true, force: true });
-      await fs.mkdir(PATHS.assets, { recursive: true });
-      await moveDir(path.join(staging, "fonts"), PATHS.fonts);
-      // Flatten sprites/v4/* to sprites/* — v4 is what @protomaps/basemaps v5 styles use.
-      await moveDir(path.join(staging, "sprites", "v4"), PATHS.sprites);
+      // swap in the new folders instead of deleting the old ones first: on a
+      // damaged exFAT drive the old ones may not be removable (replaceDir)
+      const leftovers = [
+        ...(await replaceDir(path.join(staging, "fonts"), PATHS.fonts)),
+        // Flatten sprites/v4/* to sprites/*: v4 is what @protomaps/basemaps v5 styles use.
+        ...(await replaceDir(path.join(staging, "sprites", "v4"), PATHS.sprites)),
+      ];
+      for (const p of leftovers) {
+        report(`${c.yellow("!")} could not remove the old ${path.basename(p)} (damaged file system? run fsck on the drive)`);
+      }
 
       const stacks = (await fs.readdir(PATHS.fonts, { withFileTypes: true }))
         .filter((e) => e.isDirectory())

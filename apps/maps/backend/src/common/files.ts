@@ -74,6 +74,49 @@ export async function moveDir(src: string, dest: string): Promise<void> {
   }
 }
 
+/**
+ * Replaces the directory `dest` with `src` without deleting `dest` first:
+ * `src` is moved next to it, the old `dest` is renamed aside, the new one
+ * renamed into place, and only then is the old copy removed. Removing is
+ * best effort. On a damaged exFAT drive (a power cut while writing) a
+ * folder can hold entries the kernel cannot list, so `rm` fails with
+ * ENOTEMPTY forever; renaming still works, so such a folder no longer
+ * blocks the update, it is just left behind as `<dest>.old-<time>`.
+ * Returns the leftovers that could not be removed.
+ */
+export async function replaceDir(src: string, dest: string): Promise<string[]> {
+  const parent = path.dirname(dest);
+  const base = path.basename(dest);
+  const incoming = `${dest}.incoming`;
+  await fs.mkdir(parent, { recursive: true });
+  await removeOrSetAside(incoming);
+  await moveDir(src, incoming);
+  if (await exists(dest)) await fs.rename(dest, `${dest}.old-${Date.now()}`);
+  await fs.rename(incoming, dest);
+
+  // the old copy, plus leftovers of earlier runs
+  const leftovers: string[] = [];
+  for (const name of await fs.readdir(parent)) {
+    if (!name.startsWith(`${base}.old-`) && !name.startsWith(`${base}.incoming.old-`)) continue;
+    const p = path.join(parent, name);
+    try {
+      await fs.rm(p, { recursive: true, force: true });
+    } catch {
+      leftovers.push(p);
+    }
+  }
+  return leftovers;
+}
+
+/** rm -rf, or rename it out of the way when it cannot be removed (see replaceDir). */
+async function removeOrSetAside(p: string): Promise<void> {
+  try {
+    await fs.rm(p, { recursive: true, force: true });
+  } catch {
+    await fs.rename(p, `${p}.old-${Date.now()}`);
+  }
+}
+
 /** `fs.stat`, but undefined instead of throwing when the file is not there. */
 export async function statFile(file: string): Promise<{ size: number; mtimeMs: number } | undefined> {
   try {

@@ -74,7 +74,7 @@ export function SetupGate({ status, job, onJobStarted }: Props) {
 
       {failed && (
         <Banner tone="crit" title="Setup failed">
-          {job.error} Check the internet connection and retry.
+          {job.error} {setupHint(job.error)}
         </Banner>
       )}
       {error && (
@@ -93,4 +93,15 @@ export function SetupGate({ status, job, onJobStarted }: Props) {
       </button>
     </section>
   );
+}
+
+/** What to try after a failed setup: the internet only when the error is about the network. */
+function setupHint(error: string | null | undefined): string {
+  const network = /fetch failed|ENOTFOUND|EAI_AGAIN|ECONN|ETIMEDOUT|EHOSTUNREACH|ENETUNREACH|socket|TLS|certificate|timed? ?out|HTTP 5\d\d|stream error/i;
+  if (!error || network.test(error)) return "Check the internet connection and retry.";
+  if (/ENOSPC/.test(error)) return "The drive is full: free space or move the map folders with ./install.sh, then retry.";
+  if (/EACCES|EPERM|EROFS|ENOTEMPTY|EIO/.test(error)) {
+    return "This is a problem with the map folders' drive, not the internet: open Diagnostics, then retry.";
+  }
+  return "See the maps log on the Logs screen, then retry.";
 }
