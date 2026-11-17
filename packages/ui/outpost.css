@@ -490,6 +490,11 @@ a {
   color: var(--fg3);
 }
 
+/* first item of the system group (System, Logs, Info, ...): a 1 px line before it */
+.nav-item.nav-split {
+  border-left: 1px solid var(--line);
+}
+
 /* tablets and desktop: the bottom nav becomes a left rail */
 @media (min-width: 900px) {
   .frame-body {
@@ -497,14 +502,26 @@ a {
   }
 
   .nav {
+    display: flex;
     order: -1;
     width: 92px;
     height: auto;
-    grid-auto-flow: row;
-    grid-auto-rows: 76px;
-    align-content: start;
+    flex-direction: column;
+    overflow-y: auto;
     border-top: 0;
     border-right: 1px solid var(--line);
+  }
+
+  .nav-item {
+    height: 76px;
+    flex: none;
+  }
+
+  /* apps at the top of the rail, the system group at the bottom */
+  .nav-item.nav-split {
+    margin-top: auto;
+    border-top: 1px solid var(--line);
+    border-left: 0;
   }
 
   .nav-item[aria-current="page"] {

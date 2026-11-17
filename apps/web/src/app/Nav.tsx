@@ -2,30 +2,44 @@ import { Link } from "@tanstack/react-router";
 import { Icon } from "../ui/outpost";
 import { useModules } from "../features/modules/useModules";
 
-const HOME = { id: "home", label: "Home", icon: "hub", path: "/", running: true };
+type Item = { id: string; label: string; icon: string; path: string; running: boolean };
 
-/** Module nav: home plus every installed module (from core's /api/modules). */
+const HOME: Item = { id: "home", label: "Home", icon: "hub", path: "/", running: true };
+
+/**
+ * Module nav: home and the installed apps first, then the screens of the
+ * system itself (System, Logs, Info, Settings, Diagnostics: the modules that
+ * are not optional), pushed to the end of the rail.
+ */
 export function Nav({ current }: { current: string }) {
   const { data } = useModules();
-  const items = [
+  const installed = (data?.modules ?? []).filter((m) => m.installed);
+  const apps: Item[] = [
     HOME,
-    ...(data?.modules ?? [])
-      .filter((m) => m.installed)
-      .map((m) => ({ id: m.id, label: m.label, icon: m.icon, path: m.path, running: !m.optional || m.state === "running" })),
+    ...installed
+      .filter((m) => m.optional)
+      .map((m) => ({ id: m.id, label: m.label, icon: m.icon, path: m.path, running: m.state === "running" })),
   ];
+  const system: Item[] = installed
+    .filter((m) => !m.optional)
+    .map((m) => ({ id: m.id, label: m.label, icon: m.icon, path: m.path, running: true }));
+
+  const link = (m: Item, first = false) => (
+    <Link
+      key={m.id}
+      to={m.path}
+      className={`nav-item${m.running ? "" : " is-off"}${first ? " nav-split" : ""}`}
+      aria-current={m.id === current ? "page" : undefined}
+    >
+      <Icon name={m.icon} />
+      <span>{m.label}</span>
+    </Link>
+  );
+
   return (
     <nav className="nav" aria-label="Modules">
-      {items.map((m) => (
-        <Link
-          key={m.id}
-          to={m.path}
-          className={`nav-item${m.running ? "" : " is-off"}`}
-          aria-current={m.id === current ? "page" : undefined}
-        >
-          <Icon name={m.icon} />
-          <span>{m.label}</span>
-        </Link>
-      ))}
+      {apps.map((m) => link(m))}
+      {system.map((m, i) => link(m, i === 0))}
     </nav>
   );
 }

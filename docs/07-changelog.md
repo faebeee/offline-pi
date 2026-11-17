@@ -44,6 +44,10 @@ under **Unreleased**.
 
 ### Changed
 
+- The menu is split in two: your apps (Maps, Mesh, Library) at the top,
+  the screens of outpost itself (System, Logs, Info, Settings,
+  Diagnostics) at the bottom. On a phone the bottom bar shows a line
+  between the two groups.
 - System: the Power events card shows the latest 5 events; ALL in its
   header opens a window with every recorded event.
 - The status strip is now exactly the same on every screen: the link to

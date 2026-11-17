@@ -341,7 +341,7 @@ Row min 60 px (72 px with avatar/monogram), 1 px bottom line, structure: LED or 
 
 ### Bottom navigation
 
-`<nav aria-label="Modules">`, 64 px, equal columns, icon 22 px + mono 11 px label. Active item: `--acc-ink` color, 2 px amber line on top (`box-shadow: inset 0 2px 0 var(--acc)`), `aria-current="page"`.
+`<nav aria-label="Modules">`, 64 px, equal columns, icon 22 px + mono 11 px label. Active item: `--acc-ink` color, 2 px amber line on top (`box-shadow: inset 0 2px 0 var(--acc)`), `aria-current="page"`. Two groups: Home and the apps (optional modules) first, then the system screens (System, Logs, Info, Settings, Diagnostics); the first system item (`.nav-split`) has a 1 px `--line` before it, and on the left rail it is pushed to the bottom.
 
 ### Chat (mesh)
 
@@ -473,3 +473,4 @@ The visual reference (foundations, components, Hub, Maps, Library and Mesh scree
   - **Scrolling dialog** (`.dialog.dialog-scroll`): for long lists (e.g. every power event); the head and actions stay in place, only `.dialog-body` scrolls.
 - 1.0 (2026-11): theme picker and three neon themes. The header's theme button opens a `.dialog` with **`.theme-list`**: one **`.theme-option`** per theme (`role="radio"`, `aria-checked`; checked = `--acc` border, `--acc-soft` ground, `--glow-acc`), each with a **`.theme-swatch`** that carries its theme's class and so shows that theme's ground, text, accent, info, ok and crit. New themes Neon, Netrunner and Toxic (tokens in section 3, theme switching); every text token keeps at least 4.5:1. `getThemeMode()` gives the light/dark family for the map style; `themeToggle()` (pages without the picker) now steps through every theme.
 - 1.1 (2026-11): the status strip starts its host group with **`NET`** (outgoing internet from the Pi, checked by core): `ONLINE` in `--ok`, `OFFLINE` plain (an offline box is normal, not a fault), `...` while checking, hidden when the check is off. Strip items take `tone: "ok"` (`.strip-item.is-ok`) besides `cau` and `crit`. New icons **`sliders`** (Settings module) and **`pulse`** (Diagnostics module).
+- 1.2 (2026-11): the module nav is split in two groups, apps on top and the system screens at the bottom of the rail (`.nav-split` marks the first system item; on the bottom bar a 1 px line separates the groups). The rail is a flex column and scrolls when it doesn't fit.
