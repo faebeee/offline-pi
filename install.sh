@@ -105,7 +105,7 @@ for m in ${MODS[@]+"${MODS[@]}"}; do
   fi
 done
 
-ensure_autostart
+ensure_linger
 
 log_ok "Install complete."
 exec "$ROOT_DIR/start.sh"

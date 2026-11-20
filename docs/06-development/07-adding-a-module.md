@@ -104,7 +104,7 @@ The rules:
 - `network_mode: host`, no `ports:`. The module binds
   `MODULES_BIND_ADDRESS` on its own port. A Dockerfile `CMD` that expands
   `$PORT` or `$HOST` uses the shell form.
-- `restart: on-failure` (only core has `always`).
+- `restart: on-failure` (like core: nothing may start on its own at boot).
 - Health checks as `CMD-SHELL`: podman-compose breaks `CMD` arrays.
 - Data in a relocatable `*_DIR`, never a literal host path.
 - An image running as a non-root user (for example `USER node`, uid 1000)

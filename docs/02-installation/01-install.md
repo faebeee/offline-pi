@@ -49,8 +49,9 @@ cd outpost
 5. **Build and start.** Shows a summary (web app address, modules, data
    directories) and asks before building. Then it builds every image, runs
    one-off setup (Maps downloads its fonts, sprites and region catalog),
-   enables `podman-restart.service` and lingering so outpost comes back
-   after a reboot, and finally runs `./start.sh`.
+   enables lingering so outpost keeps running after you log out, and
+   finally runs `./start.sh`. outpost does not start on its own after a
+   reboot: run `./start.sh` again.
 
 If you answer "no" at the summary, your answers are saved in `.env` and
 nothing is built. Run `./install.sh` again when you are ready.

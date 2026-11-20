@@ -80,8 +80,8 @@ network.
 | `mesh` | `outpost-mesh` | `outpost-mesh` | `MESH_PORT` | `8084` | `127.0.0.1` |
 
 The Compose project is always called `outpost`, whatever the folder of
-the checkout is called. Only core has `restart: always`; the modules have
-`restart: on-failure`.
+the checkout is called. Every container, core included, has
+`restart: on-failure`, so nothing starts on its own at boot.
 
 ## Health checks
 

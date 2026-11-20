@@ -61,14 +61,14 @@ the module as "Not configured" and core does not start it.
 
 ### Restarts and reboots
 
-- Core has the restart policy `always`. After a reboot, the user service
-  `podman-restart.service` brings it back. `install.sh` enables that service
-  and "lingering" for your user, so this works without anybody logging in.
+- outpost does not start on its own when the Pi boots or Podman starts.
+  After a reboot, run `./start.sh`. `install.sh` enables "lingering" for
+  your user, so outpost keeps running after you log out.
 - When core starts, it brings every installed module to the state you
   chose: it starts the ones switched on (a module after the ones it needs) and stops the
   ones switched off.
-- Modules have the restart policy `on-failure`. Podman restarts a module
-  that crashed, but not one you stopped. A module you switched off stays off
+- Core and the modules have the restart policy `on-failure`. Podman
+  restarts a container that crashed, but not one you stopped. A module you switched off stays off
   after a reboot until you switch it on again.
 
 Core starts and stops modules through your user's Podman API socket

@@ -116,10 +116,12 @@ core ──HTTP/WS──> maps :8081 · knowledge :8082 · mesh :8084
 - **Start/stop**: core talks to the user's `podman.socket` (libpod REST,
   `src/modules/podman.service.ts`). Which installed modules run is chosen
   on the dashboard and stored in `CORE_DATA_DIR/modules.json` (the modules
-  switched *off*). Only core has `restart: always`; modules use
-  `restart: on-failure`, so podman restarts a crash but not a stop. When
-  core starts (after `./start.sh` or a reboot via `podman-restart.service`)
-  it brings every module into its desired state (`ModulesService.reconcile`).
+  switched *off*). Every service, core included, uses
+  `restart: on-failure`: podman restarts a crash but not a stop, and
+  **nothing starts on its own** when Podman or the host boots (no
+  `restart: always`, so `podman-restart.service` skips outpost). When core
+  starts (after `./start.sh`) it brings every module into its desired state
+  (`ModulesService.reconcile`).
 - **Installed vs running**: `MODULES` in `.env` (written by `install.sh`) is
   what gets built and has a container. The dashboard can only start
   installed modules; adding one means re-running `./install.sh`.
@@ -271,7 +273,7 @@ then sources `lib/common.sh` (and what else it needs).
   them. 3. Which modules to install (checkboxes, current choice as default).
   4. `core_configure` and each module's configure hook. 5. A summary and a
   confirmation, then builds (one `ui_run` per image, output in
-  `install.log`), runs post-build hooks, `ensure_autostart` and ends by
+  `install.log`), runs post-build hooks, `ensure_linger` and ends by
   `exec`'ing `start.sh`.
 - **`start.sh`**: requires `.env` (`log_error "Run ./install.sh first."`,
   never prompts). Checks every `*_DIR` exists, runs prepare hooks, builds,
@@ -352,8 +354,9 @@ specifics (apt vs brew, systemd, devices). Never `producer | grep -q` under
 
 - Always Podman Compose in scripts, docs and compose files, never
   `docker`/`docker-compose`.
-- Rootless Podman. `podman-restart.service` (enabled by `ensure_autostart`,
-  plus lingering) brings core back after a reboot; core brings the modules.
+- Rootless Podman. outpost does not start at boot: after a reboot the user
+  runs `./start.sh`. Lingering (`ensure_linger`) keeps it running after a
+  logout. Never use `restart: always` or enable `podman-restart.service`.
 - macOS (development): Podman runs in a VM (`podman machine`). The
   containers' host network, `/`, the Podman socket and storage root
   (`PODMAN_*` in `.env`) are the VM's; `*_DIR`s must be under a path the
@@ -376,7 +379,7 @@ specifics (apt vs brew, systemd, devices). Never `producer | grep -q` under
   real bind address: modules bind `${MODULES_BIND_ADDRESS:-127.0.0.1}` on
   `${<NAME>_PORT}`, and healthchecks/code read the port from the environment.
   Dockerfile `CMD` in shell form if it expands `$PORT`/`$HOST`.
-- `restart: on-failure` for modules, `always` only for core (see above).
+- `restart: on-failure` for every service, core included (see above).
 - Healthchecks: `test: ["CMD-SHELL", "<command>"]`. podman-compose re-quotes
   `CMD` arrays into a broken shell string.
 - Images running as a non-root user (e.g. `USER node`, uid 1000) can't

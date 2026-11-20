@@ -58,13 +58,15 @@ socket's host path is `PODMAN_SOCKET`, reached through the read-only
 
 - The modules switched **off** on the home page are stored in
   `CORE_DATA_DIR/modules.json`.
-- When core starts (after `./start.sh`, or after a reboot through
-  `podman-restart.service`), `ModulesService.reconcile` brings every
+- When core starts (after `./start.sh`; nothing starts at boot),
+  `ModulesService.reconcile` brings every
   installed module into its desired state: it starts the modules switched on
   whose `requires` are set, `dependsOn` first, and stops the ones switched
   off.
-- Only core has `restart: always`. Modules have `restart: on-failure`, so
-  Podman restarts a crash but not a stop from the web app.
+- Every container, core included, has `restart: on-failure`, so Podman
+  restarts a crash but not a stop from the web app, and
+  `podman-restart.service` (which starts only `restart: always`
+  containers) does not start outpost at boot.
 
 The socket gives full control over the user's containers, so core only
 exposes start and stop of module containers, behind the `X-Pi-Monitor`

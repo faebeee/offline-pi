@@ -102,18 +102,17 @@ or hotspot.
 
 ## Nothing comes back after a reboot
 
-**Cause:** rootless Podman starts containers at boot only through
-`podman-restart.service`, and only if your user "lingers" (has its services
-running without a login).
-**Fix:**
+**Cause:** this is on purpose: outpost does not start on its own when the
+Pi boots or Podman starts.
+**Fix:** run `./start.sh`. Core then starts the modules that are switched
+on. A module you switched off stays off.
 
-```sh
-systemctl --user enable podman-restart.service
-sudo loginctl enable-linger $USER
-```
+## outpost stops when I log out
 
-`install.sh` does both and warns if it could not. Core then starts the
-modules that are switched on. A module you switched off stays off.
+**Cause:** your user does not "linger", so systemd stops your containers
+when your last session (for example SSH) ends.
+**Fix:** `sudo loginctl enable-linger $USER`. `install.sh` does this and
+warns if it could not.
 
 ## Under-voltage, throttling, SSD drops out
 

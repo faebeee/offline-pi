@@ -122,9 +122,10 @@ back to the previous version. `--clean` rebuilds without the layer cache,
 build leaves the running containers on their old images.
 What a new version changes is in the [changelog](docs/07-changelog.md).
 
-Switching a module off on the dashboard stops its container; it stays off
-after a reboot until it is switched on again. A crashed module is restarted
-by Podman.
+outpost does not start on its own when the host boots or Podman starts:
+run `./start.sh` after a reboot. Switching a module off on the dashboard
+stops its container; it stays off until it is switched on again. A crashed
+container is restarted by Podman.
 
 ## Configuration (`.env`)
 

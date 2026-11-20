@@ -6,12 +6,12 @@
 # raw files (/svc/maps/, /svc/library/, /svc/mesh/). Modules
 # bind MODULES_BIND_ADDRESS (127.0.0.1) on their own internal port.
 #
-# Only core has restart: always (podman-restart.service brings it back after
-# a reboot). Modules use on-failure: podman restarts them after a crash, but
-# not after a stop from the dashboard. Core starts the modules switched on in
-# the dashboard (CORE_DATA_DIR/modules.json) when it starts, so they come back
-# after a reboot too. start.sh only creates containers for the modules listed
-# in MODULES (.env).
+# Nothing starts on its own when Podman or the host boots: every service,
+# core included, uses restart: on-failure, so podman restarts a crash but
+# podman-restart.service (which only starts restart: always containers)
+# leaves outpost alone. ./start.sh starts core, and core starts the modules
+# switched on in the dashboard (CORE_DATA_DIR/modules.json). start.sh only
+# creates containers for the modules listed in MODULES (.env).
 #
 # Rules for every service (AGENTS.md): host networking, ${VAR:-default}
 # everywhere, relocatable *_DIR bind mounts, CMD-SHELL healthchecks.
@@ -58,7 +58,7 @@ services:
       - ${VCIO_DEVICE:-/dev/null}:/dev/vcio_gencmd
     group_add:
       - keep-groups
-    restart: always
+    restart: on-failure
     healthcheck:
       test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:' + (process.env.PORT || 8080) + '/api/system/status').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))\""]
       interval: 30s

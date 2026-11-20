@@ -63,8 +63,9 @@ You can do the same from a terminal on the Pi with
 
 Your choice is stored on the Pi, not in the browser. A module you switched
 off stays off after a restart of the Pi or of outpost, until you switch
-it on again. Every module that is switched on is started again
-automatically when core starts.
+it on again. outpost does not start on its own when the Pi boots: run
+`./start.sh`. Every module that is switched on is then started again
+when core starts.
 
 Stopping a module never deletes its data. Maps regions, library books and
 mesh messages stay on disk.

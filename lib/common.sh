@@ -117,27 +117,24 @@ ensure_podman_machine() {
   esac
 }
 
-# ensure_autostart - rootless Podman only restarts containers after a reboot
-# through the user's podman-restart.service (restart-policy=always only), and
-# only if the user lingers (has a systemd user manager without logging in).
-ensure_autostart() {
+# ensure_linger - outpost does not start at boot (no container has
+# restart: always, so podman-restart.service skips it); ./start.sh starts it.
+# Lingering keeps the user's systemd manager, podman.socket and the
+# containers running after the user logs out (e.g. an SSH session ends).
+ensure_linger() {
   if is_macos; then
-    log_info "macOS: nothing starts at login; after a restart run 'podman machine start' and ./start.sh."
+    log_info "outpost does not start on its own: after a restart run 'podman machine start' and ./start.sh."
     return
   fi
-  if ! has_cmd systemctl; then
+  log_info "outpost does not start on its own at boot: run ./start.sh after a reboot."
+  if ! has_cmd loginctl; then
     return
-  fi
-  if systemctl --user enable podman-restart.service >/dev/null 2>&1; then
-    log_ok "podman-restart.service enabled (containers come back after reboot)"
-  else
-    log_warn "Could not enable podman-restart.service; containers won't auto-start after a reboot."
   fi
   if [[ "$(loginctl show-user "$USER" -p Linger --value 2>/dev/null)" != "yes" ]]; then
     if loginctl enable-linger "$USER" 2>/dev/null || sudo loginctl enable-linger "$USER"; then
       log_ok "Enabled lingering for $USER"
     else
-      log_warn "Run 'sudo loginctl enable-linger $USER' so containers start at boot without a login."
+      log_warn "Run 'sudo loginctl enable-linger $USER' so outpost keeps running after you log out."
     fi
   fi
 }

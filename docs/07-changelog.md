@@ -44,6 +44,13 @@ under **Unreleased**.
 
 ### Changed
 
+- outpost no longer starts on its own when the Pi boots or Podman starts:
+  run `./start.sh` after a reboot. Core's restart policy is now
+  `on-failure` like the modules' (a crash is still restarted), and
+  `install.sh` no longer enables `podman-restart.service`. It is left
+  enabled on existing installs, since other containers may use it; disable
+  it with `systemctl --user disable podman-restart.service` if nothing
+  else needs it. Takes effect with the next `./start.sh`.
 - The menu is split in two: your apps (Maps, Mesh, Library) at the top,
   the screens of outpost itself (System, Logs, Info, Settings,
   Diagnostics) at the bottom. On a phone the bottom bar shows a line

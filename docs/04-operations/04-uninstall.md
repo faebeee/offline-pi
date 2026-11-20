@@ -52,7 +52,7 @@ The data directories it knows are `CORE_DATA_DIR`, `MAPS_DATA_DIR`,
   need it.
 - Podman itself.
 - `podman-restart.service` and lingering for your user (other containers
-  may rely on them).
+  may rely on them; outpost no longer enables `podman-restart.service`).
 - `podman.socket`. To stop it:
   `systemctl --user disable --now podman.socket`.
 - The Wi-Fi hotspot fallback. It has its own uninstaller, see

@@ -12,7 +12,7 @@ Terms used across these docs and in the project, in alphabetical order.
 | **dependsOn** | A manifest field: installed modules started together with this one (for example a module that needs another one to work). |
 | **Installed** | A module listed in `MODULES` in `.env`. It is built and has a container. Chosen with `./install.sh`. |
 | **kiwix** | The open-source reader for ZIM files. The Library module runs `kiwix-serve`, which serves the books and their search. |
-| **Lingering** | A systemd setting (`loginctl enable-linger`) that starts a user's services at boot without a login. Needed so rootless Podman brings core back after a reboot. |
+| **Lingering** | A systemd setting (`loginctl enable-linger`) that starts a user's services at boot without a login. Keeps outpost running after you log out. |
 | **LoRa** | Long Range: the low-power radio technique Meshtastic uses. Kilometres of range at a few hundred bytes per message. |
 | **LoRa region** | The frequency band a Meshtastic node may use by law, for example `EU_868` or `US`. Set on the node; every node of a mesh must use the same one. |
 | **Manifest** | A module's `apps/<name>/module.json`: id, label, path, port variable, health check, data directories, requirements. Core and the scripts read it. |
@@ -27,7 +27,7 @@ Terms used across these docs and in the project, in alphabetical order.
 | **Podman** | The container engine outpost uses, rootless (as your user, not root). Never Docker. |
 | **Podman machine** | On macOS, the small Linux VM in which Podman runs the containers (`podman machine start`). |
 | **podman.socket** | The user's Podman API socket. Core uses it to start and stop module containers. |
-| **podman-restart.service** | A Podman systemd user service that starts the containers with `restart: always` (core) after a reboot. |
+| **podman-restart.service** | A Podman systemd user service that starts the containers with `restart: always` after a reboot. outpost has none, so it does not start at boot. |
 | **POI** | Point of interest: a place saved on the Maps screen, kept in the maps database. |
 | **Reconcile** | What core does when it starts: bring every installed module into its desired state (started when switched on and configured, stopped when switched off). |
 | **Region** | A map area downloaded on the Maps screen (a country or a smaller area), stored as one `.pmtiles` file in `MAPS_DATA_DIR`. |
