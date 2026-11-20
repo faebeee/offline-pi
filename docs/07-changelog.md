@@ -13,6 +13,9 @@ under **Unreleased**.
 
 ### Added
 
+- `./stop.sh` stops outpost (core, then every module). Nothing is removed
+  and the module switches on the home page are kept; `./start.sh` starts
+  it again.
 - Settings (`/settings`): a new screen with every setting of the Pi, read
   only. It lists the `.env` values with their meaning and default (changed
   ones marked, PINs and passwords hidden) and every data folder with its

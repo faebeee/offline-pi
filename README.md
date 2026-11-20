@@ -104,6 +104,7 @@ The storage questions then offer to move the data out of `apps/`.
 ./update.sh                     # install a new version: git pull, rebuild every container
 ./update.sh --check             # only show whether a new version is available
 ./start.sh                      # rebuild + restart everything (after editing .env)
+./stop.sh                       # stop everything (./start.sh brings it back)
 ./manage.sh status              # every module: installed, running
 ./manage.sh start maps          # same as the switch on the home page
 ./manage.sh stop knowledge

@@ -11,6 +11,7 @@ for the user is in [Everyday commands](../04-operations/01-everyday-commands.md)
 |---|---|
 | `install.sh` | Choose and configure modules, write `.env`, build, then `exec start.sh` |
 | `start.sh` | Rebuild, recreate the containers; core starts the modules |
+| `stop.sh` | Stop core, then every module (nothing removed, switches kept) |
 | `update.sh` | Pull a new version, then `start.sh --pull` |
 | `manage.sh` | Status, start/stop, logs, module commands |
 | `uninstall.sh` | Remove containers and images; data only after confirmation |

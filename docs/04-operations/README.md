@@ -11,7 +11,7 @@ your normal user.
 
 ## Pages
 
-- [Everyday commands](01-everyday-commands.md): `start.sh` and `manage.sh`,
+- [Everyday commands](01-everyday-commands.md): `start.sh`, `stop.sh` and `manage.sh`,
   including every module command.
 - [Updating](02-updating.md): installing a new version with `update.sh`,
   and going back.

@@ -19,6 +19,7 @@ compose.macos.yml        # added on macOS (lib/common.sh): what the remote API l
 .env                     # gitignored; written by install.sh only
 install.sh               # choose + configure modules, build, then start.sh
 start.sh                 # rebuild, (re)create containers; core starts modules
+stop.sh                  # stop core, then every module (nothing removed)
 update.sh                # git pull a new version, then start.sh --pull
 manage.sh                # status, start/stop, logs, module commands
 uninstall.sh             # remove containers/images; data only on confirmation
@@ -289,6 +290,10 @@ then sources `lib/common.sh` (and what else it needs).
   `install.log` when run by install.sh).
   `./start.sh --pull` also pulls newer base images, `--no-cache` ignores
   the layer cache.
+- **`stop.sh`**: stops the running `outpost-*` containers, core first (so
+  it can't start a module meanwhile), with plain `podman stop`: nothing is
+  removed and `modules.json` is untouched, so `./start.sh` restores the
+  same state. Needs no `.env`; on macOS a stopped machine means stopped.
 - **`update.sh`** `[--check] [--yes] [--clean] [--rebuild]`: installs a new
   version. Requires `.env` and a git clone on a branch with an upstream and
   no local changes to tracked files; fetches, shows the incoming commits and

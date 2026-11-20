@@ -1,8 +1,9 @@
 # Everyday commands
 
-Two scripts cover daily operation: `start.sh` (re)starts outpost, and
-`manage.sh` shows the state, starts and stops modules, follows logs and
-runs module commands. Both need an existing installation (`.env`); without
+Three scripts cover daily operation: `start.sh` (re)starts outpost,
+`stop.sh` stops it, and `manage.sh` shows the state, starts and stops
+modules, follows logs and runs module commands. `start.sh` and `manage.sh`
+need an existing installation (`.env`); without
 one they tell you to run `./install.sh` first.
 
 ## start.sh
@@ -30,6 +31,20 @@ A failed build stops at step 2: the running containers keep their old
 images. If one module's container cannot be created (for example the
 Meshtastic node is unplugged), the others still start and the module is
 listed as "Not available" at the end. The full output goes to `start.log`.
+
+outpost does not start on its own when the Pi boots: run `./start.sh`
+after a reboot.
+
+## stop.sh
+
+```sh
+./stop.sh
+```
+
+Stops core, then every module. Nothing is removed: containers, images and
+data stay, and so do the switches on the home page, so the next
+`./start.sh` brings back the same modules. On a Mac it leaves the Podman
+machine running (`podman machine stop` stops it too).
 
 ## manage.sh
 
