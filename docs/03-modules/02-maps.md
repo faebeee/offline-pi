@@ -62,18 +62,37 @@ light map with Daylight, the dark map with every other theme.
 
 5. Press CHECK SIZE. The Pi measures the exact size before anything is
    downloaded and shows ARCHIVE (size on disk), TO DOWNLOAD and the
-   PLANET BUILD date. A `Low disk space` banner warns you if it may not fit.
+   PLANET BUILD date. A `Low disk space` banner warns you if it may not fit
+   (while it downloads, the region needs about ARCHIVE plus TO DOWNLOAD).
 6. Press DOWNLOAD to start, or DECLINE to stop here.
 
 The download runs on the Pi with a progress bar. You can close the panel or
-even the browser: it keeps running. Only one
-download runs at a time. Press CANCEL DOWNLOAD to stop it; the partial file
-is removed. When it is done, the map jumps to the new region and a message
-says it now works offline.
+even the browser: it keeps running. Only one download runs at a time. When
+it is done, the map jumps to the new region and a message says it now works
+offline.
 
-If the connection to the map server drops during the download, it starts
-over by itself (up to 3 tries in total; the log says so). Only after the
-third failure does it stop with an error and START OVER.
+### Pause, resume, cancel
+
+Everything a download fetches is kept on the Pi until the region is done,
+so a download never has to start from zero again:
+
+- **PAUSE** stops it and keeps what it downloaded. RESUME DOWNLOAD goes on
+  from there, now or days later.
+- If the connection to the map server drops, the Pi retries by itself and
+  continues where it was. If the connection stays down, the download stops
+  with an error and keeps what it has: press RESUME DOWNLOAD when you have
+  internet again.
+- If the Pi or outpost restarts while it downloads, the download stops
+  there. It is not resumed on its own.
+- **CANCEL AND DELETE** (hold to confirm) stops it and deletes what it
+  downloaded. Starting the region again then downloads everything anew.
+
+Downloads that did not finish are listed on the Regions tab under
+UNFINISHED DOWNLOADS, marked Paused, Failed or Interrupted (by a restart),
+with how much is downloaded. RESUME goes on with one; the trash button
+deletes it (hold to confirm). A resumed download always continues with the
+planet build it started with. While a download for a region id is
+unfinished, you cannot start another one with the same id.
 
 ## Storage needs
 

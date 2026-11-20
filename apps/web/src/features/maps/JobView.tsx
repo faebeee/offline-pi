@@ -25,7 +25,7 @@ export function JobView({ job }: { job: Job }) {
 }
 
 /** "1.4 / 2.3 GB": the unit once when both sides share it. */
-function amount(done: number, total: number): string {
+export function amount(done: number, total: number): string {
   const a = bytes(done);
   const b = bytes(total);
   const unitA = a.split(" ")[1];

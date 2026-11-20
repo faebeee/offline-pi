@@ -13,7 +13,7 @@ export type LibrarySyncState = typeof LibrarySyncState[keyof typeof LibrarySyncS
 
 
 export const LibrarySyncState = {
+  unknown: 'unknown',
   running: 'running',
   idle: 'idle',
-  unknown: 'unknown',
 } as const;

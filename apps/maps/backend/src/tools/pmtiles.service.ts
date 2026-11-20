@@ -43,7 +43,7 @@ const EXTRACT_ATTEMPTS = 3;
 
 /** Failures of the connection rather than of the request: worth another try. */
 const TRANSIENT =
-  /stream error|PROTOCOL_ERROR|GOAWAY|connection reset|broken pipe|unexpected EOF|i\/o timeout|TLS handshake timeout|timeout awaiting|server closed|status(?: code)?:? 5\d\d/i;
+  /stream error|HTTP error: 50\d|PROTOCOL_ERROR|GOAWAY|connection reset|broken pipe|unexpected EOF|i\/o timeout|TLS handshake timeout|timeout awaiting|server closed|status(?: code)?:? 5\d\d/i;
 
 function isTransientError(err: unknown): boolean {
   return TRANSIENT.test(err instanceof Error ? err.message : String(err));
@@ -169,8 +169,10 @@ export class PmtilesService {
    * the percentage out of it and fall back to watching the output file grow,
    * so progress degrades rather than disappears if that format ever changes.
    *
-   * go-pmtiles can't resume, so after a dropped connection the extract
-   * starts over, up to EXTRACT_ATTEMPTS times.
+   * go-pmtiles can't resume, so after a dropped connection the extract runs
+   * again, up to EXTRACT_ATTEMPTS times. Region downloads read the build
+   * through a RangeCache (downloads/range-cache.ts), so a new run replays
+   * what was fetched from disk instead of downloading it again.
    */
   async extract(options: ExtractOptions, hooks: ExtractHooks = {}): Promise<void> {
     for (let attempt = 1; ; attempt++) {
@@ -181,11 +183,10 @@ export class PmtilesService {
         if (hooks.signal?.aborted || attempt >= EXTRACT_ATTEMPTS || !isTransientError(err)) throw err;
         const wait = attempt * 10;
         hooks.onLog?.(
-          `\nconnection to the map server dropped (attempt ${attempt} of ${EXTRACT_ATTEMPTS}), ` +
-            `starting over in ${wait} s\n`,
+          `\nextract interrupted (attempt ${attempt} of ${EXTRACT_ATTEMPTS}), ` +
+            `running it again in ${wait} s\n`,
         );
         await fs.rm(options.outFile, { force: true });
-        hooks.onProgress?.({ bytes: 0, total: hooks.totalBytes ?? 0, percent: 0 });
         await pause(wait * 1000, hooks.signal);
       }
     }

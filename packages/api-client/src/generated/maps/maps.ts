@@ -34,6 +34,7 @@ import type {
   MapsStatus,
   MapsStyle200,
   MapsStyleParams,
+  PartialDownloadsResponse,
   PlacesResponse,
   Poi,
   PoisResponse,
@@ -587,7 +588,107 @@ export const useMapsCreateDownload = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getMapsCreateDownloadMutationOptions(options), queryClient);
     }
-    export const getMapsConfirmDownloadUrl = (id: string,) => {
+    export const getMapsPartialDownloadsUrl = () => {
+
+
+
+
+  return `/api/maps/downloads`
+}
+
+/**
+ * @summary Unfinished downloads (paused, failed, interrupted by a restart).
+ */
+export const mapsPartialDownloads = async ( options?: Parameters<typeof apiFetch>[1]): Promise<PartialDownloadsResponse> => {
+
+  return apiFetch<PartialDownloadsResponse>(getMapsPartialDownloadsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getMapsPartialDownloadsQueryKey = () => {
+    return [
+    `/api/maps/downloads`
+    ] as const;
+    }
+
+
+export const getMapsPartialDownloadsQueryOptions = <TData = Awaited<ReturnType<typeof mapsPartialDownloads>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof mapsPartialDownloads>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getMapsPartialDownloadsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof mapsPartialDownloads>>> = ({ signal }) => mapsPartialDownloads({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof mapsPartialDownloads>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type MapsPartialDownloadsQueryResult = NonNullable<Awaited<ReturnType<typeof mapsPartialDownloads>>>
+export type MapsPartialDownloadsQueryError = ErrorType<unknown>
+
+
+/** @summary Unfinished downloads (paused, failed, interrupted by a restart). */
+export function useMapsPartialDownloads<TData = Awaited<ReturnType<typeof mapsPartialDownloads>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof mapsPartialDownloads>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof mapsPartialDownloads>>,
+          TError,
+          Awaited<ReturnType<typeof mapsPartialDownloads>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Unfinished downloads (paused, failed, interrupted by a restart). */
+export function useMapsPartialDownloads<TData = Awaited<ReturnType<typeof mapsPartialDownloads>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof mapsPartialDownloads>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof mapsPartialDownloads>>,
+          TError,
+          Awaited<ReturnType<typeof mapsPartialDownloads>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Unfinished downloads (paused, failed, interrupted by a restart). */
+export function useMapsPartialDownloads<TData = Awaited<ReturnType<typeof mapsPartialDownloads>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof mapsPartialDownloads>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Unfinished downloads (paused, failed, interrupted by a restart). */
+export function useMapsPartialDownloads<TData = Awaited<ReturnType<typeof mapsPartialDownloads>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof mapsPartialDownloads>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getMapsPartialDownloadsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getMapsConfirmDownloadUrl = (id: string,) => {
 
 
 
@@ -653,6 +754,148 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getMapsConfirmDownloadMutationOptions(options), queryClient);
+    }
+    export const getMapsResumeDownloadUrl = (name: string,) => {
+
+
+
+
+  return `/api/maps/downloads/${name}/resume`
+}
+
+/**
+ * @summary Go on with an unfinished download from where it stopped.
+ */
+export const mapsResumeDownload = async (name: string, options?: Parameters<typeof apiFetch>[1]): Promise<Job> => {
+
+  return apiFetch<Job>(getMapsResumeDownloadUrl(name),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getMapsResumeDownloadMutationKey = () => ['mapsResumeDownload'] as const;
+
+export const getMapsResumeDownloadMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mapsResumeDownload>>, TError,MapsResumeDownloadMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof mapsResumeDownload>>, TError,MapsResumeDownloadMutationVariables, TContext> => {
+
+const mutationKey = getMapsResumeDownloadMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mapsResumeDownload>>, MapsResumeDownloadMutationVariables> = (props) => {
+          const {name} = props ?? {};
+
+          return  mapsResumeDownload(name,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MapsResumeDownloadMutationResult = NonNullable<Awaited<ReturnType<typeof mapsResumeDownload>>>
+
+    export type MapsResumeDownloadMutationError = ErrorType<unknown>
+    export type MapsResumeDownloadMutationVariables = {name: string}
+
+    /** @summary Go on with an unfinished download from where it stopped. */
+export const useMapsResumeDownload = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mapsResumeDownload>>, TError,MapsResumeDownloadMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof mapsResumeDownload>>,
+        TError,
+        MapsResumeDownloadMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMapsResumeDownloadMutationOptions(options), queryClient);
+    }
+    export const getMapsDiscardDownloadUrl = (name: string,) => {
+
+
+
+
+  return `/api/maps/downloads/${name}`
+}
+
+/**
+ * @summary Delete an unfinished download and everything it fetched.
+ */
+export const mapsDiscardDownload = async (name: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getMapsDiscardDownloadUrl(name),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getMapsDiscardDownloadMutationKey = () => ['mapsDiscardDownload'] as const;
+
+export const getMapsDiscardDownloadMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mapsDiscardDownload>>, TError,MapsDiscardDownloadMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof mapsDiscardDownload>>, TError,MapsDiscardDownloadMutationVariables, TContext> => {
+
+const mutationKey = getMapsDiscardDownloadMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mapsDiscardDownload>>, MapsDiscardDownloadMutationVariables> = (props) => {
+          const {name} = props ?? {};
+
+          return  mapsDiscardDownload(name,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MapsDiscardDownloadMutationResult = NonNullable<Awaited<ReturnType<typeof mapsDiscardDownload>>>
+
+    export type MapsDiscardDownloadMutationError = ErrorType<unknown>
+    export type MapsDiscardDownloadMutationVariables = {name: string}
+
+    /** @summary Delete an unfinished download and everything it fetched. */
+export const useMapsDiscardDownload = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mapsDiscardDownload>>, TError,MapsDiscardDownloadMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof mapsDiscardDownload>>,
+        TError,
+        MapsDiscardDownloadMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMapsDiscardDownloadMutationOptions(options), queryClient);
     }
     export const getMapsJobsUrl = () => {
 
@@ -849,7 +1092,8 @@ export const getMapsCancelJobUrl = (id: string,) => {
 }
 
 /**
- * @summary Cancel a running job, or decline one waiting for confirmation.
+ * @summary Cancel a running job, or decline one waiting for confirmation. A
+cancelled download deletes what it fetched.
  */
 export const mapsCancelJob = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<Job> => {
 
@@ -900,7 +1144,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type MapsCancelJobMutationError = ErrorType<unknown>
     export type MapsCancelJobMutationVariables = {id: string}
 
-    /** @summary Cancel a running job, or decline one waiting for confirmation. */
+    /**
+ * @summary Cancel a running job, or decline one waiting for confirmation. A
+cancelled download deletes what it fetched.
+ */
 export const useMapsCancelJob = <TError = ErrorType<unknown>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mapsCancelJob>>, TError,MapsCancelJobMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient): UseMutationResult<
@@ -910,6 +1157,77 @@ export const useMapsCancelJob = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getMapsCancelJobMutationOptions(options), queryClient);
+    }
+    export const getMapsPauseJobUrl = (id: string,) => {
+
+
+
+
+  return `/api/maps/jobs/${id}/pause`
+}
+
+/**
+ * @summary Pause a running download: what it fetched is kept for a resume.
+ */
+export const mapsPauseJob = async (id: string, options?: Parameters<typeof apiFetch>[1]): Promise<Job> => {
+
+  return apiFetch<Job>(getMapsPauseJobUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getMapsPauseJobMutationKey = () => ['mapsPauseJob'] as const;
+
+export const getMapsPauseJobMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mapsPauseJob>>, TError,MapsPauseJobMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof mapsPauseJob>>, TError,MapsPauseJobMutationVariables, TContext> => {
+
+const mutationKey = getMapsPauseJobMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof mapsPauseJob>>, MapsPauseJobMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  mapsPauseJob(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MapsPauseJobMutationResult = NonNullable<Awaited<ReturnType<typeof mapsPauseJob>>>
+
+    export type MapsPauseJobMutationError = ErrorType<unknown>
+    export type MapsPauseJobMutationVariables = {id: string}
+
+    /** @summary Pause a running download: what it fetched is kept for a resume. */
+export const useMapsPauseJob = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof mapsPauseJob>>, TError,MapsPauseJobMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof mapsPauseJob>>,
+        TError,
+        MapsPauseJobMutationVariables,
+        TContext
+      > => {
+      return useMutation(getMapsPauseJobMutationOptions(options), queryClient);
     }
     export const getMapsPoisUrl = (params?: MapsPoisParams,) => {
   const normalizedParams = new URLSearchParams();

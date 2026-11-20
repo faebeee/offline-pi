@@ -8,6 +8,7 @@ import type {
   Job,
   JobsResponse,
   MapsStatus,
+  PartialDownloadsResponse,
   PlacesResponse,
   Poi,
   PoisResponse,
@@ -23,9 +24,10 @@ const _fits: [
   Fits<Shared.PlacesResponse, PlacesResponse>,
   Fits<Shared.Job, Job>,
   Fits<Shared.JobsResponse, JobsResponse>,
+  Fits<Shared.PartialDownloadsResponse, PartialDownloadsResponse>,
   Fits<Shared.Poi, Poi>,
   Fits<Shared.PoisResponse, PoisResponse>,
-] = [true, true, true, true, true, true, true];
+] = [true, true, true, true, true, true, true, true];
 void _fits;
 
 /** The maps container's HTTP API (apps/maps/backend), on loopback. */
@@ -57,6 +59,18 @@ export class MapsClient {
   }
   confirmDownload(id: string) {
     return this.c.post<Job>(`/api/downloads/${encodeURIComponent(id)}/confirm`);
+  }
+  partialDownloads() {
+    return this.c.get<PartialDownloadsResponse>('/api/downloads');
+  }
+  resumeDownload(name: string) {
+    return this.c.post<Job>(`/api/downloads/${encodeURIComponent(name)}/resume`);
+  }
+  discardDownload(name: string) {
+    return this.c.delete<void>(`/api/downloads/${encodeURIComponent(name)}`);
+  }
+  pauseJob(id: string) {
+    return this.c.post<Job>(`/api/jobs/${encodeURIComponent(id)}/pause`);
   }
   jobs() {
     return this.c.get<JobsResponse>('/api/jobs');

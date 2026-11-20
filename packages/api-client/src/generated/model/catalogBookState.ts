@@ -10,9 +10,9 @@ export type CatalogBookState = typeof CatalogBookState[keyof typeof CatalogBookS
 
 
 export const CatalogBookState = {
+  available: 'available',
+  missing: 'missing',
   downloading: 'downloading',
   installed: 'installed',
   queued: 'queued',
-  missing: 'missing',
-  available: 'available',
 } as const;

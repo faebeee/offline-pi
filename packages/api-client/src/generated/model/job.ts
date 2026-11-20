@@ -14,6 +14,7 @@ import type { RegionRef } from './regionRef';
 export interface Job {
   id: string;
   type: JobType;
+  /** "paused": a download stopped on request; what it fetched is kept for a resume */
   state: JobState;
   /** short label for the current step, e.g. "downloading tiles" */
   stage: string;
@@ -24,5 +25,11 @@ export interface Job {
   estimate?: DownloadEstimate;
   progress?: JobProgress;
   error?: string;
+  /**
+     * download jobs only: what was fetched is kept, so the download can go on
+     * from there (mapsResumeDownload) instead of starting over. Set on a
+     * failed or paused download.
+     */
+  resumable?: boolean;
   log: string[];
 }

@@ -15,6 +15,8 @@ export const PATHS = {
   pmtilesBin: path.join(ROOT, "bin", process.platform === "win32" ? "pmtiles.exe" : "pmtiles"),
   data: path.join(ROOT, "data"),
   regionsDir: path.join(ROOT, "data", "regions"),
+  /** unfinished region downloads, one folder each (see PartialStore) */
+  downloadsDir: path.join(ROOT, "data", "downloads"),
   registry: path.join(ROOT, "data", "regions.json"),
   /** sqlite file holding user data (points of interest) */
   db: path.join(ROOT, "data", "offline-maps.db"),

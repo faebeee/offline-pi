@@ -13,8 +13,8 @@ export type InternetInfoState = typeof InternetInfoState[keyof typeof InternetIn
 
 
 export const InternetInfoState = {
-  checking: 'checking',
   online: 'online',
   offline: 'offline',
+  checking: 'checking',
   disabled: 'disabled',
 } as const;

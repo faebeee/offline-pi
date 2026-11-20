@@ -13,6 +13,13 @@ under **Unreleased**.
 
 ### Added
 
+- Maps: region downloads can be paused and resumed. What a download
+  fetched is kept on the Pi, so after a pause, a dropped connection, an
+  error or a restart, RESUME DOWNLOAD goes on from where it stopped
+  instead of starting over. CANCEL AND DELETE throws it away. Unfinished
+  downloads are listed on the Regions tab. While it downloads, a region
+  needs about its archive size plus its download size of free space.
+  Rebuild with `./start.sh` (or `./update.sh`) to get it.
 - `./stop.sh` stops outpost (core, then every module). Nothing is removed
   and the module switches on the home page are kept; `./start.sh` starts
   it again.

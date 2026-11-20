@@ -298,6 +298,26 @@
         "tags": [
           "maps"
         ]
+      },
+      "get": {
+        "operationId": "mapsPartialDownloads",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartialDownloadsResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Unfinished downloads (paused, failed, interrupted by a restart).",
+        "tags": [
+          "maps"
+        ]
       }
     },
     "/api/maps/downloads/{id}/confirm": {
@@ -325,6 +345,61 @@
             }
           }
         },
+        "tags": [
+          "maps"
+        ]
+      }
+    },
+    "/api/maps/downloads/{name}/resume": {
+      "post": {
+        "operationId": "mapsResumeDownload",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Go on with an unfinished download from where it stopped.",
+        "tags": [
+          "maps"
+        ]
+      }
+    },
+    "/api/maps/downloads/{name}": {
+      "delete": {
+        "operationId": "mapsDiscardDownload",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Delete an unfinished download and everything it fetched.",
         "tags": [
           "maps"
         ]
@@ -404,7 +479,38 @@
             }
           }
         },
-        "summary": "Cancel a running job, or decline one waiting for confirmation.",
+        "summary": "Cancel a running job, or decline one waiting for confirmation. A\ncancelled download deletes what it fetched.",
+        "tags": [
+          "maps"
+        ]
+      }
+    },
+    "/api/maps/jobs/{id}/pause": {
+      "post": {
+        "operationId": "mapsPauseJob",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Pause a running download: what it fetched is kept for a resume.",
         "tags": [
           "maps"
         ]
@@ -2356,8 +2462,10 @@
             "type": "string"
           },
           "state": {
+            "description": "\"paused\": a download stopped on request; what it fetched is kept for a resume",
             "enum": [
               "running",
+              "paused",
               "done",
               "failed",
               "estimating",
@@ -2392,6 +2500,10 @@
           },
           "error": {
             "type": "string"
+          },
+          "resumable": {
+            "type": "boolean",
+            "description": "download jobs only: what was fetched is kept, so the download can go on\nfrom there (mapsResumeDownload) instead of starting over. Set on a\nfailed or paused download."
           },
           "log": {
             "type": "array",
@@ -2613,6 +2725,80 @@
         },
         "required": [
           "placeId"
+        ]
+      },
+      "PartialDownload": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "region id"
+          },
+          "label": {
+            "type": "string"
+          },
+          "minzoom": {
+            "type": "number"
+          },
+          "maxzoom": {
+            "type": "number"
+          },
+          "build": {
+            "type": "string",
+            "description": "planet build date, YYYYMMDD: a resume always continues this build"
+          },
+          "estimate": {
+            "$ref": "#/components/schemas/DownloadEstimate"
+          },
+          "downloadedBytes": {
+            "type": "number",
+            "description": "bytes fetched so far, out of estimate.transferBytes"
+          },
+          "reason": {
+            "type": "string",
+            "description": "why it stopped; \"interrupted\" = the maps module stopped while it ran",
+            "enum": [
+              "paused",
+              "interrupted",
+              "failed"
+            ]
+          },
+          "error": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "label",
+          "minzoom",
+          "maxzoom",
+          "build",
+          "estimate",
+          "downloadedBytes",
+          "reason",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "PartialDownloadsResponse": {
+        "type": "object",
+        "properties": {
+          "downloads": {
+            "description": "every unfinished download except the one running now",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartialDownload"
+            }
+          }
+        },
+        "required": [
+          "downloads"
         ]
       },
       "JobsResponse": {

@@ -5,9 +5,9 @@ export type Bbox = [minLon: number, minLat: number, maxLon: number, maxLat: numb
 
 export const toBbox = (b: number[]): Bbox => [b[0] ?? 0, b[1] ?? 0, b[2] ?? 0, b[3] ?? 0];
 
-/** done, failed or cancelled: no more updates will come. */
+/** done, failed, cancelled or paused: no more updates will come. */
 export function isJobFinished(job: Job): boolean {
-  return job.state === "done" || job.state === "failed" || job.state === "cancelled";
+  return job.state === "done" || job.state === "failed" || job.state === "cancelled" || job.state === "paused";
 }
 
 /** "20250105" as "2025-01-05". */

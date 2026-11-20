@@ -10,7 +10,7 @@ an SSD mounted at `/mnt/ssd`.
 | Variable | Default | What is in it | Size |
 |---|---|---|---|
 | `CORE_DATA_DIR` | `./data/core` | Dashboard history and power events (`history.json`), modules switched off (`modules.json`) | under 1 MB |
-| `MAPS_DATA_DIR` | `./data/maps` | Map regions (`regions/*.pmtiles`, `regions.json`), your points of interest (`offline-maps.db`), the region catalog | many GB possible |
+| `MAPS_DATA_DIR` | `./data/maps` | Map regions (`regions/*.pmtiles`, `regions.json`), unfinished downloads (`downloads/`), your points of interest (`offline-maps.db`), the region catalog | many GB possible |
 | `MAPS_ASSETS_DIR` | `./data/maps-assets` | Map fonts and sprites | about 100 MB |
 | `KNOWLEDGE_CONTENT_DIR` | `./data/knowledge` | Library books (ZIM files in `zim/`), partial downloads, your book selection (`selection.txt`) | MB to hundreds of GB |
 | `MESH_DATA_DIR` | `./data/mesh` | Message history and node list (`mesh.db`) | small |

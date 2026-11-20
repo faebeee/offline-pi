@@ -78,7 +78,8 @@ export class JobProgress {
 export class Job {
   id!: string;
   type!: 'download' | 'setup';
-  state!: 'estimating' | 'awaiting-confirmation' | 'running' | 'done' | 'failed' | 'cancelled';
+  /** "paused": a download stopped on request; what it fetched is kept for a resume */
+  state!: 'estimating' | 'awaiting-confirmation' | 'running' | 'done' | 'failed' | 'cancelled' | 'paused';
   /** short label for the current step, e.g. "downloading tiles" */
   stage!: string;
   createdAt!: string;
@@ -88,11 +89,45 @@ export class Job {
   estimate?: DownloadEstimate;
   progress?: JobProgress;
   error?: string;
+  /**
+   * download jobs only: what was fetched is kept, so the download can go on
+   * from there (mapsResumeDownload) instead of starting over. Set on a
+   * failed or paused download.
+   */
+  resumable?: boolean;
   log!: string[];
 }
 
 export class JobsResponse {
   jobs!: Job[];
+}
+
+/**
+ * A region download that did not finish: paused, failed, or cut off by a
+ * restart. What it fetched stays on disk until it is resumed to the end or
+ * discarded.
+ */
+export class PartialDownload {
+  /** region id */
+  name!: string;
+  label!: string;
+  minzoom!: number;
+  maxzoom!: number;
+  /** planet build date, YYYYMMDD: a resume always continues this build */
+  build!: string;
+  estimate!: DownloadEstimate;
+  /** bytes fetched so far, out of estimate.transferBytes */
+  downloadedBytes!: number;
+  /** why it stopped; "interrupted" = the maps module stopped while it ran */
+  reason!: 'paused' | 'failed' | 'interrupted';
+  error?: string;
+  createdAt!: string;
+  updatedAt!: string;
+}
+
+export class PartialDownloadsResponse {
+  /** every unfinished download except the one running now */
+  downloads!: PartialDownload[];
 }
 
 export class CreateDownloadRequest {

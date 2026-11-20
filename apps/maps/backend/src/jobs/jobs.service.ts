@@ -97,13 +97,25 @@ export class JobsService implements OnApplicationBootstrap {
     return record.job;
   }
 
+  /** Stops a running download but keeps what it fetched, for a resume. */
+  pause(id: string): Job {
+    const record = this.record(id);
+    // running with an estimate = accepted and fetching (not still resolving the build)
+    if (record.job.type !== "download" || record.job.state !== "running" || !record.job.estimate) {
+      throw new ConflictException(`only a running download can be paused (this job is ${record.job.state})`);
+    }
+    record.cancel(true);
+    return record.job;
+  }
+
   private async run(record: JobRecord, runner: JobRunner): Promise<void> {
     try {
       await runner(record.context());
       record.settle("done", "done");
     } catch (err) {
       if (err instanceof JobCancelledError || record.abort.signal.aborted) {
-        record.settle("cancelled", "cancelled");
+        if (record.context().pausing()) record.settle("paused", "paused");
+        else record.settle("cancelled", "cancelled");
         return;
       }
       const message = err instanceof Error ? err.message : String(err);

@@ -45,6 +45,7 @@ viewer work with the network unplugged.
 bin/pmtiles                       go-pmtiles CLI (installed on first run)
 $MAPS_DATA_DIR/regions/*.pmtiles      one archive per region
 $MAPS_DATA_DIR/regions.json           registry: bbox, zoom range, build date, size
+$MAPS_DATA_DIR/downloads/<name>/      an unfinished download (see "Resumable downloads")
 $MAPS_DATA_DIR/offline-maps.db        default database: your points of interest
 $MAPS_DATA_DIR/geofabrik-index.json   catalog of 554 named regions
 $MAPS_ASSETS_DIR/fonts, .../sprites   vendored map assets
@@ -108,8 +109,7 @@ Archive        To download     Planet build
 741 MB         779 MB          20261026
 ```
 
-Confirm and the extract runs with live progress; cancelling at any point kills
-it and removes the partial archive. Rough sizes at the default zoom 15: a city
+Confirm and the extract runs with live progress. Rough sizes at the default zoom 15: a city
 like Berlin is ~65 MB, a country like Switzerland ~750 MB. Each level down
 roughly halves that.
 
@@ -118,6 +118,34 @@ Deleting is the trash button on a region row, then a hold-to-confirm button (hol
 Only one download runs at a time — a second request gets a `409`. Jobs live in
 memory, so restarting the server drops them; any half-written archive is swept
 on the next boot.
+
+### Resumable downloads
+
+go-pmtiles can't resume an extract, but for one build, boundary and zoom
+range it always requests the same byte ranges. So once the estimate is
+accepted, `pmtiles extract` reads the planet build through a caching proxy
+on `127.0.0.1` (`src/downloads/range-cache.ts`): every range it fetches is
+stored, a range cut off midway is continued from its last byte (the last
+1 MiB of it is fetched again, in case a power cut left it unwritten), and
+the proxy retries dropped connections itself. Running the extract again
+replays the stored ranges from disk and only fetches what is missing.
+
+Each unfinished download is a folder (`src/downloads/partial.store.ts`):
+
+```
+$MAPS_DATA_DIR/downloads/<name>/download.json     plan, build, ETag, status, last error
+$MAPS_DATA_DIR/downloads/<name>/boundary.geojson  the --region polygon
+$MAPS_DATA_DIR/downloads/<name>/ranges/           <start>-<end>[.part] of the build
+$MAPS_DATA_DIR/downloads/<name>/<name>.pmtiles    the archive while it is written
+```
+
+A failure or a pause (`POST /api/jobs/:id/pause`) keeps the folder and marks
+the job `resumable`; a restart leaves it as "interrupted". `POST
+/api/downloads/:name/resume` continues it (always the same build: the
+stored ETag is sent as `If-Match`, so a changed build fails instead of
+mixing data); a cancel or `DELETE /api/downloads/:name` removes it. Once the
+region is added, the folder goes. While downloading, a region needs about
+its archive size plus its transfer size on disk.
 
 ## Points of interest
 
@@ -243,9 +271,13 @@ Region management:
 | `GET /api/places?q=` | Candidate boundaries for a place name |
 | `POST /api/downloads` | Start a download; parks on an estimate |
 | `POST /api/downloads/:id/confirm` | Accept the estimate, run the extract |
+| `GET /api/downloads` | Unfinished downloads (paused, failed, interrupted) |
+| `POST /api/downloads/:name/resume` | Go on with an unfinished download |
+| `DELETE /api/downloads/:name` | Delete an unfinished download and what it fetched |
+| `POST /api/jobs/:id/pause` | Pause a running download, keeping what it fetched |
 | `GET /api/jobs`, `GET /api/jobs/:id` | Job state |
 | `GET /api/jobs/:id/events` | Server-sent progress stream (core relays it to the browser on the `/maps` socket) |
-| `DELETE /api/jobs/:id` | Cancel a job, or decline an estimate |
+| `DELETE /api/jobs/:id` | Cancel a job (a download deletes what it fetched), or decline an estimate |
 | `DELETE /api/regions/:name` | Delete an archive and its registry entry |
 | `GET /api/pois` | Points of interest; `?bbox=minLon,minLat,maxLon,maxLat` to limit |
 | `POST /api/pois` | Create one from `{ name, emoji, lat, lon }` |

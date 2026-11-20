@@ -3,7 +3,8 @@ import { Subject } from 'rxjs';
 import { Job } from '../domain/maps.dto';
 import { MapsClient } from '../infrastructure/maps.client';
 
-const finished = (j: Job) => j.state === 'done' || j.state === 'failed' || j.state === 'cancelled';
+const finished = (j: Job) =>
+  j.state === 'done' || j.state === 'failed' || j.state === 'cancelled' || j.state === 'paused';
 
 /**
  * Follows maps jobs for the /maps socket namespace: one upstream SSE stream

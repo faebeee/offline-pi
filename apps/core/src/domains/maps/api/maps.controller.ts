@@ -6,6 +6,7 @@ import {
   Job,
   JobsResponse,
   MapsStatus,
+  PartialDownloadsResponse,
   PlacesResponse,
   Poi,
   PoisResponse,
@@ -67,6 +68,26 @@ export class MapsController {
     return this.maps.confirmDownload(id);
   }
 
+  /** Unfinished downloads (paused, failed, interrupted by a restart). */
+  @Get('downloads')
+  partialDownloads(): Promise<PartialDownloadsResponse> {
+    return this.maps.partialDownloads();
+  }
+
+  /** Go on with an unfinished download from where it stopped. */
+  @Post('downloads/:name/resume')
+  @HttpCode(202)
+  resumeDownload(@Param('name') name: string): Promise<Job> {
+    return this.maps.resumeDownload(name);
+  }
+
+  /** Delete an unfinished download and everything it fetched. */
+  @Delete('downloads/:name')
+  @HttpCode(204)
+  async discardDownload(@Param('name') name: string): Promise<void> {
+    await this.maps.discardDownload(name);
+  }
+
   @Get('jobs')
   jobs(): Promise<JobsResponse> {
     return this.maps.jobs();
@@ -77,7 +98,17 @@ export class MapsController {
     return this.maps.job(id);
   }
 
-  /** Cancel a running job, or decline one waiting for confirmation. */
+  /** Pause a running download: what it fetched is kept for a resume. */
+  @Post('jobs/:id/pause')
+  @HttpCode(200)
+  pauseJob(@Param('id') id: string): Promise<Job> {
+    return this.maps.pauseJob(id);
+  }
+
+  /**
+   * Cancel a running job, or decline one waiting for confirmation. A
+   * cancelled download deletes what it fetched.
+   */
   @Delete('jobs/:id')
   cancelJob(@Param('id') id: string): Promise<Job> {
     return this.maps.cancelJob(id);

@@ -76,7 +76,9 @@ export type JobState =
   | "running"
   | "done"
   | "failed"
-  | "cancelled";
+  | "cancelled"
+  /** a download stopped on request; what it fetched is kept for a resume */
+  | "paused";
 
 export type DownloadEstimate = {
   archiveBytes: number;
@@ -106,13 +108,21 @@ export type Job = {
   estimate?: DownloadEstimate;
   progress?: JobProgress;
   error?: string;
+  /**
+   * download jobs only: what was fetched is kept on disk, so the download can
+   * go on from there (`POST /api/downloads/:name/resume`) instead of starting
+   * over. Set on a failed or paused download.
+   */
+  resumable?: boolean;
   log: string[];
 };
 
 export type JobsResponse = { jobs: Job[] };
 
 export function isJobFinished(job: Job): boolean {
-  return job.state === "done" || job.state === "failed" || job.state === "cancelled";
+  return (
+    job.state === "done" || job.state === "failed" || job.state === "cancelled" || job.state === "paused"
+  );
 }
 
 /** `POST /api/downloads` */
@@ -127,6 +137,31 @@ export type CreateDownloadRequest = {
   /** replace an existing region of the same name */
   force?: boolean;
 };
+
+/**
+ * A region download that did not finish: paused, failed, or cut off by a
+ * restart. Its fetched data stays in `data/downloads/<name>/` until it is
+ * resumed to the end or discarded.
+ */
+export type PartialDownload = {
+  name: string;
+  label: string;
+  minzoom: number;
+  maxzoom: number;
+  /** protomaps build date, YYYYMMDD: a resume always continues this build */
+  build: string;
+  estimate: DownloadEstimate;
+  /** bytes fetched so far, out of `estimate.transferBytes` */
+  downloadedBytes: number;
+  /** why it stopped; "interrupted" = the module stopped while it ran */
+  reason: "paused" | "failed" | "interrupted";
+  error?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+/** `GET /api/downloads`: every unfinished download except the one running now */
+export type PartialDownloadsResponse = { downloads: PartialDownload[] };
 
 // --------------------------------------------------------------- pois ---
 

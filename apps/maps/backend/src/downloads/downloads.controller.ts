@@ -1,5 +1,5 @@
-import { Body, Controller, HttpCode, Param, Post } from "@nestjs/common";
-import type { CreateDownloadRequest, Job } from "@outpost/maps-shared";
+import { Body, Controller, Delete, Get, HttpCode, Param, Post } from "@nestjs/common";
+import type { CreateDownloadRequest, Job, PartialDownloadsResponse } from "@outpost/maps-shared";
 import { JobsService } from "../jobs/jobs.service.ts";
 import { DownloadService } from "./download.service.ts";
 
@@ -17,10 +17,30 @@ export class DownloadsController {
     return this.downloads.start(body ?? ({} as CreateDownloadRequest));
   }
 
+  /** Unfinished downloads (paused, failed, interrupted) that can be resumed. */
+  @Get()
+  async list(): Promise<PartialDownloadsResponse> {
+    return { downloads: await this.downloads.list() };
+  }
+
   /** Accepts the estimate and lets the extract run. */
   @Post(":id/confirm")
   @HttpCode(200)
   confirm(@Param("id") id: string): Job {
     return this.jobs.confirm(id);
+  }
+
+  /** Goes on with an unfinished download from where it stopped. */
+  @Post(":name/resume")
+  @HttpCode(202)
+  resume(@Param("name") name: string): Promise<Job> {
+    return this.downloads.resume(name);
+  }
+
+  /** Deletes an unfinished download and what it fetched. */
+  @Delete(":name")
+  @HttpCode(204)
+  async discard(@Param("name") name: string): Promise<void> {
+    await this.downloads.discard(name);
   }
 }

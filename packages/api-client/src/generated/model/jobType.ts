@@ -10,6 +10,6 @@ export type JobType = typeof JobType[keyof typeof JobType];
 
 
 export const JobType = {
-  download: 'download',
   setup: 'setup',
+  download: 'download',
 } as const;

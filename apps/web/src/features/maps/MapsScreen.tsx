@@ -1,7 +1,9 @@
 import {
+  getMapsPartialDownloadsQueryKey,
   getMapsRegionsQueryKey,
   getMapsStatusQueryKey,
   mapsDeleteRegion,
+  useMapsPartialDownloads,
   useMapsRegions,
   useMapsStatus,
   type Job,
@@ -22,6 +24,7 @@ import { AddRegion, JobBadge } from "./AddRegion";
 import { JobView } from "./JobView";
 import { formatBuild, isJobFinished, pmtilesUrl, toBbox, type Bbox } from "./lib";
 import { MapView, type Cursor, type Fix, type RegionFocus } from "./MapView";
+import { PartialDownloads } from "./PartialDownloads";
 import "./maps.css";
 import { MeshMarkers, NodeList, RequestPositionsButton } from "./mesh/MeshNodes";
 import { nodeId, type Positioned } from "./mesh/nodes";
@@ -52,6 +55,7 @@ export function MapsScreen({ linkedNode }: { linkedNode?: string }) {
   const running = isRunning(useModule("maps"));
 
   const regionsQuery = useMapsRegions({ query: { enabled: running } });
+  const partialsQuery = useMapsPartialDownloads({ query: { enabled: running } });
   const statusQuery = useMapsStatus({ query: { enabled: running } });
   const regions = regionsQuery.data?.regions ?? null;
   const status = statusQuery.data ?? null;
@@ -123,6 +127,7 @@ export function MapsScreen({ linkedNode }: { linkedNode?: string }) {
     await Promise.all([
       qc.refetchQueries({ queryKey: getMapsRegionsQueryKey() }),
       qc.refetchQueries({ queryKey: getMapsStatusQueryKey() }),
+      qc.refetchQueries({ queryKey: getMapsPartialDownloadsQueryKey() }),
     ]);
     return qc.getQueryData<RegionsResponse>(getMapsRegionsQueryKey())?.regions ?? [];
   }, [qc]);
@@ -320,6 +325,13 @@ export function MapsScreen({ linkedNode }: { linkedNode?: string }) {
                       </button>
                     </div>
                   )}
+
+                  <PartialDownloads
+                    downloads={partialsQuery.data?.downloads ?? []}
+                    busy={!!job && !isJobFinished(job)}
+                    onResumed={track}
+                    onChanged={() => void qc.refetchQueries({ queryKey: getMapsPartialDownloadsQueryKey() })}
+                  />
 
                   {regionError && (
                     <Banner tone="crit" title="Could not delete the region">

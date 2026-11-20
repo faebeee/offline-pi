@@ -16,6 +16,10 @@ export type JobContext = {
   setStage(stage: string, state?: JobState): void;
   setEstimate(estimate: DownloadEstimate): void;
   setProgress(progress: JobProgress | undefined): void;
+  /** Marks a download whose fetched data is kept for a resume. */
+  setResumable(resumable: boolean): void;
+  /** True once the job was stopped with `pause` rather than `cancel`. */
+  pausing(): boolean;
   /** Parks the job in `awaiting-confirmation` until confirmed or cancelled. */
   awaitConfirmation(): Promise<void>;
 };
@@ -34,6 +38,8 @@ export class JobRecord {
   readonly abort = new AbortController();
 
   private confirmation?: { resolve: () => void; reject: (err: Error) => void };
+  /** stopped by `pause`: the runner keeps what it fetched */
+  private paused = false;
 
   constructor(type: JobType, stage: string, region?: Job["region"]) {
     const now = new Date().toISOString();
@@ -52,7 +58,7 @@ export class JobRecord {
 
   get finished(): boolean {
     const { state } = this.job;
-    return state === "done" || state === "failed" || state === "cancelled";
+    return state === "done" || state === "failed" || state === "cancelled" || state === "paused";
   }
 
   observe(): Observable<Job> {
@@ -76,6 +82,11 @@ export class JobRecord {
         this.job.progress = progress;
         this.touch();
       },
+      setResumable: (resumable) => {
+        this.job.resumable = resumable;
+        this.touch();
+      },
+      pausing: () => this.paused,
       awaitConfirmation: () =>
         new Promise<void>((resolve, reject) => {
           if (this.abort.signal.aborted) {
@@ -100,15 +111,17 @@ export class JobRecord {
     return true;
   }
 
-  cancel(): void {
+  /** Stops the job. `pause`: the runner keeps its data so it can be resumed. */
+  cancel(pause = false): void {
     if (this.finished) return;
+    this.paused = pause;
     this.abort.abort();
     const pending = this.confirmation;
     this.confirmation = undefined;
     pending?.reject(new JobCancelledError());
   }
 
-  settle(state: "done" | "failed" | "cancelled", stage: string, error?: string): void {
+  settle(state: "done" | "failed" | "cancelled" | "paused", stage: string, error?: string): void {
     this.job.state = state;
     this.job.stage = stage;
     if (error) this.job.error = error;

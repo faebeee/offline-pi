@@ -14,9 +14,9 @@ export type LogEntryLevel = typeof LogEntryLevel[keyof typeof LogEntryLevel];
 
 export const LogEntryLevel = {
   error: 'error',
+  warn: 'warn',
   verbose: 'verbose',
   debug: 'debug',
   log: 'log',
-  warn: 'warn',
   fatal: 'fatal',
 } as const;

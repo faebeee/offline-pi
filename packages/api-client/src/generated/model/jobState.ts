@@ -6,14 +6,18 @@
  * OpenAPI spec version: 1
  */
 
+/**
+ * "paused": a download stopped on request; what it fetched is kept for a resume
+ */
 export type JobState = typeof JobState[keyof typeof JobState];
 
 
 export const JobState = {
   running: 'running',
+  paused: 'paused',
+  done: 'done',
   failed: 'failed',
   estimating: 'estimating',
   'awaiting-confirmation': 'awaiting-confirmation',
-  done: 'done',
   cancelled: 'cancelled',
 } as const;

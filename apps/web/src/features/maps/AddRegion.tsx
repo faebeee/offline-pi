@@ -2,14 +2,17 @@ import {
   mapsCancelJob,
   mapsConfirmDownload,
   mapsCreateDownload,
+  mapsDiscardDownload,
+  mapsPauseJob,
   mapsPlaces,
+  mapsResumeDownload,
   type Job,
   type PlaceCandidate,
 } from "@outpost/api-client";
 import { DEFAULT_MAXZOOM } from "@outpost/maps-shared";
 import { bytes } from "@outpost/ui/outpost.js";
 import { useEffect, useRef, useState } from "react";
-import { Badge, Banner, Icon } from "../../ui/outpost";
+import { Badge, Banner, HoldButton, Icon } from "../../ui/outpost";
 import { JobView } from "./JobView";
 import { formatBuild } from "./lib";
 
@@ -108,6 +111,23 @@ export function AddRegion({ job, onJobStarted, onJobDismissed, onPreview, onClos
     if (started) onJobStarted(started);
   };
 
+  const resume = async (job: Job) => {
+    if (!job.region) return;
+    const name = job.region.name;
+    const next = await act(() => mapsResumeDownload(name));
+    if (next) onJobStarted(next);
+  };
+
+  const discard = async (job: Job) => {
+    if (!job.region) return;
+    const name = job.region.name;
+    const ok = await act(async () => {
+      await mapsDiscardDownload(name);
+      return true;
+    });
+    if (ok) onJobDismissed();
+  };
+
   const active =
     job && job.type === "download" && job.state !== "done" && job.state !== "cancelled";
 
@@ -138,6 +158,9 @@ export function AddRegion({ job, onJobStarted, onJobDismissed, onPreview, onClos
             error={error}
             onConfirm={() => act(() => mapsConfirmDownload(job.id))}
             onCancel={() => act(() => mapsCancelJob(job.id))}
+            onPause={() => act(() => mapsPauseJob(job.id))}
+            onResume={() => void resume(job)}
+            onDiscard={() => void discard(job)}
             onDismiss={onJobDismissed}
           />
         ) : selected ? (
@@ -278,6 +301,9 @@ function ActiveJob({
   error,
   onConfirm,
   onCancel,
+  onPause,
+  onResume,
+  onDiscard,
   onDismiss,
 }: {
   job: Job;
@@ -285,10 +311,17 @@ function ActiveJob({
   error: string | null;
   onConfirm: () => void;
   onCancel: () => void;
+  onPause: () => void;
+  onResume: () => void;
+  onDiscard: () => void;
   onDismiss: () => void;
 }) {
   const { estimate } = job;
   const awaiting = job.state === "awaiting-confirmation";
+  // accepted and fetching (a job also "runs" while it resolves the build)
+  const downloading = job.state === "running" && !!estimate;
+  // stopped, but what it fetched is kept: go on, or delete it
+  const stopped = job.resumable && (job.state === "paused" || job.state === "failed");
 
   return (
     <>
@@ -331,9 +364,19 @@ function ActiveJob({
         <JobView job={job} />
       )}
 
-      {job.state === "failed" && (
+      {job.state === "failed" && !stopped && (
         <Banner tone="crit" title="Download failed">
           {job.error} Start over to try again.
+        </Banner>
+      )}
+      {job.state === "failed" && stopped && (
+        <Banner tone="crit" title="Download stopped">
+          {job.error} What was downloaded is kept: resume to go on from there.
+        </Banner>
+      )}
+      {job.state === "paused" && (
+        <Banner tone="info" title="Paused">
+          What was downloaded is kept on this device, also across a restart. Resume to go on from there.
         </Banner>
       )}
       {error && (
@@ -354,16 +397,36 @@ function ActiveJob({
             Download {estimate ? bytes(estimate.transferBytes) : ""}
           </button>
         )}
-        {job.state === "failed" ? (
+        {stopped ? (
+          <>
+            <button type="button" className="btn btn-primary btn-block" onClick={onResume} disabled={busy}>
+              <Icon name="download" />
+              Resume download
+            </button>
+            <HoldButton label="Cancel and delete" onConfirm={onDiscard} disabled={busy} className="btn-block" />
+          </>
+        ) : job.state === "failed" ? (
           <button type="button" className="btn btn-block" onClick={onDismiss}>
             Start over
           </button>
+        ) : downloading ? (
+          <>
+            <button type="button" className="btn btn-block" onClick={onPause} disabled={busy}>
+              Pause
+            </button>
+            <HoldButton label="Cancel and delete" onConfirm={onCancel} disabled={busy} className="btn-block" />
+          </>
         ) : (
           <button type="button" className="btn btn-block" onClick={onCancel} disabled={busy}>
-            {awaiting ? "Decline" : "Cancel download"}
+            {awaiting ? "Decline" : "Cancel"}
           </button>
         )}
       </div>
+      {(downloading || stopped) && (
+        <p className="help">
+          Pause keeps what was downloaded, so you can resume later. Cancel deletes it.
+        </p>
+      )}
     </>
   );
 }
@@ -382,5 +445,7 @@ export function JobBadge({ job }: { job: Job }) {
       return <Badge state="crit">Failed</Badge>;
     case "cancelled":
       return <Badge state="off">Cancelled</Badge>;
+    case "paused":
+      return <Badge state="cau">Paused</Badge>;
   }
 }
