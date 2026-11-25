@@ -77,15 +77,15 @@ Fill in the settings before you reboot:
 WIFI_IFACE=wlan0
 PREFERRED_SSID="YourHomeWifi"
 PREFERRED_PASSWORD="homepassword"
-HOTSPOT_SSID="PiHotspot"
+HOTSPOT_SSID="Basecamp-1"
 HOTSPOT_PASSWORD="hotspotpassword"
 ```
 
 | Setting | Description |
 |---|---|
-| `WIFI_IFACE` | The Wi-Fi interface (see `nmcli device status`). |
+| `WIFI_IFACE` | The Wi-Fi interface used at boot (see `nmcli device status`). |
 | `PREFERRED_SSID` / `PREFERRED_PASSWORD` | The network to join when it is in range. |
-| `HOTSPOT_SSID` / `HOTSPOT_PASSWORD` | The hotspot to open otherwise (WPA, so the password needs at least 8 characters). |
+| `HOTSPOT_SSID` / `HOTSPOT_PASSWORD` | The hotspot to open otherwise (WPA, so the password needs at least 8 characters). The name defaults to `Basecamp-1`. |
 
 Test it without rebooting and watch what it does:
 
@@ -93,6 +93,21 @@ Test it without rebooting and watch what it does:
 sudo systemctl start hotspot-fallback.service
 journalctl -u hotspot-fallback.service -f
 ```
+
+### Choose the interface
+
+If the Pi has more than one Wi-Fi adapter (for example the built-in one
+and a USB stick), start the script by hand in a terminal:
+
+```sh
+sudo hotspot-fallback.sh
+```
+
+It lists the Wi-Fi interfaces with their state, asks on which one to work
+(the default is `WIFI_IFACE`) and, if you pick another one, whether to
+save it in `/etc/hotspot-fallback.env` for the next boots.
+`sudo hotspot-fallback.sh --iface wlan1` uses an interface without asking.
+At boot (no terminal) the script always uses `WIFI_IFACE`.
 
 The script creates two NetworkManager connection profiles,
 `preferred-wifi` and `pi-hotspot`. It runs once per boot: if your Wi-Fi

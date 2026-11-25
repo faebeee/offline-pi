@@ -53,12 +53,14 @@ cat <<EOF
 Installation complete.
 
 IMPORTANT: Before rebooting, edit $ENV_PATH and set your real
-WIFI_IFACE, PREFERRED_SSID/PASSWORD and HOTSPOT_SSID/PASSWORD:
+WIFI_IFACE, PREFERRED_SSID/PASSWORD and HOTSPOT_PASSWORD (the hotspot is
+called Basecamp-1 unless you change HOTSPOT_SSID):
 
     sudo nano $ENV_PATH
 
 You can test it immediately without rebooting by running:
 
+    sudo hotspot-fallback.sh            (asks which WiFi interface to use)
     sudo systemctl start hotspot-fallback.service
     journalctl -u hotspot-fallback.service -f
 

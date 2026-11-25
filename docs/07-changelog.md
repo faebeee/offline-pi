@@ -13,6 +13,11 @@ under **Unreleased**.
 
 ### Added
 
+- Hotspot fallback (`host/hotspot-pi`): started by hand
+  (`sudo hotspot-fallback.sh`), the script lets you choose the Wi-Fi
+  interface for the hotspot from a list and can save it as the boot
+  default; `--iface <name>` skips the question. Re-run
+  `sudo ./install-hotspot-fallback.sh` to get it.
 - Maps: region downloads can be paused and resumed. What a download
   fetched is kept on the Pi, so after a pause, a dropped connection, an
   error or a restart, RESUME DOWNLOAD goes on from where it stopped
@@ -115,6 +120,13 @@ under **Unreleased**.
 
 - The `mesh-map` module (container, `/mesh-map` screen,
   `/api/mesh-map/overview`) and the `MESH_MAP_PORT` setting.
+
+### Changed
+
+- Hotspot fallback: the hotspot is called `Basecamp-1` by default (new
+  installs, or an empty `HOTSPOT_SSID`). An existing
+  `/etc/hotspot-fallback.env` keeps its name; change `HOTSPOT_SSID` there
+  to switch.
 
 ## 0.1.0 (2026-11-10)
 
