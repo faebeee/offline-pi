@@ -10,7 +10,7 @@ Frontend guide for the Outpost suite: offline-first apps for disasters, emergenc
 
 1. **Offline is the default.** No runtime requests to CDNs, Google Fonts, analytics, icon services or external APIs. Every font, icon, script and style ships inside the app.
 2. **Use tokens only.** Never hard-code a hex color, font or spacing value in a component. Reference the CSS custom properties in section 3.
-3. **Every theme must work.** Every screen is tested in `.t-dark` (default), `.t-light` and the neon themes (1.0).
+3. **Every theme must work.** Every screen is tested in `.t-dark` (default), `.t-light`, the neon themes (1.0) and the field themes (1.3).
 4. **Never rely on color alone.** Every status = color + icon shape + written label.
 5. **Touch targets are at least 44 x 44 px.** The main action on a screen is 56 px tall.
 6. **One primary (amber) action per view.** Amber is reserved for the main action, the user's own position, the active nav item and focus rings.
@@ -153,7 +153,7 @@ Copy this into `tokens.css` and load it in every app. Put the theme class on `<h
 - Default to `.t-dark`. Persist the user's choice locally (e.g. `localStorage` key `outpost.theme`, wrapped in try/catch).
 - Optionally follow `prefers-color-scheme` on first run.
 - The theme button is a 44 px icon button in the header: moon icon in dark themes, sun icon in light, `aria-label="Theme: <name>. Change theme"`. It opens the theme picker (a `.dialog` with `.theme-list`); a choice applies at once.
-- Themes (`THEMES` in `ui/outpost.js`): Outpost (`dark`, default), Daylight (`light`), and the neon themes (1.0) Neon (`neon`, magenta on violet), Netrunner (`netrun`, cyan on deep blue, violet info) and Toxic (`toxic`, acid lime on black, purple info). A neon theme is a class next to `.t-dark` on `<html>` that redefines every colour token (block below); its status colours stay distinct from its accent.
+- Themes (`THEMES` in `ui/outpost.js`): Outpost (`dark`, default), Daylight (`light`), and the neon themes (1.0) Neon (`neon`, magenta on violet), Netrunner (`netrun`, cyan on deep blue, violet info) and Toxic (`toxic`, acid lime on black, purple info), and the field themes (1.3) Night vision (`red`, red and orange only, faint glow, map tiles and images tinted red), Terminal (`term`, phosphor green on black, headings in mono) and Paper (`paper`, ink on warm paper, light). Such a theme is a class next to its mode class (`.t-dark`, or `.t-light` for Paper) on `<html>` that redefines every colour token (block below); its status colours stay distinct from its accent (Night vision: by brightness and hue within red and orange, so badges rely on their icon and label).
 - A new theme (for example `.t-red`, red-only night vision) redefines the same tokens; components must not change.
 
 ```css
@@ -175,6 +175,27 @@ Copy this into `tokens.css` and load it in every app. Put the theme class on `<h
   --fg: #F0F2E6; --fg2: #B9BDA8; --fg3: #8E9280;
   --acc: #C6FF1A; --acc-ink: #D4FF4D; --on-acc: #141A00; --acc-soft: rgba(198,255,26,.12);
   --info: #B26BFF; --ok: #19F5B0; --cau: #FFB020; --crit: #FF3B5C; --on-crit: #1A0006;
+}
+.t-red {
+  --bg: #000000; --s1: #0B0101; --s2: #140303; --s3: #1F0505; --line: #2A0707; --line2: #4A0D0D;
+  --fg: #FF6B57; --fg2: #F04A36; --fg3: #DC3E2C;
+  --acc: #FF3B24; --acc-ink: #FF6A50; --on-acc: #000000; --acc-soft: rgba(255,59,36,.14);
+  --info: #FF7F5C; --ok: #FFA07A; --cau: #FFB347; --crit: #FF1F3A; --on-crit: #000000;
+  /* glow faint (acc, crit) or none; html.t-red tints .maplibregl-canvas and img red */
+}
+.t-term {
+  --bg: #020502; --s1: #061006; --s2: #0A170A; --s3: #112211; --line: #163016; --line2: #275027;
+  --fg: #B8FFC4; --fg2: #7FDB8F; --fg3: #5FB56F;
+  --acc: #33FF66; --acc-ink: #4DFF7A; --on-acc: #001A06; --acc-soft: rgba(51,255,102,.12);
+  --info: #5CC8FF; --ok: #2FE0C0; --cau: #FFC83D; --crit: #FF4F4F; --on-crit: #1A0000;
+  --font-display: 'JetBrains Mono', ui-monospace, monospace;
+}
+.t-paper {
+  --bg: #EFE9DC; --s1: #FBF8F1; --s2: #F4EFE4; --s3: #E6DECD; --line: #D9CFBC; --line2: #A39780;
+  --fg: #1E1A14; --fg2: #4A4236; --fg3: #5E5443;
+  --acc: #D9531E; --acc-ink: #9A330A; --on-acc: #1A0800; --acc-soft: rgba(217,83,30,.14);
+  --info: #1D5E8A; --ok: #2E6B34; --cau: #7A5600; --crit: #A61C1C; --on-crit: #FFFFFF;
+  /* no glow or scanlines, like .t-light */
 }
 ```
 
@@ -473,4 +494,5 @@ The visual reference (foundations, components, Hub, Maps, Library and Mesh scree
   - **Scrolling dialog** (`.dialog.dialog-scroll`): for long lists (e.g. every power event); the head and actions stay in place, only `.dialog-body` scrolls.
 - 1.0 (2026-11): theme picker and three neon themes. The header's theme button opens a `.dialog` with **`.theme-list`**: one **`.theme-option`** per theme (`role="radio"`, `aria-checked`; checked = `--acc` border, `--acc-soft` ground, `--glow-acc`), each with a **`.theme-swatch`** that carries its theme's class and so shows that theme's ground, text, accent, info, ok and crit. New themes Neon, Netrunner and Toxic (tokens in section 3, theme switching); every text token keeps at least 4.5:1. `getThemeMode()` gives the light/dark family for the map style; `themeToggle()` (pages without the picker) now steps through every theme.
 - 1.1 (2026-11): the status strip starts its host group with **`NET`** (outgoing internet from the Pi, checked by core): `ONLINE` in `--ok`, `OFFLINE` plain (an offline box is normal, not a fault), `...` while checking, hidden when the check is off. Strip items take `tone: "ok"` (`.strip-item.is-ok`) besides `cau` and `crit`. New icons **`sliders`** (Settings module) and **`pulse`** (Diagnostics module).
+- 1.3 (2026-11): three field themes in the picker: **Night vision** (`.t-red`), **Terminal** (`.t-term`) and **Paper** (`.t-paper`, the first extra theme in the light family: `<html class="t-light t-paper">`). Tokens in section 3; every text token keeps at least 4.5:1. Night vision tints map tiles and images red (`html.t-red .maplibregl-canvas, html.t-red img`), Terminal sets `--font-display` to the mono font.
 - 1.2 (2026-11): the module nav is split in two groups, apps on top and the system screens at the bottom of the rail (`.nav-split` marks the first system item; on the bottom bar a 1 px line separates the groups). The rail is a flex column and scrolls when it doesn't fit.

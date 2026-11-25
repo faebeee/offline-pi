@@ -53,7 +53,7 @@ banner.
 
 Below the strip: the module name as a small label, the screen title, and on
 the right the screen's own buttons (for example a back button) and the
-theme button (a moon, or a sun in the light theme). It opens a list of five
+theme button (a moon, or a sun in a light theme). It opens a list of eight
 themes; a choice applies at once and is stored in this browser:
 
 | Theme | Colours |
@@ -63,8 +63,12 @@ themes; a choice applies at once and is stored in this browser:
 | Neon | Magenta on violet |
 | Netrunner | Cyan on deep blue |
 | Toxic | Acid lime on black |
+| Night vision | Red only: keeps your eyes used to the dark at night |
+| Terminal | Phosphor green on black |
+| Paper | Light, ink on warm paper |
 
-Maps use the dark map for every theme except Daylight.
+Maps use the light map with Daylight and Paper, the dark map with every
+other theme. Night vision tints the map and pictures red.
 
 Some screens have a context line under the header with more detail, such
 as the map zoom and coordinates, or the radio region and preset on Mesh.

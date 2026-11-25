@@ -24,6 +24,10 @@ under **Unreleased**.
   (also `./manage.sh network hotspot on|off`). It needs the hotspot
   fallback (`host/hotspot-pi`) and the current blocking helper: run
   `./manage.sh network install-guard` once on the Pi.
+- Three new themes in the theme picker (the sun/moon button in the
+  header): Night vision (red only, keeps your eyes used to the dark, the
+  map is tinted red too), Terminal (green on black) and Paper (a warm
+  light theme).
 - Hotspot fallback: `sudo hotspot-fallback.sh --hotspot` opens the
   hotspot without looking for the preferred Wi-Fi. Re-run
   `sudo ./install-hotspot-fallback.sh` to get it.

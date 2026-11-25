@@ -12,9 +12,12 @@
       (function () {
         var t = null;
         try { t = localStorage.getItem("outpost.theme"); } catch (e) {}
-        var neon = /^(neon|netrun|toxic)$/.test(t || "");
-        var cls = t === "light" ? " t-light" : " t-dark" + (neon ? " t-" + t : "");
-        document.documentElement.className = (document.documentElement.className.replace(/\bt-(dark|light|neon|netrun|toxic)\b/g, "") + cls).trim();
+        // themes other than dark/light: their mode class plus t-<id> (THEMES in outpost.js)
+        var dark = /^(neon|netrun|toxic|red|term)$/.test(t || "");
+        var light = t === "paper";
+        var cls = t === "light" || light ? " t-light" : " t-dark";
+        if (dark || light) cls += " t-" + t;
+        document.documentElement.className = (document.documentElement.className.replace(/\bt-(dark|light|neon|netrun|toxic|red|term|paper)\b/g, "") + cls).trim();
       })();
     </script>
   </head>

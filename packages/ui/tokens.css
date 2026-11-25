@@ -152,6 +152,97 @@
   --scan: rgba(198,255,26,.03);
 }
 
+/* Field themes (1.3). Night vision and Terminal sit next to .t-dark,
+   Paper next to .t-light (its mode), like the neon themes. */
+
+.t-red {            /* night vision: red only, keeps the eyes dark-adapted */
+  --bg: #000000;
+  --s1: #0B0101;
+  --s2: #140303;
+  --s3: #1F0505;
+  --line: #2A0707;
+  --line2: #4A0D0D;
+  --fg: #FF6B57;
+  --fg2: #F04A36;
+  --fg3: #DC3E2C;
+  --acc: #FF3B24;
+  --acc-ink: #FF6A50;
+  --on-acc: #000000;
+  --acc-soft: rgba(255,59,36,.14);
+  /* status in red and orange only: badges keep their icon and label */
+  --info: #FF7F5C;  --info-soft: rgba(255,127,92,.12);
+  --ok:   #FFA07A;  --ok-soft:   rgba(255,160,122,.12);
+  --cau:  #FFB347;  --cau-soft:  rgba(255,179,71,.12);
+  --crit: #FF1F3A;  --crit-soft: rgba(255,31,58,.16);
+  --on-crit: #000000;
+  --grid: rgba(255,40,20,.05);
+  --map: #080000;
+  /* faint glow only: bright halos would spoil night vision */
+  --glow-acc: 0 0 6px rgba(255,59,36,.35);
+  --glow-ok: 0 0 0 transparent;
+  --glow-info: 0 0 0 transparent;
+  --glow-crit: 0 0 6px rgba(255,31,58,.4);
+  --scan: rgba(255,40,20,.03);
+}
+
+.t-term {           /* phosphor green on black, a CRT terminal */
+  --bg: #020502;
+  --s1: #061006;
+  --s2: #0A170A;
+  --s3: #112211;
+  --line: #163016;
+  --line2: #275027;
+  --fg: #B8FFC4;
+  --fg2: #7FDB8F;
+  --fg3: #5FB56F;
+  --acc: #33FF66;
+  --acc-ink: #4DFF7A;
+  --on-acc: #001A06;
+  --acc-soft: rgba(51,255,102,.12);
+  --info: #5CC8FF;  --info-soft: rgba(92,200,255,.12);
+  --ok:   #2FE0C0;  --ok-soft:   rgba(47,224,192,.12);
+  --cau:  #FFC83D;  --cau-soft:  rgba(255,200,61,.12);
+  --crit: #FF4F4F;  --crit-soft: rgba(255,79,79,.14);
+  --on-crit: #1A0000;
+  --grid: rgba(51,255,102,.05);
+  --map: #040A04;
+  --glow-acc: 0 0 12px rgba(51,255,102,.55);
+  --glow-ok: 0 0 8px rgba(47,224,192,.5);
+  --glow-info: 0 0 8px rgba(92,200,255,.5);
+  --glow-crit: 0 0 10px rgba(255,79,79,.55);
+  --scan: rgba(51,255,102,.05);
+  /* headings in the terminal's mono */
+  --font-display: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+.t-paper {          /* warm paper and ink, a calm light theme */
+  --bg: #EFE9DC;
+  --s1: #FBF8F1;
+  --s2: #F4EFE4;
+  --s3: #E6DECD;
+  --line: #D9CFBC;
+  --line2: #A39780;
+  --fg: #1E1A14;
+  --fg2: #4A4236;
+  --fg3: #5E5443;
+  --acc: #D9531E;
+  --acc-ink: #9A330A;
+  --on-acc: #1A0800;
+  --acc-soft: rgba(217,83,30,.14);
+  --info: #1D5E8A;  --info-soft: rgba(29,94,138,.10);
+  --ok:   #2E6B34;  --ok-soft:   rgba(46,107,52,.10);
+  --cau:  #7A5600;  --cau-soft:  rgba(200,150,0,.16);
+  --crit: #A61C1C;  --crit-soft: rgba(166,28,28,.10);
+  --on-crit: #FFFFFF;
+  --grid: rgba(90,70,40,.06);
+  --map: #F2ECDF;
+  --glow-acc: 0 0 0 transparent;
+  --glow-ok: 0 0 0 transparent;
+  --glow-info: 0 0 0 transparent;
+  --glow-crit: 0 0 0 transparent;
+  --scan: transparent;
+}
+
 :root {
   /* Type */
   --font-display: 'Chakra Petch', system-ui, sans-serif;

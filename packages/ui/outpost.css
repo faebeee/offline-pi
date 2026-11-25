@@ -26,6 +26,13 @@ html.t-light {
   color-scheme: light;
 }
 
+/* Night vision: map tiles and photos are not drawn with tokens, so tint
+   them red too (any colour would spoil dark-adapted eyes) */
+html.t-red .maplibregl-canvas,
+html.t-red img {
+  filter: grayscale(1) sepia(1) saturate(5) hue-rotate(-40deg) brightness(0.75);
+}
+
 body {
   margin: 0;
   background: var(--bg);

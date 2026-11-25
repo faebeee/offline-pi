@@ -21,7 +21,7 @@ The non-negotiable rules from `DESIGN.md`, in short:
    analytics or icon services. Everything ships with the app.
 2. **Tokens only.** Never hard-code a colour, font or spacing value.
 3. **Every theme works.** Every screen is tested in `.t-dark` (default),
-   `.t-light` and the neon themes.
+   `.t-light` and the other themes (neon, Night vision, Terminal, Paper).
 4. **Never colour alone.** Every status is colour plus icon shape plus a
    written label.
 5. **Touch targets of at least 44 x 44 px**; the main action is 56 px tall.
@@ -52,9 +52,11 @@ Tokens are CSS custom properties in `packages/ui/tokens.css`, copied from
 | Motion | `--dur-fast` (120 ms), `--dur`, `--dur-slow`, `--ease-out`, `--ease-snap` |
 
 The theme is a class on `<html>`: `.t-dark` by default, `.t-light` for day.
-The neon themes (`neon`, `netrun`, `toxic`) add their own class next to
-`.t-dark` (`<html class="t-dark t-neon">`), which redefines every colour
-token; `.t-dark` stays, so color-scheme and the dark map still apply. The
+The other themes add their own class next to their mode class: the neon
+themes (`neon`, `netrun`, `toxic`) and Night vision (`red`) and Terminal
+(`term`) next to `.t-dark` (`<html class="t-dark t-neon">`), Paper
+(`paper`) next to `.t-light`. That class redefines every colour token; the
+mode class stays, so color-scheme and the map style still apply. The
 list is `THEMES` in `outpost.js` (`id`, `label`, `mode`, `hint`);
 `getTheme()` returns the id, `getThemeMode()` `"dark"` or `"light"`. The
 choice is stored in `localStorage` (`outpost.theme`) and applied before the

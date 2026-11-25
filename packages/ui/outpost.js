@@ -72,8 +72,9 @@ export function badge(state, text, className = "") {
 
 /**
  * The themes, in picker order. `mode` is the light/dark family: <html> gets
- * `t-<mode>` (color-scheme, map style, everything keyed on .t-dark) and,
- * for the neon themes, `t-<id>` on top, which redefines the colour tokens.
+ * `t-<mode>` (color-scheme, map style, everything keyed on .t-dark or
+ * .t-light) and, for every other theme, `t-<id>` on top, which redefines
+ * the colour tokens. Keep theme-boot.js (and apps/web/index.html) in step.
  */
 export const THEMES = [
   { id: "dark", label: "Outpost", mode: "dark", hint: "Amber on night green" },
@@ -81,6 +82,9 @@ export const THEMES = [
   { id: "neon", label: "Neon", mode: "dark", hint: "Magenta on violet" },
   { id: "netrun", label: "Netrunner", mode: "dark", hint: "Cyan on deep blue" },
   { id: "toxic", label: "Toxic", mode: "dark", hint: "Acid lime on black" },
+  { id: "red", label: "Night vision", mode: "dark", hint: "Red only, for the dark" },
+  { id: "term", label: "Terminal", mode: "dark", hint: "Phosphor green on black" },
+  { id: "paper", label: "Paper", mode: "light", hint: "Ink on warm paper" },
 ];
 
 const THEME_CLASSES = THEMES.map((t) => `t-${t.id}`);
@@ -102,8 +106,8 @@ function readTheme() {
 /** The current theme id ("dark", "light", "neon", ...). */
 export function getTheme() {
   const classes = document.documentElement.classList;
-  const neon = THEMES.find((t) => t.id !== t.mode && classes.contains(`t-${t.id}`));
-  if (neon) return neon.id;
+  const extra = THEMES.find((t) => t.id !== t.mode && classes.contains(`t-${t.id}`));
+  if (extra) return extra.id;
   return classes.contains("t-light") ? "light" : "dark";
 }
 

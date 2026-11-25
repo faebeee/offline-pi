@@ -41,7 +41,8 @@ accuracy (when located), the zoom level (`Z12.4`) and the coordinates of
 the map centre. The REGIONS tab shows the disk space your regions use.
 
 All regions are shown at once on one map. The map follows the theme: the
-light map with Daylight, the dark map with every other theme.
+light map with Daylight and Paper, the dark map with every other theme
+(tinted red with Night vision).
 
 ## Downloading a region
 

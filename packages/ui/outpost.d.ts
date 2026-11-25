@@ -1,7 +1,7 @@
 // Types for outpost.js (for TypeScript apps that import the synced copy).
 
 export type ThemeMode = "dark" | "light";
-export type Theme = "dark" | "light" | "neon" | "netrun" | "toxic";
+export type Theme = "dark" | "light" | "neon" | "netrun" | "toxic" | "red" | "term" | "paper";
 export type ThemeInfo = { id: Theme; label: string; mode: ThemeMode; hint: string };
 export const THEMES: readonly ThemeInfo[];
 export type LinkState = "ok" | "cau" | "crit";
