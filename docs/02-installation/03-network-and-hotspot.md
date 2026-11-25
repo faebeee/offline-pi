@@ -128,6 +128,13 @@ sudo ./uninstall-hotspot-fallback.sh --purge   # also deletes it (it holds your 
 It stops and disables the service, removes the script and the unit file,
 and deletes the two connection profiles.
 
+## Who is on the hotspot
+
+The [Network](../03-modules/10-network.md) module lists the devices on the
+hotspot (MAC address, vendor, IP, signal) and blocks devices you don't
+want on it. Blocking uses a small host helper in `host/network-guard`,
+which `./install.sh` offers to install with the module.
+
 ## See also
 
 - [Hardware](../01-overview/02-hardware.md#wi-fi-and-hotspot)

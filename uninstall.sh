@@ -15,6 +15,7 @@ IMAGES=(
   localhost/outpost-knowledge:latest
   ghcr.io/kiwix/kiwix-serve:3.8.2
   localhost/outpost-mesh:latest
+  localhost/outpost-network:latest
   # retired module (now part of maps), still on older installs
   localhost/outpost-mesh-map:latest
 )
@@ -25,9 +26,14 @@ DATA_DIR_VARS=(
   MAPS_ASSETS_DIR=./data/maps-assets
   KNOWLEDGE_CONTENT_DIR=./data/knowledge
   MESH_DATA_DIR=./data/mesh
+  NETWORK_DATA_DIR=./data/network
 )
 # podman.socket was enabled by install.sh for core; other tools may use it.
 EXTRA_STEPS=("leaves podman.socket enabled (stop it with: systemctl --user disable --now podman.socket)")
+# The Network module's host helper (root, systemd) has its own uninstaller.
+if [[ -f /etc/systemd/system/outpost-network-guard.path ]]; then
+  EXTRA_STEPS+=("leaves the Network guard installed (remove it with: sudo host/network-guard/uninstall-network-guard.sh)")
+fi
 
 # ------------------------------------------------------------------------
 # Everything below is generic; only the config block above is specific.

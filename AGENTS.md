@@ -49,6 +49,7 @@ packages/ui/             # @outpost/ui: Outpost design system (DESIGN.md)
 packages/api-client/     # @outpost/api-client: generated from core's OpenAPI
 packages/maps-shared/    # @outpost/maps-shared: maps container contract
 host/hotspot-pi/         # host-level utility, no container (see below)
+host/network-guard/      # host-level: enforces the network module's block list (root)
 host/usb-storage/        # host-level: automount a USB drive (fstab + udev)
 docs/                    # the documentation (Markdown chapters), shown by Info
 data/                    # gitignored default home of every *_DIR
@@ -92,7 +93,7 @@ browser ──> core :8080
             ├─ /socket.io        live updates, one namespace per domain
             ├─ /ui/              @outpost/ui
             └─ /svc/<module>/*   passthrough to a module's raw files
-core ──HTTP/WS──> maps :8081 · knowledge :8082 · mesh :8084
+core ──HTTP/WS──> maps :8081 · knowledge :8082 · mesh :8084 · network :8085
 ```
 
 - **core** (`apps/core`, NestJS) is the only service the LAN reaches, on

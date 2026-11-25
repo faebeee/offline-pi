@@ -1,0 +1,13 @@
+[Unit]
+Description=outpost Network: enforce the block list of the Network module
+After=network-pre.target local-fs.target
+Wants=network-pre.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/outpost-network-guard.sh
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

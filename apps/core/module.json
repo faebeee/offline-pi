@@ -1,6 +1,6 @@
 {
   "id": "system",
-  "num": 4,
+  "num": 5,
   "label": "System",
   "icon": "system",
   "description": "Pi health, power, storage, network and the module controls.",

@@ -113,3 +113,5 @@ starts or stops a module. See [Home](01-home.md#the-control-pin).
 - [Info](07-info.md): this documentation inside the app.
 - [Settings](08-settings.md): every setting of the Pi, the data folders and their size.
 - [Diagnostics](09-diagnostics.md): checks what works and what does not, with a fix for each problem.
+- [Network](10-network.md): who is on the Pi's Wi-Fi hotspot, with MAC
+  address and vendor, and blocking a device.

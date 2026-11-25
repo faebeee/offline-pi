@@ -14,7 +14,7 @@ new in `.env.example`.
 
 | Kind | Variables | How to change them |
 |---|---|---|
-| Asked by `install.sh` | `PORT`, `BIND_ADDRESS`, `CONTROL_PIN`, `MODULES`, every `*_DIR`, `MESH_CONNECTION`, `MESH_DEVICE`, `MESH_HOST`, `MESH_SEND_PIN` | Re-run `./install.sh` and answer differently |
+| Asked by `install.sh` | `PORT`, `BIND_ADDRESS`, `CONTROL_PIN`, `MODULES`, every `*_DIR`, `MESH_CONNECTION`, `MESH_DEVICE`, `MESH_HOST`, `MESH_SEND_PIN`, `NETWORK_LEASES_PATH` | Re-run `./install.sh` and answer differently |
 | Detected by `install.sh` | `PODMAN_GRAPH_ROOT`, `PODMAN_SOCKET`, `VCIO_DEVICE` | Leave as is; detected again on every run |
 | Edited by hand | everything else (`SAMPLE_INTERVAL_MS`, `CORE_LOG_LEVEL`, the ports, `KNOWLEDGE_AUTO_SYNC`, ...) | Edit `.env`, then `./start.sh` |
 
@@ -81,6 +81,15 @@ connection and send PIN are asked while mesh is not configured yet.
 | `MESH_HOST` | empty | For `tcp`: hostname or IP address of the node. |
 | `MESH_SEND_PIN` | empty | PIN for sending messages from the web app. Empty: no PIN. |
 | `MESH_SEND_RATE_LIMIT` | `5/min` | How many messages the web app may send. |
+
+## Network
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `NETWORK_PORT` | `8085` | Internal port. |
+| `NETWORK_DATA_DIR` | `./data/network` | Block list and the devices seen on the hotspot in the last 30 days (a few KB). The blocking helper watches `blocked.macs` in it. |
+| `NETWORK_IFACE` | empty | Hotspot interface, e.g. `wlan0`. Empty: the first Wi-Fi interface in access-point mode. |
+| `NETWORK_LEASES_PATH` | `/var/lib/NetworkManager` | Folder with the hotspot's DHCP lease files (IP and hostname), mounted read-only. `install.sh` points it at `NETWORK_DATA_DIR` on hosts without NetworkManager. |
 
 ## Development only
 

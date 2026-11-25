@@ -1,8 +1,6 @@
 import {
-  BadRequestException,
   ConflictException,
   Controller,
-  ForbiddenException,
   Get,
   Headers,
   HttpCode,
@@ -11,6 +9,7 @@ import {
   Post,
 } from '@nestjs/common';
 import { ApiHeader, ApiParam, ApiTags } from '@nestjs/swagger';
+import { assertControl } from '../../../platform/http/control-guard';
 import { ModuleActionResult, ModulesOverview } from '../../../platform/modules/module-status.dto';
 import { ModulesService } from '../../../platform/modules/modules.service';
 import { PodmanService } from '../../../platform/modules/podman.service';
@@ -53,11 +52,8 @@ export class ModulesController {
     @Headers('x-pi-monitor') piMonitor: string | undefined,
     @Headers('x-control-pin') pin: string | undefined,
   ): Promise<ModuleActionResult> {
-    if (piMonitor !== '1') throw new BadRequestException('missing X-Pi-Monitor header');
+    assertControl(piMonitor, pin);
     if (action !== 'start' && action !== 'stop') throw new NotFoundException(`unknown action "${action}"`);
-
-    const required = process.env.CONTROL_PIN;
-    if (required && pin !== required) throw new ForbiddenException('wrong or missing Control PIN');
 
     if (!this.modules.get(id)) throw new NotFoundException(`unknown module "${id}"`);
 

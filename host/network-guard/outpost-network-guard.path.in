@@ -1,0 +1,10 @@
+[Unit]
+Description=outpost Network: watch the Network module's block list
+
+[Path]
+# written by install-network-guard.sh: <NETWORK_DATA_DIR>/blocked.macs
+PathChanged=@LIST@
+Unit=outpost-network-guard.service
+
+[Install]
+WantedBy=multi-user.target

@@ -13,6 +13,14 @@ under **Unreleased**.
 
 ### Added
 
+- Network module (`/network`): who is on the Pi's Wi-Fi hotspot, with
+  MAC address, vendor (looked up offline), IP, hostname, signal, traffic
+  and the devices of the last 30 days. Devices can be blocked (with a
+  note) and unblocked; a blocked device gets no traffic through the Pi.
+  Blocking is enforced by a small host helper (`host/network-guard`,
+  root, nftables). Re-run `./install.sh`, choose Network and let it
+  install the helper.
+
 - Hotspot fallback (`host/hotspot-pi`): started by hand
   (`sudo hotspot-fallback.sh`), the script lets you choose the Wi-Fi
   interface for the hotspot from a list and can save it as the boot

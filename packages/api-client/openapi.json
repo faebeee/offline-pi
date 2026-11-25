@@ -868,6 +868,204 @@
         ]
       }
     },
+    "/api/network/status": {
+      "get": {
+        "operationId": "networkStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetworkStatus"
+                }
+              }
+            }
+          }
+        },
+        "summary": "The hotspot interface, counts and whether blocking is enforced.",
+        "tags": [
+          "network"
+        ]
+      }
+    },
+    "/api/network/clients": {
+      "get": {
+        "operationId": "networkClients",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HotspotClient"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Every device connected now, blocked, or seen in the last 30 days; connected first.",
+        "tags": [
+          "network"
+        ]
+      }
+    },
+    "/api/network/clients/{mac}/block": {
+      "post": {
+        "operationId": "networkBlock",
+        "parameters": [
+          {
+            "name": "mac",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": "b8:27:eb:11:22:33",
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Control-Pin",
+            "in": "header",
+            "description": "CONTROL_PIN, when set",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Pi-Monitor",
+            "in": "header",
+            "description": "must be \"1\" (CSRF guard)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BlockRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HotspotClient"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Block a device by MAC: it gets disconnected and no traffic through the Pi.",
+        "tags": [
+          "network"
+        ]
+      },
+      "delete": {
+        "operationId": "networkUnblock",
+        "parameters": [
+          {
+            "name": "mac",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": "b8:27:eb:11:22:33",
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Control-Pin",
+            "in": "header",
+            "description": "CONTROL_PIN, when set",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Pi-Monitor",
+            "in": "header",
+            "description": "must be \"1\" (CSRF guard)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HotspotClient"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Let a blocked device back in.",
+        "tags": [
+          "network"
+        ]
+      }
+    },
+    "/api/network/clients/{mac}": {
+      "delete": {
+        "operationId": "networkForget",
+        "parameters": [
+          {
+            "name": "mac",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": "b8:27:eb:11:22:33",
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Control-Pin",
+            "in": "header",
+            "description": "CONTROL_PIN, when set",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Pi-Monitor",
+            "in": "header",
+            "description": "must be \"1\" (CSRF guard)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Remove a device that is gone from the list (blocked devices: unblock first).",
+        "tags": [
+          "network"
+        ]
+      }
+    },
     "/api/library/books": {
       "get": {
         "operationId": "libraryBooks",
@@ -3261,6 +3459,254 @@
           "conv",
           "text"
         ]
+      },
+      "BlockEnforcer": {
+        "type": "object",
+        "properties": {
+          "installed": {
+            "type": "boolean",
+            "description": "the helper has reported at least once (it is installed)"
+          },
+          "appliedAt": {
+            "type": "number",
+            "nullable": true,
+            "description": "unix seconds of its last run"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true,
+            "description": "its last run failed (e.g. nft missing)"
+          },
+          "pending": {
+            "type": "boolean",
+            "description": "the block list changed and the helper has not applied it (yet)"
+          }
+        },
+        "required": [
+          "installed",
+          "appliedAt",
+          "error",
+          "pending"
+        ]
+      },
+      "NetworkStatus": {
+        "type": "object",
+        "properties": {
+          "iwAvailable": {
+            "type": "boolean",
+            "description": "`iw` works (false: no Wi-Fi on this host, e.g. macOS)"
+          },
+          "interface": {
+            "type": "string",
+            "nullable": true,
+            "description": "the hotspot interface (NETWORK_IFACE, or the first in AP mode)"
+          },
+          "interfaceFound": {
+            "type": "boolean"
+          },
+          "mode": {
+            "type": "string",
+            "nullable": true,
+            "description": "\"ap\" while the hotspot runs, \"managed\" while the Pi is a Wi-Fi client"
+          },
+          "ssid": {
+            "type": "string",
+            "nullable": true
+          },
+          "channel": {
+            "type": "number",
+            "nullable": true
+          },
+          "connected": {
+            "type": "number",
+            "description": "devices associated right now"
+          },
+          "blocked": {
+            "type": "number"
+          },
+          "vendorPrefixes": {
+            "type": "number",
+            "description": "entries in the offline vendor database"
+          },
+          "leasesReadable": {
+            "type": "boolean",
+            "description": "the DHCP leases folder is mounted (IP and hostname)"
+          },
+          "enforcer": {
+            "$ref": "#/components/schemas/BlockEnforcer"
+          }
+        },
+        "required": [
+          "iwAvailable",
+          "interface",
+          "interfaceFound",
+          "mode",
+          "ssid",
+          "channel",
+          "connected",
+          "blocked",
+          "vendorPrefixes",
+          "leasesReadable",
+          "enforcer"
+        ]
+      },
+      "StationInfo": {
+        "type": "object",
+        "properties": {
+          "signalDbm": {
+            "type": "number",
+            "nullable": true
+          },
+          "signalAvgDbm": {
+            "type": "number",
+            "nullable": true
+          },
+          "connectedSeconds": {
+            "type": "number",
+            "nullable": true
+          },
+          "inactiveMs": {
+            "type": "number",
+            "nullable": true,
+            "description": "ms since the last frame from the device"
+          },
+          "rxBytes": {
+            "type": "number",
+            "nullable": true,
+            "description": "bytes received from the device"
+          },
+          "txBytes": {
+            "type": "number",
+            "nullable": true,
+            "description": "bytes sent to the device"
+          },
+          "rxBitrate": {
+            "type": "string",
+            "nullable": true
+          },
+          "txBitrate": {
+            "type": "string",
+            "nullable": true
+          },
+          "authorized": {
+            "type": "boolean",
+            "nullable": true
+          }
+        },
+        "required": [
+          "signalDbm",
+          "signalAvgDbm",
+          "connectedSeconds",
+          "inactiveMs",
+          "rxBytes",
+          "txBytes",
+          "rxBitrate",
+          "txBitrate",
+          "authorized"
+        ]
+      },
+      "HotspotClient": {
+        "type": "object",
+        "properties": {
+          "mac": {
+            "type": "string",
+            "description": "lower case, colon separated"
+          },
+          "ip": {
+            "type": "string",
+            "nullable": true
+          },
+          "hostname": {
+            "type": "string",
+            "nullable": true,
+            "description": "the name the device sent with its DHCP request"
+          },
+          "vendor": {
+            "type": "string",
+            "nullable": true,
+            "description": "manufacturer from the IEEE registry; null if unknown or randomized"
+          },
+          "randomized": {
+            "type": "boolean",
+            "description": "a private (locally administered) address: phones use one per network"
+          },
+          "connected": {
+            "type": "boolean",
+            "description": "associated with the hotspot right now"
+          },
+          "blocked": {
+            "type": "boolean"
+          },
+          "enforced": {
+            "type": "boolean",
+            "description": "the block is in the firewall (the host helper applied it)"
+          },
+          "note": {
+            "type": "string",
+            "nullable": true
+          },
+          "blockedAt": {
+            "type": "number",
+            "nullable": true,
+            "description": "unix seconds"
+          },
+          "firstSeen": {
+            "type": "number",
+            "nullable": true,
+            "description": "unix seconds"
+          },
+          "lastSeen": {
+            "type": "number",
+            "nullable": true,
+            "description": "unix seconds"
+          },
+          "leaseExpires": {
+            "type": "number",
+            "nullable": true,
+            "description": "unix seconds; null for no live lease"
+          },
+          "you": {
+            "type": "boolean",
+            "description": "the browser that asked is this device (same IP)"
+          },
+          "station": {
+            "nullable": true,
+            "description": "only while connected",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/StationInfo"
+              }
+            ]
+          }
+        },
+        "required": [
+          "mac",
+          "ip",
+          "hostname",
+          "vendor",
+          "randomized",
+          "connected",
+          "blocked",
+          "enforced",
+          "note",
+          "blockedAt",
+          "firstSeen",
+          "lastSeen",
+          "leaseExpires",
+          "you",
+          "station"
+        ]
+      },
+      "BlockRequest": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string",
+            "description": "why it is blocked, shown in the list",
+            "maxLength": 100
+          }
+        }
       },
       "Book": {
         "type": "object",

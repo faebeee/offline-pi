@@ -3,7 +3,7 @@
 # core is the only service reachable from the LAN: on PORT it serves the web
 # app (/), the one API (/api/<domain>/, a NestJS domain module per feature,
 # which talks to the module containers) and a passthrough for the modules'
-# raw files (/svc/maps/, /svc/library/, /svc/mesh/). Modules
+# raw files (/svc/maps/, /svc/library/, /svc/mesh/, /svc/network/). Modules
 # bind MODULES_BIND_ADDRESS (127.0.0.1) on their own internal port.
 #
 # Nothing starts on its own when Podman or the host boots: every service,
@@ -161,6 +161,34 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+
+  # --------------------------------------------------------------- network --
+  network:
+    build:
+      context: .
+      dockerfile: apps/network/Dockerfile
+    image: outpost-network
+    container_name: outpost-network
+    # Host networking: `iw station dump` and /proc/net/arp describe the Pi's
+    # Wi-Fi. Runs as the container's root = the host user (rootless), so it
+    # can read but not change the firewall; blocks are enforced by the host
+    # helper host/network-guard (watches NETWORK_DATA_DIR/blocked.macs).
+    network_mode: host
+    environment:
+      PORT: ${NETWORK_PORT:-8085}
+      HOST: ${MODULES_BIND_ADDRESS:-127.0.0.1}
+      NETWORK_IFACE: ${NETWORK_IFACE:-}
+    volumes:
+      - ${NETWORK_DATA_DIR:-./data/network}:/app/data
+      # the DHCP leases (IP, hostname) of NetworkManager's hotspot, read-only
+      - ${NETWORK_LEASES_PATH:-/var/lib/NetworkManager}:/leases:ro
+    restart: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:' + os.environ.get('PORT', '8085') + '/api/status', timeout=4)\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
 # userns_mode keep-id cannot be combined with a pod.
 x-podman:

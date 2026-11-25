@@ -78,6 +78,7 @@ network.
 | `maps` | `outpost-maps` | `outpost-maps` | `MAPS_PORT` | `8081` | `127.0.0.1` |
 | `knowledge` | `outpost-knowledge` | `outpost-knowledge` | `KNOWLEDGE_PORT` | `8082` | `127.0.0.1` |
 | `mesh` | `outpost-mesh` | `outpost-mesh` | `MESH_PORT` | `8084` | `127.0.0.1` |
+| `network` | `outpost-network` | `outpost-network` | `NETWORK_PORT` | `8085` | `127.0.0.1` |
 
 The Compose project is always called `outpost`, whatever the folder of
 the checkout is called. Every container, core included, has
@@ -91,6 +92,7 @@ the checkout is called. Every container, core included, has
 | maps | `GET /api/status` |
 | knowledge | `GET /svc/library/` |
 | mesh | `GET /api/status` |
+| network | `GET /api/status` |
 
 ## Data directories
 
@@ -104,13 +106,16 @@ are relative to the project folder.
 | `MAPS_ASSETS_DIR` | `./data/maps-assets` | maps: `/app/apps/maps/assets` |
 | `KNOWLEDGE_CONTENT_DIR` | `./data/knowledge` | knowledge: `/data` |
 | `MESH_DATA_DIR` | `./data/mesh` | mesh: `/app/data` |
+| `NETWORK_DATA_DIR` | `./data/network` | network: `/app/data` |
 
 Core also mounts the host's `/` read-only at `/hostfs` (for `/sys`, the
 mounted disks, Podman's state database and its API socket) and maps
 `VCIO_DEVICE` to `/dev/vcio_gencmd`. Mesh bind-mounts the host's `/dev`
 read-only (so replugging the radio into a new `/dev/ttyACM*`/`/dev/ttyUSB*`
 node keeps working) and reads the stable `/dev/serial/by-id/` path from
-`MESH_DEVICE` directly.
+`MESH_DEVICE` directly. Network mounts `NETWORK_LEASES_PATH`
+(`/var/lib/NetworkManager`) read-only at `/leases` for the hotspot's DHCP
+leases.
 
 ## Log files
 

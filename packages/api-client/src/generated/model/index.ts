@@ -7,6 +7,8 @@
  */
 
 export * from './assetsStatus';
+export * from './blockEnforcer';
+export * from './blockRequest';
 export * from './book';
 export * from './booksResponse';
 export * from './catalogBook';
@@ -39,6 +41,7 @@ export * from './geoPolygonType';
 export * from './history';
 export * from './historyPoint';
 export * from './hostAddress';
+export * from './hotspotClient';
 export * from './infoEntry';
 export * from './infoIndex';
 export * from './infoPage';
@@ -90,6 +93,7 @@ export * from './modulesOverview';
 export * from './moduleStatus';
 export * from './moduleStatusBusy';
 export * from './networkInfo';
+export * from './networkStatus';
 export * from './partialDownload';
 export * from './partialDownloadReason';
 export * from './partialDownloadsResponse';
@@ -125,6 +129,7 @@ export * from './settingsSizes';
 export * from './settingVar';
 export * from './snapshot';
 export * from './startSyncRequest';
+export * from './stationInfo';
 export * from './systemInfo';
 export * from './systemInit';
 export * from './tempsInfo';
