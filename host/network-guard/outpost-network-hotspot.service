@@ -1,0 +1,11 @@
+[Unit]
+Description=outpost Network: switch the Wi-Fi hotspot on or off
+After=NetworkManager.service
+
+# No [Install]: only outpost-network-hotspot.path starts it, when the module
+# changes hotspot.request. At boot hotspot-fallback.service decides.
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/outpost-network-hotspot.sh
+StandardOutput=journal
+StandardError=journal

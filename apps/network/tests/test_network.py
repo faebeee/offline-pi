@@ -104,6 +104,7 @@ def test_api_block_flow(tmp_path: Path, monkeypatch):
     status = c.get("/api/status").json()
     assert status["interface"] == "wlan0" and status["mode"] == "ap" and status["connected"] == 2
     assert status["enforcer"] == {"installed": False, "applied_at": None, "error": None, "pending": True}
+    assert status["hotspot"]["active"] and not status["hotspot"]["helper"]
 
     clients = c.get("/api/clients").json()
     assert [x["mac"] for x in clients] == ["12:34:56:78:9a:bc", "b8:27:eb:11:22:33"]  # by signal
@@ -129,3 +130,22 @@ def test_api_block_flow(tmp_path: Path, monkeypatch):
     assert c.delete("/api/blocked/b8:27:eb:11:22:33").status_code == 200
     assert (tmp_path / "data" / "blocked.macs").read_text() == ""
     assert c.delete("/api/blocked/b8:27:eb:11:22:33").status_code == 404
+
+
+def test_api_hotspot_switch(tmp_path: Path, monkeypatch):
+    c = make_client(tmp_path, monkeypatch)
+    data = tmp_path / "data"
+    # without the host helper the switch is refused
+    assert c.post("/api/hotspot", json={"on": False}).status_code == 409
+    assert not (data / "hotspot.request").exists()
+
+    (data / "hotspot.json").write_text('{"applied_at": 1, "request": null, "connection": "pi-hotspot", "error": null}')
+    h = c.post("/api/hotspot", json={"on": False}).json()
+    assert (data / "hotspot.request").read_text() == "off\n"
+    assert h["requested"] == "off" and h["pending"] and h["helper"]
+
+    # the helper reports back
+    (data / "hotspot.json").write_text('{"applied_at": 9999999999, "request": "off", "error": "nope"}')
+    h = c.get("/api/status").json()["hotspot"]
+    assert not h["pending"] and h["error"] == "nope"
+    assert c.post("/api/hotspot", json={"on": "maybe"}).status_code == 422

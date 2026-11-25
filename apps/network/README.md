@@ -7,7 +7,8 @@ Who is on the Pi's Wi-Fi hotspot. Open `http://<pi>:8080/network` to:
   long it has been connected, traffic and link speed,
 - see devices that were on the hotspot in the last 30 days,
 - block a device (with an optional note) and unblock it again,
-- forget a device that is gone.
+- forget a device that is gone,
+- switch the hotspot on and off.
 
 The device you are using is marked YOU; blocking it asks first.
 
@@ -24,10 +25,15 @@ browser ──> core /api/network/* ──> network :8085 (rootless container)
                                      ├─ iw dev / iw dev <if> station dump
                                      ├─ /leases/*.leases (NetworkManager's dnsmasq, read-only)
                                      ├─ /proc/net/arp
-                                     └─ DATA_DIR: blocked.json, blocked.macs, seen.json
+                                     └─ DATA_DIR: blocked.json, blocked.macs, seen.json,
+                                                  hotspot.request
 host (root):  outpost-network-guard.path ── watches DATA_DIR/blocked.macs
               outpost-network-guard.service ── nft set inet outpost_network/blocked,
                                                iw station del, DATA_DIR/enforcer.json
+              outpost-network-hotspot.path ── watches DATA_DIR/hotspot.request
+              outpost-network-hotspot.service ── hotspot-fallback.sh --hotspot (on)
+                                                 or nmcli connection down (off),
+                                                 DATA_DIR/hotspot.json
 ```
 
 - The container uses host networking. Reading the station list needs no
@@ -43,6 +49,18 @@ host (root):  outpost-network-guard.path ── watches DATA_DIR/blocked.macs
   writes `enforcer.json`. The screen reads that file to show whether a
   block is applied (BLOCKED) or not yet (BLOCK PENDING).
 - A blocked device may rejoin the Wi-Fi by itself, but it gets no traffic.
+- **Hotspot switch**: switching NetworkManager connections needs root too.
+  The container writes `on` or `off` to `hotspot.request`; a second path
+  unit runs `outpost-network-hotspot.sh`, which accepts nothing else. On
+  starts the hotspot with `hotspot-fallback.sh --hotspot` from
+  [`host/hotspot-pi`](../../host/hotspot-pi) (it creates the `pi-hotspot`
+  profile from `/etc/hotspot-fallback.env` if needed), or brings up an
+  existing profile when that is not installed. Off takes the profile
+  down; NetworkManager then joins the preferred Wi-Fi by itself if it is
+  in range. The result goes to `hotspot.json` (the screen shows SWITCHING
+  until it is there). Another profile name: `HOTSPOT_CONNECTION=<name>` in
+  `/etc/outpost-network-guard.env`. A request is never applied at boot;
+  `hotspot-fallback.service` decides there.
 - Without the helper the list still works, but blocks have no effect; the
   screen says so.
 
@@ -70,6 +88,7 @@ helper (sudo). Moving the data folder re-points it.
 ./manage.sh network clients           # every device: MAC, state, IP, signal, name, vendor
 ./manage.sh network block MAC [NOTE]  # block a device
 ./manage.sh network unblock MAC
+./manage.sh network hotspot on|off    # switch the hotspot (through the helper)
 ./manage.sh network install-guard     # (re)install the host helper (sudo)
 ```
 
@@ -80,11 +99,13 @@ sudo host/network-guard/install-network-guard.sh [--data-dir DIR]
 sudo host/network-guard/uninstall-network-guard.sh
 systemctl status outpost-network-guard.path
 journalctl -u outpost-network-guard.service
+journalctl -u outpost-network-hotspot.service
 sudo nft list table inet outpost_network
 ```
 
-The uninstaller removes the units, the script and the nftables table
-(every device can connect again); the block list stays in the data folder.
+The uninstaller removes the units, the scripts and the nftables table
+(every device can connect again) and leaves the hotspot as it is; the
+block list stays in the data folder.
 
 ## Development
 

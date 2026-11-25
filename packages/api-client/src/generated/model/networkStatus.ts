@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1
  */
 import type { BlockEnforcer } from './blockEnforcer';
+import type { HotspotState } from './hotspotState';
 
 export interface NetworkStatus {
   /** `iw` works (false: no Wi-Fi on this host, e.g. macOS) */
@@ -33,4 +34,5 @@ export interface NetworkStatus {
   /** the DHCP leases folder is mounted (IP and hostname) */
   leasesReadable: boolean;
   enforcer: BlockEnforcer;
+  hotspot: HotspotState;
 }

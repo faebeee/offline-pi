@@ -890,6 +890,57 @@
         ]
       }
     },
+    "/api/network/hotspot": {
+      "post": {
+        "operationId": "networkHotspot",
+        "parameters": [
+          {
+            "name": "X-Control-Pin",
+            "in": "header",
+            "description": "CONTROL_PIN, when set",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Pi-Monitor",
+            "in": "header",
+            "description": "must be \"1\" (CSRF guard)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HotspotRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HotspotState"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Switch the Pi's Wi-Fi hotspot on or off. The host helper does it within\na few seconds (`pending` until then); every device on the hotspot loses\nits connection when it goes off.",
+        "tags": [
+          "network"
+        ]
+      }
+    },
     "/api/network/clients": {
       "get": {
         "operationId": "networkClients",
@@ -3489,6 +3540,56 @@
           "pending"
         ]
       },
+      "HotspotState": {
+        "type": "object",
+        "properties": {
+          "active": {
+            "type": "boolean",
+            "description": "the hotspot runs now (the interface is in access-point mode)"
+          },
+          "helper": {
+            "type": "boolean",
+            "description": "the host helper is installed (it has reported at least once)"
+          },
+          "requested": {
+            "nullable": true,
+            "description": "the last switch asked for",
+            "enum": [
+              "on",
+              "off"
+            ],
+            "type": "string"
+          },
+          "requestedAt": {
+            "type": "number",
+            "nullable": true,
+            "description": "unix seconds of that request"
+          },
+          "pending": {
+            "type": "boolean",
+            "description": "asked for, but the helper has not handled it (yet)"
+          },
+          "appliedAt": {
+            "type": "number",
+            "nullable": true,
+            "description": "unix seconds of the helper's last run"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true,
+            "description": "the helper's last switch failed"
+          }
+        },
+        "required": [
+          "active",
+          "helper",
+          "requested",
+          "requestedAt",
+          "pending",
+          "appliedAt",
+          "error"
+        ]
+      },
       "NetworkStatus": {
         "type": "object",
         "properties": {
@@ -3534,6 +3635,9 @@
           },
           "enforcer": {
             "$ref": "#/components/schemas/BlockEnforcer"
+          },
+          "hotspot": {
+            "$ref": "#/components/schemas/HotspotState"
           }
         },
         "required": [
@@ -3547,7 +3651,20 @@
           "blocked",
           "vendorPrefixes",
           "leasesReadable",
-          "enforcer"
+          "enforcer",
+          "hotspot"
+        ]
+      },
+      "HotspotRequest": {
+        "type": "object",
+        "properties": {
+          "on": {
+            "type": "boolean",
+            "description": "true: start the hotspot, false: stop it"
+          }
+        },
+        "required": [
+          "on"
         ]
       },
       "StationInfo": {

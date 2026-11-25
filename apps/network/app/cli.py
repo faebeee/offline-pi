@@ -1,6 +1,6 @@
 """./manage.sh network ...: talks to the running container's own API.
 
-  python -m app.cli status | clients | block MAC [NOTE] | unblock MAC
+  python -m app.cli status | clients | block MAC [NOTE] | unblock MAC | hotspot on|off
 """
 
 from __future__ import annotations
@@ -57,6 +57,16 @@ def status() -> None:
     else:
         state = "error: " + e["error"] if e["error"] else ("pending" if e["pending"] else "enforced")
         print(f"Blocking:   {state}, applied {ago(e['applied_at'])}")
+    h = s["hotspot"]
+    if not h["helper"]:
+        print("Hotspot:    switch not installed (./manage.sh network install-guard)")
+    else:
+        state = "on" if h["active"] else "off"
+        if h["pending"]:
+            state += f", switching {h['requested']}"
+        elif h["error"]:
+            state += ", last switch failed: " + h["error"]
+        print(f"Hotspot:    {state}")
 
 
 def clients() -> None:
@@ -87,6 +97,9 @@ def main(argv: list[str]) -> None:
     elif cmd == "unblock" and len(argv) == 2:
         c = call("DELETE", f"/api/blocked/{argv[1]}")
         print(f"Unblocked {c['mac']}.")
+    elif cmd == "hotspot" and len(argv) == 2 and argv[1] in ("on", "off"):
+        call("POST", "/api/hotspot", {"on": argv[1] == "on"})
+        print(f"Hotspot {argv[1]} requested; the host helper switches it in a few seconds.")
     else:
         sys.exit(2)
 

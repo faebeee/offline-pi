@@ -43,6 +43,10 @@ class Settings:
         )
 
 
+class HotspotBody(BaseModel):
+    on: bool
+
+
 class BlockBody(BaseModel):
     mac: str
     note: str | None = Field(default=None, max_length=100)
@@ -76,6 +80,24 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "error": e.get("error") if e else None,
             "pending": e is None or applied != set(store.blocked),
             "applied": applied,
+        }
+
+    def hotspot_state(snap) -> dict[str, Any]:
+        """The hotspot switch: live state from iw, the request and the host helper's report."""
+        iface = snap.interface
+        helper = store.hotspot_helper()
+        requested, requested_at = store.hotspot_request()
+        applied_at = helper.get("applied_at") if helper else None
+        return {
+            "active": iface is not None and (iface.type or "").lower() == "ap",
+            "helper": helper is not None,
+            "requested": requested,
+            "requested_at": requested_at,
+            "pending": helper is not None
+            and requested_at is not None
+            and requested_at > (applied_at if isinstance(applied_at, (int, float)) else 0),
+            "applied_at": applied_at,
+            "error": helper.get("error") if helper else None,
         }
 
     def client(mac: str, now: float, snap, enforced: set[str]) -> dict[str, Any]:
@@ -145,7 +167,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "vendor_prefixes": len(vendors),
             "leases_readable": settings.leases_dir.is_dir(),
             "enforcer": e,
+            "hotspot": hotspot_state(snap),
         }
+
+    @app.post("/api/hotspot")
+    def switch_hotspot(body: HotspotBody) -> dict[str, Any]:
+        if store.hotspot_helper() is None:
+            raise HTTPException(
+                409, "The hotspot switch needs the host helper: run ./manage.sh network install-guard on the Pi."
+            )
+        store.request_hotspot(body.on)
+        log.info("hotspot %s requested", "on" if body.on else "off")
+        return hotspot_state(snapshot(settings.iface, settings.leases_dir))
 
     @app.get("/api/clients")
     def list_clients() -> list[dict[str, Any]]:

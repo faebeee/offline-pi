@@ -28,7 +28,7 @@ and off on the dashboard.
 | [Diagnostics](apps/diagnostics/README.md) (core) | `/diagnostics` | `/api/diagnostics` | | Troubleshooting: checks every part of outpost (modules running and answering, data folders mounted, writable and not full, the USB drive, power, temperature, memory, clock) and says what to do about each problem. |
 | [Maps](apps/maps/README.md) | `/maps` | `/api/maps` | `8081` | Self-hosted vector maps: download a region once, then pan, zoom and search with no internet connection. With Mesh installed, the Meshtastic nodes are a layer that can be switched on and off. |
 | [Mesh](apps/mesh/README.md) | `/mesh` | `/api/mesh` | `8084` | Messaging over a USB Meshtastic LoRa node: channel and direct messages, node list, history kept on the Pi. |
-| [Network](apps/network/README.md) | `/network` | `/api/network` | `8085` | Who is on the Pi's Wi-Fi hotspot: MAC address, vendor (offline IEEE registry), IP, hostname, signal, traffic; block and unblock devices (enforced by the host helper [`host/network-guard`](host/network-guard)). |
+| [Network](apps/network/README.md) | `/network` | `/api/network` | `8085` | Who is on the Pi's Wi-Fi hotspot: MAC address, vendor (offline IEEE registry), IP, hostname, signal, traffic; block and unblock devices, switch the hotspot on and off (through the host helper [`host/network-guard`](host/network-guard)). |
 | [Library](apps/knowledge/README.md) | `/library` | `/api/library` | `8082` | Offline Wikipedia, medical and survival guides via `kiwix-serve`; you choose the books on the Library screen, the container downloads them itself. |
 
 Modules listen on `127.0.0.1` only; the LAN sees just `PORT` (8080), where

@@ -1,7 +1,7 @@
 # Network
 
-Network shows who is on the Pi's Wi-Fi hotspot and lets you block a
-device. Open it with Network in the module nav (`/network`).
+Network shows who is on the Pi's Wi-Fi hotspot, lets you block a device
+and switches the hotspot on and off. Open it with Network in the module nav (`/network`).
 
 The hotspot is the Wi-Fi network the Pi opens when its preferred Wi-Fi is
 not in range (see
@@ -70,12 +70,44 @@ it. If the screen says `Blocking is not enforced`, install it on the Pi:
 ./manage.sh network install-guard
 ```
 
+## Switching the hotspot on and off
+
+The **Wi-Fi hotspot** switch at the top shows whether the hotspot runs and
+turns it on or off. If a control PIN is set, the browser asks for it.
+Switching takes a few seconds (the badge says SWITCHING ON or SWITCHING
+OFF meanwhile).
+
+- **Off**: every device on the hotspot loses its connection. The Pi joins
+  its preferred Wi-Fi if it is in range. If you are on the hotspot
+  yourself, the screen asks first: you need another way to reach the Pi
+  (a cable or the preferred Wi-Fi) to turn it back on.
+- **On**: the Pi opens the hotspot, even if its preferred Wi-Fi is in
+  range. If the Pi was connected to a Wi-Fi network, it leaves it, so the
+  screen asks first.
+
+The switch lasts until the next boot: at boot the hotspot fallback
+decides again (see
+[Network and hotspot](../02-installation/03-network-and-hotspot.md#wi-fi-hotspot-fallback)).
+It uses the same helper as blocking, and the hotspot from that page. If
+the switch says it needs the helper, install it (again, if it is from an
+older version):
+
+```bash
+./manage.sh network install-guard
+```
+
 ## Banners
 
+- `Could not switch the hotspot`, `Switching the hotspot failed`: the
+  message says why, and `journalctl -u outpost-network-hotspot.service`
+  on the Pi. Without `host/hotspot-pi` there is no hotspot to switch on.
+- `The hotspot helper does not answer`: a switch was asked for half a
+  minute ago and nothing happened. Re-install the helper.
 - `No hotspot found`: the Pi has no Wi-Fi interface in access-point mode
   (or none named `NETWORK_IFACE`). On a Mac there is never a hotspot.
 - `Hotspot is off`: the Pi is connected to another Wi-Fi as a client, so
-  nobody can join it. Devices seen before are still listed.
+  nobody can join it. Devices seen before are still listed. With the
+  helper installed, these two show in the switch instead.
 - `Blocking is not enforced`: the blocking helper is not installed.
 - `Blocking helper failed`: its last run failed; the message and
   `journalctl -u outpost-network-guard.service` say why.
@@ -87,6 +119,7 @@ it. If the screen says `Blocking is not enforced`, install it on the Pi:
 ./manage.sh network clients
 ./manage.sh network block aa:bb:cc:dd:ee:ff "unknown laptop"
 ./manage.sh network unblock aa:bb:cc:dd:ee:ff
+./manage.sh network hotspot off
 ```
 
 The settings are listed in [Settings](../05-reference/01-settings.md).

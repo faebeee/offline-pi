@@ -1,7 +1,7 @@
 // The network domain's contract: the devices on the Pi's Wi-Fi hotspot and
 // the block list. The network container (Python) speaks snake_case;
 // infrastructure/network.mappers.ts maps it onto these classes.
-import { IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsBoolean, IsOptional, IsString, MaxLength } from 'class-validator';
 
 /** The host helper (host/network-guard) that turns the block list into a firewall rule. */
 export class BlockEnforcer {
@@ -13,6 +13,27 @@ export class BlockEnforcer {
   error!: string | null;
   /** the block list changed and the helper has not applied it (yet) */
   pending!: boolean;
+}
+
+/**
+ * The hotspot switch. The host helper (host/network-guard,
+ * outpost-network-hotspot) switches the hotspot when asked.
+ */
+export class HotspotState {
+  /** the hotspot runs now (the interface is in access-point mode) */
+  active!: boolean;
+  /** the host helper is installed (it has reported at least once) */
+  helper!: boolean;
+  /** the last switch asked for */
+  requested!: 'on' | 'off' | null;
+  /** unix seconds of that request */
+  requestedAt!: number | null;
+  /** asked for, but the helper has not handled it (yet) */
+  pending!: boolean;
+  /** unix seconds of the helper's last run */
+  appliedAt!: number | null;
+  /** the helper's last switch failed */
+  error!: string | null;
 }
 
 export class NetworkStatus {
@@ -33,6 +54,7 @@ export class NetworkStatus {
   /** the DHCP leases folder is mounted (IP and hostname) */
   leasesReadable!: boolean;
   enforcer!: BlockEnforcer;
+  hotspot!: HotspotState;
 }
 
 /** Live radio facts of an associated device (iw station dump). */
@@ -79,6 +101,12 @@ export class HotspotClient {
   you!: boolean;
   /** only while connected */
   station!: StationInfo | null;
+}
+
+export class HotspotRequest {
+  /** true: start the hotspot, false: stop it */
+  @IsBoolean()
+  on!: boolean;
 }
 
 export class BlockRequest {

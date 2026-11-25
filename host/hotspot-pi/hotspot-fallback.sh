@@ -12,9 +12,11 @@
 # systemd unit. Started by hand in a terminal, it first asks which WiFi
 # interface to use (default: WIFI_IFACE from the config file).
 #
-# Usage: sudo hotspot-fallback.sh [--iface IFACE]
+# Usage: sudo hotspot-fallback.sh [--iface IFACE] [--hotspot]
 #
 #   --iface IFACE   use IFACE without asking (also overrides WIFI_IFACE)
+#   --hotspot       skip the preferred WLAN and start the hotspot right
+#                   away (the hotspot switch of outpost's Network module)
 
 set -euo pipefail
 
@@ -35,10 +37,11 @@ die() {
 }
 
 usage() {
-    echo "Usage: sudo $0 [--iface IFACE]"
+    echo "Usage: sudo $0 [--iface IFACE] [--hotspot]"
 }
 
 IFACE_ARG=""
+FORCE_HOTSPOT=false
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --iface)
@@ -48,6 +51,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --iface=*)
             IFACE_ARG="${1#--iface=}"
+            shift
+            ;;
+        --hotspot)
+            FORCE_HOTSPOT=true
             shift
             ;;
         -h|--help)
@@ -233,9 +240,13 @@ deactivate_connection() {
     fi
 }
 
-log "Scanning for preferred SSID '$PREFERRED_SSID' on $WIFI_IFACE ..."
+if $FORCE_HOTSPOT; then
+    log "Hotspot requested: not looking for '$PREFERRED_SSID'."
+else
+    log "Scanning for preferred SSID '$PREFERRED_SSID' on $WIFI_IFACE ..."
+fi
 
-if scan_for_preferred_ssid; then
+if ! $FORCE_HOTSPOT && scan_for_preferred_ssid; then
     log "Preferred SSID '$PREFERRED_SSID' found. Connecting as client."
     deactivate_connection "$HOTSPOT_CON_NAME"
     ensure_preferred_profile
@@ -245,7 +256,7 @@ if scan_for_preferred_ssid; then
     else
         log "WARNING: Failed to connect to '$PREFERRED_SSID'. Falling back to hotspot."
     fi
-else
+elif ! $FORCE_HOTSPOT; then
     log "Preferred SSID '$PREFERRED_SSID' not found."
 fi
 

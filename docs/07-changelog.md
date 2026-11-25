@@ -20,6 +20,13 @@ under **Unreleased**.
   Blocking is enforced by a small host helper (`host/network-guard`,
   root, nftables). Re-run `./install.sh`, choose Network and let it
   install the helper.
+- Network: a switch turns the Wi-Fi hotspot on and off from the web app
+  (also `./manage.sh network hotspot on|off`). It needs the hotspot
+  fallback (`host/hotspot-pi`) and the current blocking helper: run
+  `./manage.sh network install-guard` once on the Pi.
+- Hotspot fallback: `sudo hotspot-fallback.sh --hotspot` opens the
+  hotspot without looking for the preferred Wi-Fi. Re-run
+  `sudo ./install-hotspot-fallback.sh` to get it.
 
 - Hotspot fallback (`host/hotspot-pi`): started by hand
   (`sudo hotspot-fallback.sh`), the script lets you choose the Wi-Fi

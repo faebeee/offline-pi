@@ -1,0 +1,10 @@
+[Unit]
+Description=outpost Network: watch the hotspot switch of the Network module
+
+[Path]
+# written by install-network-guard.sh: <NETWORK_DATA_DIR>/hotspot.request
+PathChanged=@REQUEST@
+Unit=outpost-network-hotspot.service
+
+[Install]
+WantedBy=multi-user.target

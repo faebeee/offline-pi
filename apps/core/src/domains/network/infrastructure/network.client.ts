@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { UpstreamClient, UpstreamService } from '../../../platform/upstream/upstream.service';
-import type { HotspotClient, NetworkStatus } from '../domain/network.dto';
-import { toClient, toStatus } from './network.mappers';
+import type { HotspotClient, HotspotState, NetworkStatus } from '../domain/network.dto';
+import { toClient, toHotspot, toStatus } from './network.mappers';
 
 type Raw = Record<string, unknown>;
 
@@ -16,6 +16,10 @@ export class NetworkClient {
 
   async status(): Promise<NetworkStatus> {
     return toStatus(await this.c.get<Raw>('/api/status'));
+  }
+
+  async switchHotspot(on: boolean): Promise<HotspotState> {
+    return toHotspot(await this.c.post<Raw>('/api/hotspot', { on }));
   }
 
   async clients(clientIp?: string): Promise<HotspotClient[]> {

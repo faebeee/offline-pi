@@ -3,6 +3,7 @@ import {
   getNetworkStatusQueryKey,
   networkBlock,
   networkForget,
+  networkHotspot,
   networkUnblock,
   useNetworkClients,
   useNetworkStatus,
@@ -20,11 +21,20 @@ import { duration, monogram, signalText, title } from "./format";
 import "./network.css";
 
 const POLL_MS = 5000;
+const SWITCH_POLL_MS = 1000;
+/** a switch the helper has not handled after this long: point at its log */
+const SWITCH_SLOW_S = 30;
 
 /** Network: the devices on the Pi's Wi-Fi hotspot, inspect and block them. */
 export function NetworkScreen() {
   const running = isRunning(useModule("network"));
-  const status = useNetworkStatus({ query: { enabled: running, refetchInterval: POLL_MS } }).data;
+  const status = useNetworkStatus({
+    query: {
+      enabled: running,
+      // faster while the hotspot is being switched
+      refetchInterval: (q) => (q.state.data?.hotspot.pending ? SWITCH_POLL_MS : POLL_MS),
+    },
+  }).data;
 
   const context = status?.interfaceFound
     ? [
@@ -46,12 +56,102 @@ export function NetworkScreen() {
   );
 }
 
+/** The hotspot on/off switch. The host helper does the switching, so it takes a few seconds. */
+function HotspotSwitch({ status, clients }: { status: NetworkStatus; clients: HotspotClient[] }) {
+  const qc = useQueryClient();
+  const h = status.hotspot;
+  const toggle = useMutation({
+    mutationFn: (on: boolean) => withControlPin("switch the hotspot", () => networkHotspot({ on })),
+    onSettled: () => qc.invalidateQueries({ queryKey: getNetworkStatusQueryKey() }),
+  });
+
+  const switching = toggle.isPending || h.pending;
+  const target = toggle.isPending ? !!toggle.variables : h.requested === "on";
+  const on = switching ? target : h.active;
+  const can = status.iwAvailable && h.helper && !switching;
+  const slow = h.pending && h.requestedAt != null && Date.now() / 1000 - h.requestedAt > SWITCH_SLOW_S;
+  const client = status.mode === "managed" && status.ssid ? status.ssid : null;
+
+  const line = !status.iwAvailable
+    ? "This host has no Wi-Fi tools (on macOS there is no hotspot)."
+    : !h.helper
+      ? "The switch needs the helper on the Pi: ./manage.sh network install-guard"
+      : switching
+        ? `Switching ${target ? "on" : "off"}, this takes a few seconds…`
+        : h.active
+          ? `${status.ssid ? `"${status.ssid}"` : "On"}${status.interface ? ` on ${status.interface}` : ""}: devices can join the Pi.`
+          : client
+            ? `Off: the Pi is on "${client}" as a Wi-Fi client, so devices can't join it.`
+            : "Off: devices can't join the Pi.";
+
+  const flip = () => {
+    const next = !h.active;
+    const youOnHotspot = clients.some((c) => c.you && c.connected);
+    const question = next
+      ? client
+        ? `The Pi leaves "${client}" to open the hotspot. If you are connected through "${client}", you lose the connection to outpost. Turn the hotspot on?`
+        : null
+      : youOnHotspot
+        ? "You are connected through the hotspot: turning it off cuts you off from outpost, and you need another way to reach the Pi (a cable or its preferred Wi-Fi) to turn it back on. Turn it off?"
+        : "Every device on the hotspot loses its connection. Turn the hotspot off?";
+    if (question && !window.confirm(question)) return;
+    toggle.mutate(next);
+  };
+
+  return (
+    <article className="card card-control">
+      <div className="switch-row">
+        <div className="row-main">
+          <div className="row-title">
+            Wi-Fi hotspot{" "}
+            {switching ? (
+              <Badge key="busy" state="cau" className="badge-sm is-busy">
+                {target ? "Switching on" : "Switching off"}
+              </Badge>
+            ) : (
+              <Badge key={on ? "on" : "off"} state={on ? "ok" : "off"} className="badge-sm">
+                {on ? "On" : "Off"}
+              </Badge>
+            )}
+          </div>
+          <div className="row-meta body-sm fg2">{line}</div>
+        </div>
+        <button
+          type="button"
+          className="switch"
+          role="switch"
+          aria-checked={on}
+          aria-label="Wi-Fi hotspot"
+          disabled={!can}
+          onClick={flip}
+        />
+      </div>
+      {toggle.error ? (
+        <Banner tone="crit" title="Could not switch the hotspot">
+          {toggle.error.message}
+        </Banner>
+      ) : slow ? (
+        <Banner tone="cau" title="The hotspot helper does not answer">
+          See <code>journalctl -u outpost-network-hotspot.service</code> on the Pi, or re-install it with{" "}
+          <code>./manage.sh network install-guard</code>.
+        </Banner>
+      ) : h.error && !switching ? (
+        <Banner tone="crit" title="Switching the hotspot failed">
+          {h.error}. See <code>journalctl -u outpost-network-hotspot.service</code> on the Pi.
+        </Banner>
+      ) : null}
+    </article>
+  );
+}
+
 /** What is wrong with the hotspot or with blocking, as banners. */
 function StatusBanners({ status }: { status: NetworkStatus }) {
   const e = status.enforcer;
+  // with the switch installed, its card says whether the hotspot is on
+  const switchable = status.iwAvailable && status.hotspot.helper;
   return (
     <>
-      {!status.iwAvailable || !status.interfaceFound ? (
+      {switchable ? null : !status.iwAvailable || !status.interfaceFound ? (
         <Banner tone="info" title="No hotspot found">
           {status.iwAvailable
             ? `No Wi-Fi interface ${status.interface ?? "in access-point mode"} on this host. Devices appear here once the hotspot runs (host/hotspot-pi) or NETWORK_IFACE names it.`
@@ -91,6 +191,7 @@ function Devices({ status }: { status: NetworkStatus | undefined }) {
 
   return (
     <div className="net vstack">
+      {status && <HotspotSwitch status={status} clients={list} />}
       {status && <StatusBanners status={status} />}
       {clients.error && (
         <Banner tone="crit" title="Could not load the devices">

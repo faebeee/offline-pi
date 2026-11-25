@@ -1,4 +1,4 @@
-import type { HotspotClient, NetworkStatus, StationInfo } from '../domain/network.dto';
+import type { HotspotClient, HotspotState, NetworkStatus, StationInfo } from '../domain/network.dto';
 
 /** snake_case JSON from the network container -> camelCase domain objects. */
 type Raw = Record<string, unknown>;
@@ -14,7 +14,12 @@ function camelize<T>(raw: Raw): T {
 export function toStatus(raw: Raw): NetworkStatus {
   const s = camelize<NetworkStatus>(raw);
   s.enforcer = camelize((raw.enforcer as Raw | undefined) ?? { installed: false, pending: true });
+  s.hotspot = toHotspot((raw.hotspot as Raw | undefined) ?? { active: false, helper: false, pending: false });
   return s;
+}
+
+export function toHotspot(raw: Raw): HotspotState {
+  return camelize<HotspotState>(raw);
 }
 
 /** CLIENT_IP: the browser's address, to mark its own device. */
