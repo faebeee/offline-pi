@@ -85,6 +85,47 @@ Sending needs the header `X-Send-PIN` when `MESH_SEND_PIN` is set.
 | `GET` | `library/sync` | Whether selected books are being downloaded, and how far |
 | `POST` | `library/sync` | Download missing selected books now (or newer versions); runs in the background |
 | `GET` | `library/search?q=&bookId=&lang=&start=&pageLength=` | Full-text search in one book (`bookId`) or every book of one language (`lang`) |
+| `GET` | `library/emergency` | The "In an emergency" topics, the language they are searched in and the emergency starter set |
+| `GET` | `library/emergency/:topic` | The best article for one topic in the installed books (cached for 10 minutes) |
+
+## files
+
+| Method | Path | What it does |
+|---|---|---|
+| `GET` | `files/status` | Size of the shared folder, free space, upload limits |
+| `GET` | `files/list?path=` | One folder, folders first |
+| `POST` | `files/folders` | Make a folder |
+| `POST` | `files/move` | Rename or move a file or folder |
+| `DELETE` | `files/entries?path=` | Delete a file, or a folder with everything in it (control PIN) |
+
+The bytes go through the passthrough, not the API: `GET /svc/files/raw/<path>`
+downloads (`?download=true` as an attachment; HTML, SVG and other files a
+browser could run are always attachments), `PUT /svc/files/raw/<path>`
+uploads the request body (`?overwrite=true` replaces a file; needs
+`X-Pi-Monitor: 1`).
+
+## board
+
+| Method | Path | What it does |
+|---|---|---|
+| `GET` | `board/status` | Posts per kind, open and done |
+| `GET` | `board/posts?kind=&includeDone=` | Every post: pinned first, done last |
+| `POST` | `board/posts` | Add a post (`notice`, `need`, `offer` or `checkin`) |
+| `PATCH` | `board/posts/:id` | Change a post or mark it done; changing `pinned` needs the control PIN |
+| `DELETE` | `board/posts/:id` | Delete a post (control PIN) |
+
+## supplies
+
+| Method | Path | What it does |
+|---|---|---|
+| `GET` | `supplies/status` | Counts, warnings and how many days the water lasts |
+| `GET` | `supplies/items` | Every item, by category and name |
+| `POST` | `supplies/items` | Add an item |
+| `PATCH` | `supplies/items/:id` | Change an item |
+| `POST` | `supplies/items/:id/adjust` | Add to or take from its quantity |
+| `DELETE` | `supplies/items/:id` | Delete an item (control PIN) |
+| `GET` | `supplies/settings` | People, water per day, target days, expiry warning |
+| `PUT` | `supplies/settings` | Change them |
 
 ## info
 
@@ -143,13 +184,13 @@ dropped.
 
 ## Control headers
 
-Starting and stopping modules gives access to the user's Podman, so core
-guards it:
+Starting and stopping modules gives access to the user's Podman, and some
+actions delete shared data, so core guards them:
 
 | Header | Required | Why |
 |---|---|---|
-| `X-Pi-Monitor: 1` | Always, on `POST /api/modules/:id/:action` | Another web page can't send it with a plain form post (CSRF guard). Missing: `400`. |
-| `X-Control-Pin` | When `CONTROL_PIN` is set | Wrong or missing: `403`. |
+| `X-Pi-Monitor: 1` | On every call that changes something (`POST`, `PUT`, `PATCH`, `DELETE`) of modules, network, files, board and supplies | Another web page can't send it with a plain form post (CSRF guard). Missing: `400`. |
+| `X-Control-Pin` | When `CONTROL_PIN` is set, on control actions: module start/stop, blocking devices and the hotspot switch, deleting shared files, board posts and supplies, pinning posts | Wrong or missing: `403`. |
 
 ```bash
 curl -X POST -H 'X-Pi-Monitor: 1' -H 'X-Control-Pin: 1234' \

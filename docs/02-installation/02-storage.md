@@ -9,14 +9,18 @@ an SSD mounted at `/mnt/ssd`.
 
 | Variable | Default | What is in it | Size |
 |---|---|---|---|
-| `CORE_DATA_DIR` | `./data/core` | Dashboard history and power events (`history.json`), modules switched off (`modules.json`) | under 1 MB |
+| `CORE_DATA_DIR` | `./data/core` | Dashboard history and power events (`history.json`), modules switched off (`modules.json`), notice board posts (`board.json`) | about 1 MB |
 | `MAPS_DATA_DIR` | `./data/maps` | Map regions (`regions/*.pmtiles`, `regions.json`), unfinished downloads (`downloads/`), your points of interest (`offline-maps.db`), the region catalog | many GB possible |
 | `MAPS_ASSETS_DIR` | `./data/maps-assets` | Map fonts and sprites | about 100 MB |
 | `KNOWLEDGE_CONTENT_DIR` | `./data/knowledge` | Library books (ZIM files in `zim/`), partial downloads, your book selection (`selection.txt`) | MB to hundreds of GB |
 | `MESH_DATA_DIR` | `./data/mesh` | Message history and node list (`mesh.db`) | small |
+| `NETWORK_DATA_DIR` | `./data/network` | Hotspot block list and the devices seen | a few KB |
+| `FILES_DATA_DIR` | `./data/files` | The shared files, as plain files and folders | grows with every upload |
+| `SUPPLIES_DATA_DIR` | `./data/supplies` | Supplies list and household settings (`supplies.db`) | small |
 
-The two that grow are `MAPS_DATA_DIR` and `KNOWLEDGE_CONTENT_DIR`. Put those
-on an SSD if you plan to download large regions or many books. The others
+The ones that grow are `MAPS_DATA_DIR`, `KNOWLEDGE_CONTENT_DIR` and
+`FILES_DATA_DIR`. Put those on an SSD if you plan to download large regions
+or many books, or to share many files. The others
 are fine on the SD card.
 
 ## Choosing or changing a location

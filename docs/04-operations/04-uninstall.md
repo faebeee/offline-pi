@@ -35,7 +35,8 @@ It works with or without `.env` and even when Podman is already gone.
    again.
 
 The data directories it knows are `CORE_DATA_DIR`, `MAPS_DATA_DIR`,
-`MAPS_ASSETS_DIR`, `KNOWLEDGE_CONTENT_DIR` and `MESH_DATA_DIR`, read from
+`MAPS_ASSETS_DIR`, `KNOWLEDGE_CONTENT_DIR`, `MESH_DATA_DIR`,
+`NETWORK_DATA_DIR`, `FILES_DATA_DIR` and `SUPPLIES_DATA_DIR`, read from
 `.env` (or their defaults under `data/`).
 
 ## Safety rules

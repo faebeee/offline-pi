@@ -16,6 +16,8 @@ IMAGES=(
   ghcr.io/kiwix/kiwix-serve:3.8.2
   localhost/outpost-mesh:latest
   localhost/outpost-network:latest
+  localhost/outpost-files:latest
+  localhost/outpost-supplies:latest
   # retired module (now part of maps), still on older installs
   localhost/outpost-mesh-map:latest
 )
@@ -27,6 +29,8 @@ DATA_DIR_VARS=(
   KNOWLEDGE_CONTENT_DIR=./data/knowledge
   MESH_DATA_DIR=./data/mesh
   NETWORK_DATA_DIR=./data/network
+  FILES_DATA_DIR=./data/files
+  SUPPLIES_DATA_DIR=./data/supplies
 )
 # podman.socket was enabled by install.sh for core; other tools may use it.
 EXTRA_STEPS=("leaves podman.socket enabled (stop it with: systemctl --user disable --now podman.socket)")

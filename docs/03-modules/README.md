@@ -2,8 +2,8 @@
 
 outpost is one web app. Open `http://<pi>:8080` in any browser on the
 same network or hotspot as the Pi (the port is `PORT` in `.env`, 8080 by
-default). Every module is a screen of that app: Maps, Library, Mesh, Mesh
-map, plus System, Logs, Info, Settings and Diagnostics, which are always there. This chapter
+default). Every module is a screen of that app: Maps, Library, Mesh,
+Network, Files, Board and Supplies, plus System, Logs, Info, Settings and Diagnostics, which are always there. This chapter
 explains how to use each screen.
 
 Nothing in the app loads from the internet. Fonts, icons, map styles and
@@ -119,3 +119,9 @@ starts or stops a module. See [Home](01-home.md#the-control-pin).
 - [Diagnostics](09-diagnostics.md): checks what works and what does not, with a fix for each problem.
 - [Network](10-network.md): who is on the Pi's Wi-Fi hotspot, with MAC
   address and vendor, and blocking a device.
+- [Files](11-files.md): a shared folder on the Pi, to upload and download
+  files from any device on its network.
+- [Board](12-board.md): a notice board for news, needs, offers and
+  check-ins.
+- [Supplies](13-supplies.md): your emergency stock, best-before dates and
+  how many days the water lasts.

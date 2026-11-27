@@ -91,6 +91,7 @@ export class ModulesService implements OnModuleInit {
         description: m.description,
         path: m.path,
         optional: m.optional,
+        nav: m.nav,
         container: m.containerName,
         installed,
         enabled: installed && !this.off.has(m.id),

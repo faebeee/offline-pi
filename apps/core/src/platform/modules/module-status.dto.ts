@@ -8,6 +8,8 @@ export class ModuleStatus {
   /** web route of the module (e.g. /maps/); also its passthrough under /svc */
   path!: string;
   optional!: boolean;
+  /** nav group: apps on top, system screens (System, Logs, ...) at the bottom */
+  nav!: 'apps' | 'system';
   /** podman container name, outpost-<service> */
   container!: string;
   installed!: boolean;

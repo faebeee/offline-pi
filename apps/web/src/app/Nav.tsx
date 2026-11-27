@@ -8,8 +8,8 @@ const HOME: Item = { id: "home", label: "Home", icon: "hub", path: "/", running:
 
 /**
  * Module nav: home and the installed apps first, then the screens of the
- * system itself (System, Logs, Info, Settings, Diagnostics: the modules that
- * are not optional), pushed to the end of the rail.
+ * system itself (System, Logs, Info, Settings, Diagnostics: manifest
+ * "nav": "system"), pushed to the end of the rail.
  */
 export function Nav({ current }: { current: string }) {
   const { data } = useModules();
@@ -17,11 +17,11 @@ export function Nav({ current }: { current: string }) {
   const apps: Item[] = [
     HOME,
     ...installed
-      .filter((m) => m.optional)
-      .map((m) => ({ id: m.id, label: m.label, icon: m.icon, path: m.path, running: m.state === "running" })),
+      .filter((m) => m.nav === "apps")
+      .map((m) => ({ id: m.id, label: m.label, icon: m.icon, path: m.path, running: !m.optional || m.state === "running" })),
   ];
   const system: Item[] = installed
-    .filter((m) => !m.optional)
+    .filter((m) => m.nav === "system")
     .map((m) => ({ id: m.id, label: m.label, icon: m.icon, path: m.path, running: true }));
 
   const link = (m: Item, first = false) => (

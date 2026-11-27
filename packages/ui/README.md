@@ -176,10 +176,11 @@ Formatters: `utcTime` (`14:32Z`), `utcClock` (`14:32:05Z`), `utcDateTime`, `utcD
 (`47.37690 N · 008.54170 E`), `ago` (`3 MIN AGO`), `bytes`, `bearing`
 (`038°`), `distance`.
 
-Icons in `icons.svg`: map, library, mesh, nodes, hub, system, locate,
+Icons in `icons.svg`: map, library, mesh, nodes, hub, system, folder, board,
+crate, locate,
 waypoint, layers, search, send, download, plus, minus, back, chevron, close,
 trash, edit, external, fit, list, refresh, compass, message, sun, moon, battery, signal,
-thermo, storage, power, and the fixed status shapes info, ok, caution,
+thermo, storage, sliders, pulse, power, and the fixed status shapes info, ok, caution,
 critical, offline.
 
 ## Adding to it

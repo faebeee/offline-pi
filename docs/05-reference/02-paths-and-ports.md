@@ -79,6 +79,8 @@ network.
 | `knowledge` | `outpost-knowledge` | `outpost-knowledge` | `KNOWLEDGE_PORT` | `8082` | `127.0.0.1` |
 | `mesh` | `outpost-mesh` | `outpost-mesh` | `MESH_PORT` | `8084` | `127.0.0.1` |
 | `network` | `outpost-network` | `outpost-network` | `NETWORK_PORT` | `8085` | `127.0.0.1` |
+| `files` | `outpost-files` | `outpost-files` | `FILES_PORT` | `8086` | `127.0.0.1` |
+| `supplies` | `outpost-supplies` | `outpost-supplies` | `SUPPLIES_PORT` | `8088` | `127.0.0.1` |
 
 The Compose project is always called `outpost`, whatever the folder of
 the checkout is called. Every container, core included, has
@@ -93,6 +95,8 @@ the checkout is called. Every container, core included, has
 | knowledge | `GET /svc/library/` |
 | mesh | `GET /api/status` |
 | network | `GET /api/status` |
+| files | `GET /api/health` |
+| supplies | `GET /api/status` |
 
 ## Data directories
 
@@ -107,6 +111,8 @@ are relative to the project folder.
 | `KNOWLEDGE_CONTENT_DIR` | `./data/knowledge` | knowledge: `/data` |
 | `MESH_DATA_DIR` | `./data/mesh` | mesh: `/app/data` |
 | `NETWORK_DATA_DIR` | `./data/network` | network: `/app/data` |
+| `FILES_DATA_DIR` | `./data/files` | files: `/app/data` |
+| `SUPPLIES_DATA_DIR` | `./data/supplies` | supplies: `/app/data` |
 
 Core also mounts the host's `/` read-only at `/hostfs` (for `/sys`, the
 mounted disks, Podman's state database and its API socket) and maps

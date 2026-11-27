@@ -11,6 +11,9 @@ you cannot get back and how to copy it by hand.
 | Settings | `.env` in the project folder | Partly: `install.sh` asks again, but PINs, ports and module settings are lost. Small, always back it up. |
 | Mesh message history | `MESH_DATA_DIR` (`mesh.db`) | **No.** Messages exist only on this Pi. |
 | Points of interest | `MAPS_DATA_DIR` (`offline-maps.db`) | **No.** Places you saved yourself. |
+| Shared files | `FILES_DATA_DIR` | **No.** Whatever people uploaded. Plain files and folders: copy them as they are. |
+| Notice board | `CORE_DATA_DIR` (`board.json`) | **No.** The posts exist only on this Pi. |
+| Supplies list | `SUPPLIES_DATA_DIR` (`supplies.db`) | **No.** Your stock list and household settings. |
 | Dashboard data | `CORE_DATA_DIR` (`history.json`, `modules.json`) | Not needed: 24 h history, power events and which modules are switched off. Small. |
 | Map regions | `MAPS_DATA_DIR` (`regions/`, `regions.json`) | Yes, download them again in Maps (needs internet, can be many GB). |
 | Map fonts and sprites | `MAPS_ASSETS_DIR` | Yes, `install.sh` downloads them again. |

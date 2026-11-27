@@ -103,6 +103,8 @@ export class CatalogGroup {
 /** The books on offer, grouped, with what is selected and installed. */
 export class LibraryCatalog {
   groups!: CatalogGroup[];
+  /** keys of the emergency starter set (the books the emergency index needs) */
+  starter!: string[];
   /** bytes free in KNOWLEDGE_CONTENT_DIR, null when unknown */
   freeBytes!: number | null;
 }
@@ -122,4 +124,43 @@ export class StartSyncRequest {
   @IsOptional()
   @IsBoolean()
   update?: boolean;
+}
+
+export class EmergencyTopic {
+  id!: string;
+  label!: string;
+  /** the full-text search behind it */
+  query!: string;
+}
+
+export class EmergencyGroup {
+  id!: string;
+  label!: string;
+  topics!: EmergencyTopic[];
+}
+
+export class StarterBook {
+  key!: string;
+  title!: string;
+  /** approximate download size in bytes */
+  size!: number;
+  installed!: boolean;
+}
+
+/** The "In an emergency" index of the Library screen. */
+export class EmergencyIndex {
+  /** the language searched (ISO 639-3, English when there is an English book), null when no book has a full-text index */
+  language!: string | null;
+  groups!: EmergencyGroup[];
+  /** the emergency starter set and which of it is installed */
+  starter!: StarterBook[];
+}
+
+/** The best article for one emergency topic in the installed books. */
+export class EmergencyArticle {
+  topic!: string;
+  /** the top hit, null when nothing matches */
+  hit!: SearchHit | null;
+  /** all hits of the search */
+  total!: number;
 }

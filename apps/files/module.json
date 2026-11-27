@@ -1,0 +1,17 @@
+{
+  "id": "files",
+  "num": 5,
+  "label": "Files",
+  "icon": "folder",
+  "description": "A shared folder on the Pi: upload, download and share files with everyone on its network.",
+  "service": "files",
+  "path": "/files/",
+  "portEnv": "FILES_PORT",
+  "port": 8086,
+  "stripPrefix": true,
+  "health": "/api/health",
+  "dirs": ["FILES_DATA_DIR"],
+  "optional": true,
+  "requires": [],
+  "dependsOn": []
+}

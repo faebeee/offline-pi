@@ -1,8 +1,11 @@
-import { BadRequestException, Body, Controller, DefaultValuePipe, Get, HttpCode, ParseIntPipe, Post, Put, Query } from '@nestjs/common';
+import { BadRequestException, Body, Controller, DefaultValuePipe, Get, HttpCode, Param, ParseIntPipe, Post, Put, Query } from '@nestjs/common';
 import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { CatalogService } from '../application/catalog.service';
+import { EmergencyService } from '../application/emergency.service';
 import {
   BooksResponse,
+  EmergencyArticle,
+  EmergencyIndex,
   LibraryCatalog,
   LibrarySync,
   SearchResponse,
@@ -26,12 +29,25 @@ export class LibraryController {
     private readonly syncStatus: SyncStatusReader,
     private readonly catalogs: CatalogService,
     private readonly commands: KnowledgeCommands,
+    private readonly emergency: EmergencyService,
   ) {}
 
   /** Every installed book, by title. */
   @Get('books')
   async books(): Promise<BooksResponse> {
     return { books: await this.kiwix.books() };
+  }
+
+  /** The "In an emergency" topics, the language they are searched in and the starter set. */
+  @Get('emergency')
+  emergencyIndex(): Promise<EmergencyIndex> {
+    return this.emergency.index();
+  }
+
+  /** The best article for one emergency topic in the installed books (cached for a while). */
+  @Get('emergency/:topic')
+  emergencyArticle(@Param('topic') topic: string): Promise<EmergencyArticle> {
+    return this.emergency.article(topic);
   }
 
   /** Whether selected books are being downloaded in the background, and how far. */

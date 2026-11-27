@@ -45,6 +45,9 @@ on the home page.
 | Maps | `/maps` | Self-hosted vector maps: download a region once, then pan, zoom and search without internet. With Mesh installed, the Meshtastic nodes are a layer you can switch on and off. |
 | Mesh | `/mesh` | Messaging over a USB Meshtastic LoRa node: channel and direct messages, node list, history kept on the Pi. |
 | Network | `/network` | Who is on the Pi's Wi-Fi hotspot: MAC address, vendor, IP, signal; block and unblock devices. |
+| Files | `/files` | A shared folder on the Pi: upload, download and share files with everyone on its network. |
+| Board | `/board` | Notice board: news, needs, offers and check-ins of everyone on the Pi's network. |
+| Supplies | `/supplies` | Your emergency stock: what, how much, where, best-before dates, and how long the water lasts. |
 | Library | `/library` | Offline Wikipedia, medical and survival guides (Kiwix). You choose the books on the Library screen. |
 | System | `/system` | Pi health: temperature, input voltage, throttling, CPU, memory, storage, network, containers. |
 | Logs | `/logs` | Log lines of core and every installed module, live and filterable. |

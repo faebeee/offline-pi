@@ -29,6 +29,9 @@ and off on the dashboard.
 | [Maps](apps/maps/README.md) | `/maps` | `/api/maps` | `8081` | Self-hosted vector maps: download a region once, then pan, zoom and search with no internet connection. With Mesh installed, the Meshtastic nodes are a layer that can be switched on and off. |
 | [Mesh](apps/mesh/README.md) | `/mesh` | `/api/mesh` | `8084` | Messaging over a USB Meshtastic LoRa node: channel and direct messages, node list, history kept on the Pi. |
 | [Network](apps/network/README.md) | `/network` | `/api/network` | `8085` | Who is on the Pi's Wi-Fi hotspot: MAC address, vendor (offline IEEE registry), IP, hostname, signal, traffic; block and unblock devices, switch the hotspot on and off (through the host helper [`host/network-guard`](host/network-guard)). |
+| [Files](apps/files/README.md) | `/files` | `/api/files` | `8086` | A shared folder for everyone on the Pi's network: upload, download, folders, rename; uploads and downloads stream through `/svc/files/raw/`. |
+| [Board](apps/board/README.md) (core) | `/board` | `/api/board` | | Notice board: notices, needs, offers and check-ins, without accounts; needs and offers can be marked done. |
+| [Supplies](apps/supplies/README.md) | `/supplies` | `/api/supplies` | `8088` | The household's emergency stock: what, how much, where, best-before dates; warns about expired, expiring and low items and says how many days the water lasts. |
 | [Library](apps/knowledge/README.md) | `/library` | `/api/library` | `8082` | Offline Wikipedia, medical and survival guides via `kiwix-serve`; you choose the books on the Library screen, the container downloads them itself. |
 
 Modules listen on `127.0.0.1` only; the LAN sees just `PORT` (8080), where
@@ -150,6 +153,9 @@ documents every variable. The main ones:
 | `MESH_CONNECTION` / `MESH_DEVICE` / `MESH_HOST` | | How Mesh reaches the node (set by `install.sh`). |
 | `NETWORK_DATA_DIR` | `./data/network` | Hotspot block list and devices seen (a few KB). |
 | `NETWORK_IFACE` / `NETWORK_LEASES_PATH` | | Hotspot interface (empty: auto) and its DHCP leases folder. |
+| `FILES_DATA_DIR` | `./data/files` | The shared files (grows with every upload). Point at the SSD. |
+| `FILES_MAX_UPLOAD_MB` / `FILES_MIN_FREE_MB` | `4096` / `1024` | Largest upload; free space every upload must leave. |
+| `SUPPLIES_DATA_DIR` | `./data/supplies` | Supplies list (SQLite, small). |
 | `*_PORT` | `8081`... | Internal (loopback) port of each module. |
 
 Edit `.env` and run `./start.sh` to apply a change; storage paths are changed

@@ -9,6 +9,8 @@ import type { CatalogGroup } from './catalogGroup';
 
 export interface LibraryCatalog {
   groups: CatalogGroup[];
+  /** keys of the emergency starter set (the books the emergency index needs) */
+  starter: string[];
   /**
      * bytes free in KNOWLEDGE_CONTENT_DIR, null when unknown
      * @nullable

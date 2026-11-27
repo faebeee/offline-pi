@@ -1,0 +1,123 @@
+/* Files: layout only, tokens only (components from @outpost/ui). */
+
+.files {
+  position: relative;
+  gap: var(--space-4);
+  min-height: 60vh;
+}
+
+.files-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.files-crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  min-width: 0;
+  gap: var(--space-1);
+}
+
+.files-crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--fg3);
+}
+
+.files-crumbs [aria-current="page"] {
+  color: var(--fg);
+}
+
+.files-buttons {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* the upload arrow: the download icon turned upside down */
+.i-up {
+  transform: rotate(180deg);
+}
+
+.files-list > li {
+  background: var(--s1);
+}
+
+.files-list .row-main {
+  min-width: 0;
+}
+
+.files-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.files-list .monogram {
+  font-size: 11px;
+}
+
+.files-uploads {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.files-upload-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.files-upload {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.files-upload-head,
+.files-upload-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.files-upload-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+/* drop target over the whole folder while files are dragged in */
+.files-drop {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  border: 2px dashed var(--acc);
+  border-radius: var(--radius);
+  background: var(--acc-soft);
+  color: var(--acc-ink);
+  font: 500 13px/1.4 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.files-drop .i {
+  width: 32px;
+  height: 32px;
+}

@@ -40,6 +40,7 @@ it with `sed`) and arrays on one line:
   "service": "radio",
   "path": "/radio/",
   "portEnv": "RADIO_PORT",
+  "port": 8089,
   "stripPrefix": true,
   "health": "/api/status",
   "dirs": ["RADIO_DATA_DIR"],
@@ -59,6 +60,7 @@ it with `sed`) and arrays on one line:
 | `service` | Compose service name, also the folder name in `apps/` |
 | `path` | The screen's route in the web app; the passthrough is `/svc` + path |
 | `portEnv` | The `.env` variable with the internal port |
+| `port` | The default internal port (same as in `.env.example` and `compose.yml`), used when `portEnv` is missing from an older `.env` |
 | `stripPrefix` | `true`: `/svc/radio/x` is forwarded as `/x`. `false`: the prefix is kept, for servers with a URL root (kiwix) |
 | `health` | Health path on the module |
 | `dirs` | Its bind-mounted `*_DIR` variables, checked by `start.sh` |
@@ -86,13 +88,13 @@ A service block in `compose.yml`:
     container_name: outpost-radio
     network_mode: host
     environment:
-      PORT: ${RADIO_PORT:-8087}
+      PORT: ${RADIO_PORT:-8089}
       HOST: ${MODULES_BIND_ADDRESS:-127.0.0.1}
     volumes:
       - ${RADIO_DATA_DIR:-./data/radio}:/app/data
     restart: on-failure
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://127.0.0.1:$${PORT:-8087}/api/status || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://127.0.0.1:$${PORT:-8089}/api/status || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -121,7 +123,7 @@ the next free internal port and a comment for each:
 ```bash
 # ------------------------------------------------------------------ radio --
 # /radio/: what it does. Internal port.
-RADIO_PORT=8087
+RADIO_PORT=8089
 # What grows here. Point at your SSD, e.g. /mnt/ssd/outpost/radio.
 RADIO_DATA_DIR=./data/radio
 ```

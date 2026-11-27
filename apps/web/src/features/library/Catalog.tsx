@@ -57,7 +57,7 @@ export function CatalogContext() {
  * Choose which books this box keeps: tick books to download them, untick
  * installed ones to delete them, then apply. Nothing downloads before that.
  */
-export function Catalog() {
+export function Catalog({ starter = false }: { starter?: boolean }) {
   const qc = useQueryClient();
   const sync = useSync();
   const { data, error, refetch, isFetching } = useCatalog(sync?.state === "running");
@@ -76,6 +76,14 @@ export function Catalog() {
   useEffect(() => {
     if (added.length && books.length) setAdded((a) => a.filter((k) => !books.some((b) => b.key === k)));
   }, [books, added.length]);
+
+  // opened from the library's "Choose" (?starter): tick the starter set once
+  const [starterApplied, setStarterApplied] = useState(false);
+  useEffect(() => {
+    if (!starter || starterApplied || !data) return;
+    setStarterApplied(true);
+    setDraft((d) => new Set([...(d ?? saved), ...data.starter]));
+  }, [starter, starterApplied, data, saved]);
 
   const toggle = (key: string) => {
     const next = new Set(chosen);
@@ -154,6 +162,12 @@ export function Catalog() {
       </Banner>
 
       <SyncStatus sync={sync} />
+
+      <StarterSet
+        books={data.starter.map((k) => byKey.get(k)).filter((b): b is CatalogBook => !!b)}
+        chosen={chosen}
+        onTick={() => setDraft(new Set([...chosen, ...data.starter]))}
+      />
 
       {groups.map((g) => (
         <section key={g.id} className="lib-section" aria-labelledby={`lib-g-${g.id}`}>
@@ -322,5 +336,31 @@ function AddByName({ known, onAdd }: { known: (key: string) => boolean; onAdd: (
         )}
       </p>
     </form>
+  );
+}
+
+/** The emergency starter set (the books the library's emergency index needs), ticked in one go. */
+function StarterSet({ books, chosen, onTick }: { books: CatalogBook[]; chosen: Set<string>; onTick: () => void }) {
+  const missing = books.filter((b) => !chosen.has(b.key));
+  if (!books.length) return null;
+  const size = missing.reduce((s, b) => s + (b.size ?? 0), 0);
+  return missing.length ? (
+    <Banner
+      tone="info"
+      title="Emergency starter set"
+      action={
+        <button type="button" className="btn" onClick={onTick}>
+          <Icon name="ok" />
+          Tick {missing.length === books.length ? "all" : missing.length}
+        </button>
+      }
+    >
+      {books.map((b) => b.title).join(", ")}: first aid, medicines and water, what the library's emergency topics open.
+      {missing.length < books.length ? ` ${missing.length} not ticked yet,` : ""} about {bytes(size)} to download.
+    </Banner>
+  ) : (
+    <Banner tone="ok" title="Emergency starter set ticked">
+      {books.map((b) => b.title).join(", ")}.
+    </Banner>
   );
 }

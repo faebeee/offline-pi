@@ -10,12 +10,15 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BoardRouteImport } from './routes/board'
 import { Route as DiagnosticsRouteImport } from './routes/diagnostics'
+import { Route as FilesRouteImport } from './routes/files'
 import { Route as LogsRouteImport } from './routes/logs'
 import { Route as MapsRouteImport } from './routes/maps'
 import { Route as MeshRouteImport } from './routes/mesh'
 import { Route as NetworkRouteImport } from './routes/network'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SuppliesRouteImport } from './routes/supplies'
 import { Route as SystemRouteImport } from './routes/system'
 import { Route as InfoIndexRouteImport } from './routes/info.index'
 import { Route as InfoSplatRouteImport } from './routes/info.$'
@@ -30,9 +33,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BoardRoute = BoardRouteImport.update({
+  id: '/board',
+  path: '/board',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DiagnosticsRoute = DiagnosticsRouteImport.update({
   id: '/diagnostics',
   path: '/diagnostics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FilesRoute = FilesRouteImport.update({
+  id: '/files',
+  path: '/files',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LogsRoute = LogsRouteImport.update({
@@ -58,6 +71,11 @@ const NetworkRoute = NetworkRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SuppliesRoute = SuppliesRouteImport.update({
+  id: '/supplies',
+  path: '/supplies',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SystemRoute = SystemRouteImport.update({
@@ -103,12 +121,15 @@ const MeshNodesRoute = MeshNodesRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/board': typeof BoardRoute
   '/diagnostics': typeof DiagnosticsRoute
+  '/files': typeof FilesRoute
   '/logs': typeof LogsRoute
   '/maps': typeof MapsRoute
   '/mesh': typeof MeshRouteWithChildren
   '/network': typeof NetworkRoute
   '/settings': typeof SettingsRoute
+  '/supplies': typeof SuppliesRoute
   '/system': typeof SystemRoute
   '/info/$': typeof InfoSplatRoute
   '/library/catalog': typeof LibraryCatalogRoute
@@ -120,11 +141,14 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/board': typeof BoardRoute
   '/diagnostics': typeof DiagnosticsRoute
+  '/files': typeof FilesRoute
   '/logs': typeof LogsRoute
   '/maps': typeof MapsRoute
   '/network': typeof NetworkRoute
   '/settings': typeof SettingsRoute
+  '/supplies': typeof SuppliesRoute
   '/system': typeof SystemRoute
   '/info/$': typeof InfoSplatRoute
   '/library/catalog': typeof LibraryCatalogRoute
@@ -137,12 +161,15 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/board': typeof BoardRoute
   '/diagnostics': typeof DiagnosticsRoute
+  '/files': typeof FilesRoute
   '/logs': typeof LogsRoute
   '/maps': typeof MapsRoute
   '/mesh': typeof MeshRouteWithChildren
   '/network': typeof NetworkRoute
   '/settings': typeof SettingsRoute
+  '/supplies': typeof SuppliesRoute
   '/system': typeof SystemRoute
   '/info/$': typeof InfoSplatRoute
   '/library/catalog': typeof LibraryCatalogRoute
@@ -156,12 +183,15 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/board'
     | '/diagnostics'
+    | '/files'
     | '/logs'
     | '/maps'
     | '/mesh'
     | '/network'
     | '/settings'
+    | '/supplies'
     | '/system'
     | '/info/$'
     | '/library/catalog'
@@ -173,11 +203,14 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/board'
     | '/diagnostics'
+    | '/files'
     | '/logs'
     | '/maps'
     | '/network'
     | '/settings'
+    | '/supplies'
     | '/system'
     | '/info/$'
     | '/library/catalog'
@@ -189,12 +222,15 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/board'
     | '/diagnostics'
+    | '/files'
     | '/logs'
     | '/maps'
     | '/mesh'
     | '/network'
     | '/settings'
+    | '/supplies'
     | '/system'
     | '/info/$'
     | '/library/catalog'
@@ -207,12 +243,15 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BoardRoute: typeof BoardRoute
   DiagnosticsRoute: typeof DiagnosticsRoute
+  FilesRoute: typeof FilesRoute
   LogsRoute: typeof LogsRoute
   MapsRoute: typeof MapsRoute
   MeshRoute: typeof MeshRouteWithChildren
   NetworkRoute: typeof NetworkRoute
   SettingsRoute: typeof SettingsRoute
+  SuppliesRoute: typeof SuppliesRoute
   SystemRoute: typeof SystemRoute
   InfoSplatRoute: typeof InfoSplatRoute
   LibraryCatalogRoute: typeof LibraryCatalogRoute
@@ -230,11 +269,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/board': {
+      id: '/board'
+      path: '/board'
+      fullPath: '/board'
+      preLoaderRoute: typeof BoardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/diagnostics': {
       id: '/diagnostics'
       path: '/diagnostics'
       fullPath: '/diagnostics'
       preLoaderRoute: typeof DiagnosticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/files': {
+      id: '/files'
+      path: '/files'
+      fullPath: '/files'
+      preLoaderRoute: typeof FilesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/logs': {
@@ -270,6 +323,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/supplies': {
+      id: '/supplies'
+      path: '/supplies'
+      fullPath: '/supplies'
+      preLoaderRoute: typeof SuppliesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/system': {
@@ -345,12 +405,15 @@ const MeshRouteWithChildren = MeshRoute._addFileChildren(MeshRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BoardRoute: BoardRoute,
   DiagnosticsRoute: DiagnosticsRoute,
+  FilesRoute: FilesRoute,
   LogsRoute: LogsRoute,
   MapsRoute: MapsRoute,
   MeshRoute: MeshRouteWithChildren,
   NetworkRoute: NetworkRoute,
   SettingsRoute: SettingsRoute,
+  SuppliesRoute: SuppliesRoute,
   SystemRoute: SystemRoute,
   InfoSplatRoute: InfoSplatRoute,
   LibraryCatalogRoute: LibraryCatalogRoute,

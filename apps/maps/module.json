@@ -7,6 +7,7 @@
   "service": "maps",
   "path": "/maps/",
   "portEnv": "MAPS_PORT",
+  "port": 8081,
   "stripPrefix": true,
   "health": "/api/status",
   "dirs": ["MAPS_DATA_DIR", "MAPS_ASSETS_DIR"],

@@ -187,3 +187,45 @@
 .lib-apply .banner {
   flex: 1 1 100%;
 }
+
+/* "In an emergency": topic rows in groups, two columns where there is room */
+.lib-sos-body {
+  gap: var(--space-4);
+}
+
+.lib-sos-body[hidden] {
+  display: none;
+}
+
+.lib-sos-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.lib-sos-group .label {
+  margin: 0;
+}
+
+.lib-sos-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+}
+
+.lib-sos-list .row-main {
+  min-width: 0;
+}
+
+.lib-sos-list .row-meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lib-sos-list .row.is-loading {
+  opacity: 0.6;
+}
+
+.lib-sos-body > .help {
+  margin: 0;
+}

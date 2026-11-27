@@ -28,6 +28,12 @@ export interface Module {
   svcPath: string;
   /** .env var holding the module's internal port (absent = not proxied, e.g. core itself) */
   portEnv?: string;
+  /**
+   * the port when portEnv is not set: a module added by an update has no
+   * line in an older .env (install.sh writes .env only once), and compose's
+   * ${VAR:-default} doesn't reach core, which reads .env as env_file
+   */
+  port?: number;
   /** true = strip the path prefix before forwarding (false keeps it, e.g. kiwix) */
   stripPrefix?: boolean;
   /** path on the module to probe for its container health, relative to its own root */
@@ -36,13 +42,15 @@ export interface Module {
   dirs: string[];
   /** false = always installed and running (core itself) */
   optional: boolean;
+  /** nav group: apps on top, system screens at the bottom (default: optional modules are apps) */
+  nav: 'apps' | 'system';
   /** env vars that must be non-empty before it may start */
   requires: string[];
   /** installed modules started with it, in order */
   dependsOn: string[];
   /** podman container name, outpost-<service> */
   containerName: string;
-  /** http://MODULES_BIND_ADDRESS:<port>, only when portEnv resolves to a port */
+  /** http://MODULES_BIND_ADDRESS:<port>, from portEnv or the manifest's port */
   upstream: string | null;
 }
 
@@ -59,7 +67,8 @@ function parseManifest(raw: string): Module {
     throw new Error('module.json is missing id, service or path');
   }
   const path = json.path.endsWith('/') ? json.path : `${json.path}/`;
-  const port = json.portEnv ? Number(process.env[json.portEnv]) : NaN;
+  const fromEnv = json.portEnv ? Number(process.env[json.portEnv]) : NaN;
+  const port = fromEnv > 0 ? fromEnv : Number(json.port);
   return {
     id: json.id,
     num: json.num ?? 99,
@@ -70,10 +79,12 @@ function parseManifest(raw: string): Module {
     path,
     svcPath: `${SVC_PREFIX}${path}`,
     portEnv: json.portEnv,
+    port: json.port,
     stripPrefix: json.stripPrefix,
     health: json.health,
     dirs: json.dirs ?? [],
     optional: json.optional ?? true,
+    nav: json.nav === 'apps' || json.nav === 'system' ? json.nav : (json.optional ?? true) ? 'apps' : 'system',
     requires: json.requires ?? [],
     dependsOn: json.dependsOn ?? [],
     containerName: `outpost-${json.service}`,

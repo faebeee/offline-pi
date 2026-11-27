@@ -1117,6 +1117,684 @@
         ]
       }
     },
+    "/api/files/status": {
+      "get": {
+        "operationId": "filesStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilesStatus"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Size of the shared folder, free space and the upload limits.",
+        "tags": [
+          "files"
+        ]
+      }
+    },
+    "/api/files/list": {
+      "get": {
+        "operationId": "filesList",
+        "parameters": [
+          {
+            "name": "path",
+            "required": false,
+            "in": "query",
+            "description": "the folder, empty for the top",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderListing"
+                }
+              }
+            }
+          }
+        },
+        "summary": "One folder's files and folders, folders first, by name.",
+        "tags": [
+          "files"
+        ]
+      }
+    },
+    "/api/files/folders": {
+      "post": {
+        "operationId": "filesCreateFolder",
+        "parameters": [
+          {
+            "name": "X-Pi-Monitor",
+            "in": "header",
+            "description": "must be \"1\" (CSRF guard)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFolderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileEntry"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Make a folder (its parent must exist).",
+        "tags": [
+          "files"
+        ]
+      }
+    },
+    "/api/files/move": {
+      "post": {
+        "operationId": "filesMove",
+        "parameters": [
+          {
+            "name": "X-Pi-Monitor",
+            "in": "header",
+            "description": "must be \"1\" (CSRF guard)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoveRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileEntry"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Rename or move a file or folder.",
+        "tags": [
+          "files"
+        ]
+      }
+    },
+    "/api/files/entries": {
+      "delete": {
+        "operationId": "filesRemove",
+        "parameters": [
+          {
+            "name": "path",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Control-Pin",
+            "in": "header",
+            "description": "CONTROL_PIN, when set",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Pi-Monitor",
+            "in": "header",
+            "description": "must be \"1\" (CSRF guard)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Delete a file, or a folder with everything in it.",
+        "tags": [
+          "files"
+        ]
+      }
+    },
+    "/api/board/status": {
+      "get": {
+        "operationId": "boardStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardStatus"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Number of posts per kind, open and done.",
+        "tags": [
+          "board"
+        ]
+      }
+    },
+    "/api/board/posts": {
+      "get": {
+        "operationId": "boardPosts",
+        "parameters": [
+          {
+            "name": "kind",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "notice",
+                "need",
+                "offer",
+                "checkin"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeDone",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BoardPost"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Every post: pinned first, done last, newest change first.",
+        "tags": [
+          "board"
+        ]
+      },
+      "post": {
+        "operationId": "boardCreate",
+        "parameters": [
+          {
+            "name": "X-Pi-Monitor",
+            "in": "header",
+            "description": "must be \"1\" (CSRF guard)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePostRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardPost"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Add a post.",
+        "tags": [
+          "board"
+        ]
+      }
+    },
+    "/api/board/posts/{id}": {
+      "patch": {
+        "operationId": "boardUpdate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "X-Control-Pin",
+            "in": "header",
+            "description": "CONTROL_PIN, when set and pinning",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Pi-Monitor",
+            "in": "header",
+            "description": "must be \"1\" (CSRF guard)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePostRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardPost"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Change a post, mark it done, or pin it (pinning: control PIN).",
+        "tags": [
+          "board"
+        ]
+      },
+      "delete": {
+        "operationId": "boardRemove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "X-Control-Pin",
+            "in": "header",
+            "description": "CONTROL_PIN, when set",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Pi-Monitor",
+            "in": "header",
+            "description": "must be \"1\" (CSRF guard)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Delete a post.",
+        "tags": [
+          "board"
+        ]
+      }
+    },
+    "/api/supplies/status": {
+      "get": {
+        "operationId": "suppliesStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuppliesStatus"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Counts, warnings (expired, expiring, low) and how many days the water lasts.",
+        "tags": [
+          "supplies"
+        ]
+      }
+    },
+    "/api/supplies/items": {
+      "get": {
+        "operationId": "suppliesItems",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SupplyItem"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Every item, by category and name.",
+        "tags": [
+          "supplies"
+        ]
+      },
+      "post": {
+        "operationId": "suppliesCreate",
+        "parameters": [
+          {
+            "name": "X-Pi-Monitor",
+            "in": "header",
+            "description": "must be \"1\" (CSRF guard)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateItemRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyItem"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Add an item.",
+        "tags": [
+          "supplies"
+        ]
+      }
+    },
+    "/api/supplies/items/{id}": {
+      "patch": {
+        "operationId": "suppliesUpdate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "X-Pi-Monitor",
+            "in": "header",
+            "description": "must be \"1\" (CSRF guard)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateItemRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyItem"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Change an item.",
+        "tags": [
+          "supplies"
+        ]
+      },
+      "delete": {
+        "operationId": "suppliesRemove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "X-Control-Pin",
+            "in": "header",
+            "description": "CONTROL_PIN, when set",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Pi-Monitor",
+            "in": "header",
+            "description": "must be \"1\" (CSRF guard)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Delete an item.",
+        "tags": [
+          "supplies"
+        ]
+      }
+    },
+    "/api/supplies/items/{id}/adjust": {
+      "post": {
+        "operationId": "suppliesAdjust",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "X-Pi-Monitor",
+            "in": "header",
+            "description": "must be \"1\" (CSRF guard)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdjustItemRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyItem"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Add to or take from an item's quantity (never below 0).",
+        "tags": [
+          "supplies"
+        ]
+      }
+    },
+    "/api/supplies/settings": {
+      "get": {
+        "operationId": "suppliesSettings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuppliesSettings"
+                }
+              }
+            }
+          }
+        },
+        "summary": "People, water per day, target days and the expiry warning window.",
+        "tags": [
+          "supplies"
+        ]
+      },
+      "put": {
+        "operationId": "suppliesSaveSettings",
+        "parameters": [
+          {
+            "name": "X-Pi-Monitor",
+            "in": "header",
+            "description": "must be \"1\" (CSRF guard)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSettingsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuppliesSettings"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Change the settings.",
+        "tags": [
+          "supplies"
+        ]
+      }
+    },
     "/api/library/books": {
       "get": {
         "operationId": "libraryBooks",
@@ -1134,6 +1812,59 @@
           }
         },
         "summary": "Every installed book, by title.",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/library/emergency": {
+      "get": {
+        "operationId": "libraryEmergencyIndex",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmergencyIndex"
+                }
+              }
+            }
+          }
+        },
+        "summary": "The \"In an emergency\" topics, the language they are searched in and the starter set.",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/library/emergency/{topic}": {
+      "get": {
+        "operationId": "libraryEmergencyArticle",
+        "parameters": [
+          {
+            "name": "topic",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmergencyArticle"
+                }
+              }
+            }
+          }
+        },
+        "summary": "The best article for one emergency topic in the installed books (cached for a while).",
         "tags": [
           "library"
         ]
@@ -1563,6 +2294,14 @@
           "optional": {
             "type": "boolean"
           },
+          "nav": {
+            "type": "string",
+            "description": "nav group: apps on top, system screens (System, Logs, ...) at the bottom",
+            "enum": [
+              "apps",
+              "system"
+            ]
+          },
           "container": {
             "type": "string",
             "description": "podman container name, outpost-<service>"
@@ -1612,6 +2351,7 @@
           "description",
           "path",
           "optional",
+          "nav",
           "container",
           "installed",
           "enabled",
@@ -2713,9 +3453,9 @@
           "state": {
             "description": "\"paused\": a download stopped on request; what it fetched is kept for a resume",
             "enum": [
+              "done",
               "running",
               "paused",
-              "done",
               "failed",
               "estimating",
               "awaiting-confirmation",
@@ -3825,6 +4565,668 @@
           }
         }
       },
+      "FilesStatus": {
+        "type": "object",
+        "properties": {
+          "usedBytes": {
+            "type": "number",
+            "description": "bytes in the shared folder"
+          },
+          "files": {
+            "type": "number"
+          },
+          "folders": {
+            "type": "number"
+          },
+          "freeBytes": {
+            "type": "number",
+            "nullable": true,
+            "description": "bytes free on its disk, null when unknown"
+          },
+          "maxUploadBytes": {
+            "type": "number",
+            "description": "largest file one upload may be (FILES_MAX_UPLOAD_MB)"
+          },
+          "minFreeBytes": {
+            "type": "number",
+            "description": "uploads that would leave less than this free are refused (FILES_MIN_FREE_MB)"
+          }
+        },
+        "required": [
+          "usedBytes",
+          "files",
+          "folders",
+          "freeBytes",
+          "maxUploadBytes",
+          "minFreeBytes"
+        ]
+      },
+      "FileEntry": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string",
+            "description": "relative to the shared folder, \"/\"-separated, e.g. \"Photos/house.jpg\""
+          },
+          "kind": {
+            "enum": [
+              "file",
+              "folder"
+            ],
+            "type": "string"
+          },
+          "size": {
+            "type": "number",
+            "nullable": true,
+            "description": "bytes; null for folders"
+          },
+          "modified": {
+            "type": "number",
+            "description": "unix seconds"
+          },
+          "mime": {
+            "type": "string",
+            "nullable": true,
+            "description": "guessed from the name, null when unknown or a folder"
+          },
+          "items": {
+            "type": "number",
+            "nullable": true,
+            "description": "folders: entries directly inside"
+          },
+          "url": {
+            "type": "string",
+            "nullable": true,
+            "description": "the passthrough URL of a file's bytes (null for folders)"
+          }
+        },
+        "required": [
+          "name",
+          "path",
+          "kind",
+          "size",
+          "modified",
+          "mime",
+          "items",
+          "url"
+        ]
+      },
+      "FolderListing": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "the folder, \"\" for the top"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FileEntry"
+            }
+          }
+        },
+        "required": [
+          "path",
+          "entries"
+        ]
+      },
+      "CreateFolderRequest": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "the new folder, e.g. \"Photos/2026\"",
+            "minLength": 1,
+            "maxLength": 4096
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "MoveRequest": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "description": "file or folder to move or rename",
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "to": {
+            "type": "string",
+            "description": "its new path",
+            "minLength": 1,
+            "maxLength": 4096
+          }
+        },
+        "required": [
+          "from",
+          "to"
+        ]
+      },
+      "KindCount": {
+        "type": "object",
+        "properties": {
+          "open": {
+            "type": "number"
+          },
+          "done": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "open",
+          "done"
+        ]
+      },
+      "BoardKinds": {
+        "type": "object",
+        "properties": {
+          "notice": {
+            "$ref": "#/components/schemas/KindCount"
+          },
+          "need": {
+            "$ref": "#/components/schemas/KindCount"
+          },
+          "offer": {
+            "$ref": "#/components/schemas/KindCount"
+          },
+          "checkin": {
+            "$ref": "#/components/schemas/KindCount"
+          }
+        },
+        "required": [
+          "notice",
+          "need",
+          "offer",
+          "checkin"
+        ]
+      },
+      "BoardStatus": {
+        "type": "object",
+        "properties": {
+          "kinds": {
+            "$ref": "#/components/schemas/BoardKinds"
+          },
+          "total": {
+            "type": "number"
+          },
+          "updatedAt": {
+            "type": "number",
+            "nullable": true,
+            "description": "unix seconds of the newest change, null when empty"
+          }
+        },
+        "required": [
+          "kinds",
+          "total",
+          "updatedAt"
+        ]
+      },
+      "BoardPost": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "kind": {
+            "description": "notice: news for everyone; need: someone needs something; offer: someone can give or help; checkin: who is where and how",
+            "enum": [
+              "notice",
+              "need",
+              "offer",
+              "checkin"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string",
+            "nullable": true,
+            "description": "who wrote it, as typed (there are no accounts)"
+          },
+          "pinned": {
+            "type": "boolean",
+            "description": "shown first"
+          },
+          "done": {
+            "type": "boolean",
+            "description": "a need met, an offer taken: kept, shown last"
+          },
+          "createdAt": {
+            "type": "number",
+            "description": "unix seconds"
+          },
+          "updatedAt": {
+            "type": "number",
+            "description": "unix seconds"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "body",
+          "author",
+          "pinned",
+          "done",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreatePostRequest": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "notice",
+              "need",
+              "offer",
+              "checkin"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "author": {
+            "type": "string",
+            "maxLength": 60
+          }
+        },
+        "required": [
+          "kind",
+          "title"
+        ]
+      },
+      "UpdatePostRequest": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "notice",
+              "need",
+              "offer",
+              "checkin"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "author": {
+            "type": "string",
+            "maxLength": 60
+          },
+          "pinned": {
+            "type": "boolean"
+          },
+          "done": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CategoryCounts": {
+        "type": "object",
+        "properties": {
+          "water": {
+            "type": "number"
+          },
+          "food": {
+            "type": "number"
+          },
+          "medicine": {
+            "type": "number"
+          },
+          "hygiene": {
+            "type": "number"
+          },
+          "power": {
+            "type": "number"
+          },
+          "tools": {
+            "type": "number"
+          },
+          "other": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "water",
+          "food",
+          "medicine",
+          "hygiene",
+          "power",
+          "tools",
+          "other"
+        ]
+      },
+      "SuppliesSettings": {
+        "type": "object",
+        "properties": {
+          "people": {
+            "type": "number",
+            "description": "people the stock is for"
+          },
+          "waterLitresPerDay": {
+            "type": "number",
+            "description": "water per person and day, for drinking and cooking"
+          },
+          "targetDays": {
+            "type": "number",
+            "description": "how many days the stock should last"
+          },
+          "expiryWarningDays": {
+            "type": "number",
+            "description": "items expiring within this many days are flagged"
+          }
+        },
+        "required": [
+          "people",
+          "waterLitresPerDay",
+          "targetDays",
+          "expiryWarningDays"
+        ]
+      },
+      "SuppliesStatus": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "number"
+          },
+          "expired": {
+            "type": "number"
+          },
+          "expiring": {
+            "type": "number"
+          },
+          "low": {
+            "type": "number"
+          },
+          "waterLitres": {
+            "type": "number",
+            "description": "litres of water that have not expired"
+          },
+          "waterDays": {
+            "type": "number",
+            "nullable": true,
+            "description": "how long the water lasts for everyone at the daily amount"
+          },
+          "categories": {
+            "$ref": "#/components/schemas/CategoryCounts"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/SuppliesSettings"
+          },
+          "updatedAt": {
+            "type": "number",
+            "nullable": true,
+            "description": "unix seconds of the newest change, null when empty"
+          }
+        },
+        "required": [
+          "items",
+          "expired",
+          "expiring",
+          "low",
+          "waterLitres",
+          "waterDays",
+          "categories",
+          "settings",
+          "updatedAt"
+        ]
+      },
+      "SupplyItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "enum": [
+              "other",
+              "power",
+              "food",
+              "water",
+              "medicine",
+              "hygiene",
+              "tools"
+            ],
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string",
+            "description": "free text, e.g. \"L\", \"kg\", \"pcs\"; L, dl, cl and ml count as water"
+          },
+          "minimum": {
+            "type": "number",
+            "nullable": true,
+            "description": "below this the item is low"
+          },
+          "expires": {
+            "type": "string",
+            "nullable": true,
+            "description": "YYYY-MM-DD"
+          },
+          "location": {
+            "type": "string",
+            "nullable": true,
+            "description": "where it is kept, e.g. \"Cellar shelf 2\""
+          },
+          "note": {
+            "type": "string",
+            "nullable": true
+          },
+          "daysLeft": {
+            "type": "number",
+            "nullable": true,
+            "description": "days until it expires (negative: expired), null without a date"
+          },
+          "expired": {
+            "type": "boolean"
+          },
+          "expiring": {
+            "type": "boolean",
+            "description": "expires within the warning window (expiryWarningDays)"
+          },
+          "low": {
+            "type": "boolean",
+            "description": "quantity below its minimum"
+          },
+          "updatedAt": {
+            "type": "number",
+            "description": "unix seconds"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "category",
+          "quantity",
+          "unit",
+          "minimum",
+          "expires",
+          "location",
+          "note",
+          "daysLeft",
+          "expired",
+          "expiring",
+          "low",
+          "updatedAt"
+        ]
+      },
+      "CreateItemRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "water",
+              "food",
+              "medicine",
+              "hygiene",
+              "power",
+              "tools",
+              "other"
+            ]
+          },
+          "quantity": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 20
+          },
+          "minimum": {
+            "type": "number",
+            "nullable": true,
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "expires": {
+            "type": "string",
+            "nullable": true,
+            "description": "YYYY-MM-DD; empty or null for none"
+          },
+          "location": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 100
+          },
+          "note": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateItemRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "water",
+              "food",
+              "medicine",
+              "hygiene",
+              "power",
+              "tools",
+              "other"
+            ]
+          },
+          "quantity": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 20
+          },
+          "minimum": {
+            "type": "number",
+            "nullable": true,
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "expires": {
+            "type": "string",
+            "nullable": true
+          },
+          "location": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 100
+          },
+          "note": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 500
+          }
+        }
+      },
+      "AdjustItemRequest": {
+        "type": "object",
+        "properties": {
+          "delta": {
+            "type": "number",
+            "description": "added to the quantity (negative: used up); it never goes below 0",
+            "minimum": -1000000000,
+            "maximum": 1000000000
+          }
+        },
+        "required": [
+          "delta"
+        ]
+      },
+      "UpdateSettingsRequest": {
+        "type": "object",
+        "properties": {
+          "people": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 1000
+          },
+          "waterLitresPerDay": {
+            "type": "number",
+            "minimum": 0.1,
+            "maximum": 100
+          },
+          "targetDays": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 3650
+          },
+          "expiryWarningDays": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 365
+          }
+        }
+      },
       "Book": {
         "type": "object",
         "properties": {
@@ -3897,6 +5299,163 @@
         },
         "required": [
           "books"
+        ]
+      },
+      "EmergencyTopic": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "query": {
+            "type": "string",
+            "description": "the full-text search behind it"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "query"
+        ]
+      },
+      "EmergencyGroup": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "topics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EmergencyTopic"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "topics"
+        ]
+      },
+      "StarterBook": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "size": {
+            "type": "number",
+            "description": "approximate download size in bytes"
+          },
+          "installed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "key",
+          "title",
+          "size",
+          "installed"
+        ]
+      },
+      "EmergencyIndex": {
+        "type": "object",
+        "properties": {
+          "language": {
+            "type": "string",
+            "nullable": true,
+            "description": "the language searched (ISO 639-3, English when there is an English book), null when no book has a full-text index"
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EmergencyGroup"
+            }
+          },
+          "starter": {
+            "description": "the emergency starter set and which of it is installed",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StarterBook"
+            }
+          }
+        },
+        "required": [
+          "language",
+          "groups",
+          "starter"
+        ]
+      },
+      "SearchHit": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "description": "article URL under the passthrough"
+          },
+          "viewerUrl": {
+            "type": "string",
+            "description": "kiwix viewer URL for the article"
+          },
+          "snippet": {
+            "type": "string",
+            "description": "plain-text excerpt"
+          },
+          "book": {
+            "type": "string",
+            "description": "title of the book it is in"
+          },
+          "wordCount": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "title",
+          "url",
+          "viewerUrl",
+          "snippet",
+          "book",
+          "wordCount"
+        ]
+      },
+      "EmergencyArticle": {
+        "type": "object",
+        "properties": {
+          "topic": {
+            "type": "string"
+          },
+          "hit": {
+            "nullable": true,
+            "description": "the top hit, null when nothing matches",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SearchHit"
+              }
+            ]
+          },
+          "total": {
+            "type": "number",
+            "description": "all hits of the search"
+          }
+        },
+        "required": [
+          "topic",
+          "hit",
+          "total"
         ]
       },
       "LibrarySync": {
@@ -4075,6 +5634,13 @@
               "$ref": "#/components/schemas/CatalogGroup"
             }
           },
+          "starter": {
+            "description": "keys of the emergency starter set (the books the emergency index needs)",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "freeBytes": {
             "type": "number",
             "nullable": true,
@@ -4083,6 +5649,7 @@
         },
         "required": [
           "groups",
+          "starter",
           "freeBytes"
         ]
       },
@@ -4101,42 +5668,6 @@
         },
         "required": [
           "keys"
-        ]
-      },
-      "SearchHit": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string"
-          },
-          "url": {
-            "type": "string",
-            "description": "article URL under the passthrough"
-          },
-          "viewerUrl": {
-            "type": "string",
-            "description": "kiwix viewer URL for the article"
-          },
-          "snippet": {
-            "type": "string",
-            "description": "plain-text excerpt"
-          },
-          "book": {
-            "type": "string",
-            "description": "title of the book it is in"
-          },
-          "wordCount": {
-            "type": "number",
-            "nullable": true
-          }
-        },
-        "required": [
-          "title",
-          "url",
-          "viewerUrl",
-          "snippet",
-          "book",
-          "wordCount"
         ]
       },
       "SearchResponse": {

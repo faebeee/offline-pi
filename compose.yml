@@ -3,7 +3,8 @@
 # core is the only service reachable from the LAN: on PORT it serves the web
 # app (/), the one API (/api/<domain>/, a NestJS domain module per feature,
 # which talks to the module containers) and a passthrough for the modules'
-# raw files (/svc/maps/, /svc/library/, /svc/mesh/, /svc/network/). Modules
+# raw files (/svc/maps/, /svc/library/, /svc/mesh/, /svc/network/,
+# /svc/files/, ...). Modules
 # bind MODULES_BIND_ADDRESS (127.0.0.1) on their own internal port.
 #
 # Nothing starts on its own when Podman or the host boots: every service,
@@ -185,6 +186,55 @@ services:
     restart: on-failure
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:' + os.environ.get('PORT', '8085') + '/api/status', timeout=4)\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ------------------------------------------------------------- files --
+  files:
+    build:
+      context: .
+      dockerfile: apps/files/Dockerfile
+    image: outpost-files
+    container_name: outpost-files
+    # Runs as the container's root = the host user (rootless), so the shared
+    # folder belongs to that user. Uploads and downloads stream through core's
+    # passthrough (/svc/files/raw/...).
+    network_mode: host
+    environment:
+      PORT: ${FILES_PORT:-8086}
+      HOST: ${MODULES_BIND_ADDRESS:-127.0.0.1}
+      FILES_MAX_UPLOAD_MB: ${FILES_MAX_UPLOAD_MB:-4096}
+      FILES_MIN_FREE_MB: ${FILES_MIN_FREE_MB:-1024}
+    volumes:
+      - ${FILES_DATA_DIR:-./data/files}:/app/data
+    restart: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:' + os.environ.get('PORT', '8086') + '/api/health', timeout=4)\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+
+  # ---------------------------------------------------------- supplies --
+  supplies:
+    build:
+      context: .
+      dockerfile: apps/supplies/Dockerfile
+    image: outpost-supplies
+    container_name: outpost-supplies
+    # Items and settings in SQLite (supplies.db); runs as the host user.
+    network_mode: host
+    environment:
+      PORT: ${SUPPLIES_PORT:-8088}
+      HOST: ${MODULES_BIND_ADDRESS:-127.0.0.1}
+    volumes:
+      - ${SUPPLIES_DATA_DIR:-./data/supplies}:/app/data
+    restart: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:' + os.environ.get('PORT', '8088') + '/api/status', timeout=4)\""]
       interval: 30s
       timeout: 5s
       retries: 3

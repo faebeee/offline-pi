@@ -46,7 +46,7 @@ Core reads every `apps/*/module.json` when it starts. The core image copies
 all manifests in at build time; in development core reads them from the
 checkout (`APPS_DIR` overrides where). From the manifests come the home page
 tiles, the nav (`GET /api/modules`), each domain's upstream URL
-(`http://MODULES_BIND_ADDRESS:<port from portEnv>`) and the passthrough
+(`http://MODULES_BIND_ADDRESS:<port from portEnv, else the manifest's port>`) and the passthrough
 paths. A module is installed when it is listed in `MODULES`.
 
 ## Supervisor

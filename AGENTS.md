@@ -43,6 +43,7 @@ apps/core/               # the API (domains), passthrough, supervisor (always on
 apps/logs/               # a screen served by core: module.json + README only
 apps/diagnostics/        # the same: troubleshooting checks (core domain diagnostics)
 apps/info/               # the docs screen, served by core (reads docs/)
+apps/board/              # the notice board, served by core (domain board)
 apps/web/                # the web app: every screen of every module
 apps/maps/backend/       # a module's container code (API, data, jobs)
 packages/ui/             # @outpost/ui: Outpost design system (DESIGN.md)
@@ -94,6 +95,7 @@ browser ──> core :8080
             ├─ /ui/              @outpost/ui
             └─ /svc/<module>/*   passthrough to a module's raw files
 core ──HTTP/WS──> maps :8081 · knowledge :8082 · mesh :8084 · network :8085
+                  files :8086 · supplies :8088
 ```
 
 - **core** (`apps/core`, NestJS) is the only service the LAN reaches, on
@@ -206,6 +208,7 @@ namespace). Never call another module's container from the browser.
      "service": "<name>",
      "path": "/radio/",
      "portEnv": "RADIO_PORT",
+     "port": 8089,
      "stripPrefix": true,
      "health": "/api/status",
      "dirs": ["RADIO_DATA_DIR"],
@@ -220,9 +223,18 @@ namespace). Never call another module's container from the browser.
      `stripPrefix: true` forwards `/svc/radio/x` as `/x`, `false` keeps the
      prefix (for servers that support a URL root, like kiwix's
      `--urlRootLocation=/svc/library`).
-   - A screen core serves itself (System, Logs) has `"service": "core"`,
-     no `portEnv` and `"optional": false`: no container, always on; its
-     domain and screen are added as in steps 6 and 7.
+   - A screen core serves itself (System, Logs, Board) has
+     `"service": "core"`, no `portEnv` and `"optional": false`: no
+     container, always on; its domain and screen are added as in steps 6
+     and 7. A feature whose data is small and needs no program or device
+     of its own belongs here, with its data in `CORE_DATA_DIR`.
+   - `nav`: `"apps"` (top of the nav) or `"system"` (the bottom group);
+     default: optional modules are apps, core screens system. Board is a
+     core screen with `"nav": "apps"`.
+   - `port`: the default internal port, the same as in `.env.example`
+     and `compose.yml`. Core uses it when `portEnv` is not in `.env`
+     (`install.sh` writes `.env` once, so an older install lacks the
+     variables of modules added later).
    - `requires`: env vars that must be non-empty before it may start (e.g.
      `MESH_CONNECTION`, set by its configure hook). `dependsOn`: installed
      modules started with it.
@@ -318,7 +330,8 @@ then sources `lib/common.sh` (and what else it needs).
   be unplugged). Doesn't touch Podman, `podman-restart.service`, lingering
   or `podman.socket`. Uses plain `read` prompts.
 - Only `install.sh` writes `.env` (`set_env`); `start.sh`/`manage.sh` read
-  it. Core writes only `CORE_DATA_DIR/modules.json`.
+  it. Core writes only to `CORE_DATA_DIR` (`modules.json`, `history.json`,
+  the board's `board.json`).
 - Every compose call goes through `compose` in `lib/common.sh`, which adds
   `-p outpost -f compose.yml --env-file .env` and prefers `podman compose`
   over `podman-compose`. On macOS it always uses `podman-compose` (`podman

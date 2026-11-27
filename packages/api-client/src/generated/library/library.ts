@@ -26,6 +26,8 @@ import type {
 
 import type {
   BooksResponse,
+  EmergencyArticle,
+  EmergencyIndex,
   LibraryCatalog,
   LibrarySearchParams,
   LibrarySync,
@@ -146,6 +148,206 @@ export function useLibraryBooks<TData = Awaited<ReturnType<typeof libraryBooks>>
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getLibraryBooksQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getLibraryEmergencyIndexUrl = () => {
+
+
+
+
+  return `/api/library/emergency`
+}
+
+/**
+ * @summary The "In an emergency" topics, the language they are searched in and the starter set.
+ */
+export const libraryEmergencyIndex = async ( options?: Parameters<typeof apiFetch>[1]): Promise<EmergencyIndex> => {
+
+  return apiFetch<EmergencyIndex>(getLibraryEmergencyIndexUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getLibraryEmergencyIndexQueryKey = () => {
+    return [
+    `/api/library/emergency`
+    ] as const;
+    }
+
+
+export const getLibraryEmergencyIndexQueryOptions = <TData = Awaited<ReturnType<typeof libraryEmergencyIndex>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof libraryEmergencyIndex>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getLibraryEmergencyIndexQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof libraryEmergencyIndex>>> = ({ signal }) => libraryEmergencyIndex({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof libraryEmergencyIndex>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type LibraryEmergencyIndexQueryResult = NonNullable<Awaited<ReturnType<typeof libraryEmergencyIndex>>>
+export type LibraryEmergencyIndexQueryError = ErrorType<unknown>
+
+
+/** @summary The "In an emergency" topics, the language they are searched in and the starter set. */
+export function useLibraryEmergencyIndex<TData = Awaited<ReturnType<typeof libraryEmergencyIndex>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof libraryEmergencyIndex>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof libraryEmergencyIndex>>,
+          TError,
+          Awaited<ReturnType<typeof libraryEmergencyIndex>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary The "In an emergency" topics, the language they are searched in and the starter set. */
+export function useLibraryEmergencyIndex<TData = Awaited<ReturnType<typeof libraryEmergencyIndex>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof libraryEmergencyIndex>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof libraryEmergencyIndex>>,
+          TError,
+          Awaited<ReturnType<typeof libraryEmergencyIndex>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary The "In an emergency" topics, the language they are searched in and the starter set. */
+export function useLibraryEmergencyIndex<TData = Awaited<ReturnType<typeof libraryEmergencyIndex>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof libraryEmergencyIndex>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary The "In an emergency" topics, the language they are searched in and the starter set. */
+export function useLibraryEmergencyIndex<TData = Awaited<ReturnType<typeof libraryEmergencyIndex>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof libraryEmergencyIndex>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getLibraryEmergencyIndexQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getLibraryEmergencyArticleUrl = (topic: string,) => {
+
+
+
+
+  return `/api/library/emergency/${topic}`
+}
+
+/**
+ * @summary The best article for one emergency topic in the installed books (cached for a while).
+ */
+export const libraryEmergencyArticle = async (topic: string, options?: Parameters<typeof apiFetch>[1]): Promise<EmergencyArticle> => {
+
+  return apiFetch<EmergencyArticle>(getLibraryEmergencyArticleUrl(topic),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getLibraryEmergencyArticleQueryKey = (topic: string,) => {
+    return [
+    `/api/library/emergency/${topic}`
+    ] as const;
+    }
+
+
+export const getLibraryEmergencyArticleQueryOptions = <TData = Awaited<ReturnType<typeof libraryEmergencyArticle>>, TError = ErrorType<unknown>>(topic: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof libraryEmergencyArticle>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getLibraryEmergencyArticleQueryKey(topic);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof libraryEmergencyArticle>>> = ({ signal }) => libraryEmergencyArticle(topic, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: topic !== null && topic !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof libraryEmergencyArticle>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type LibraryEmergencyArticleQueryResult = NonNullable<Awaited<ReturnType<typeof libraryEmergencyArticle>>>
+export type LibraryEmergencyArticleQueryError = ErrorType<unknown>
+
+
+/** @summary The best article for one emergency topic in the installed books (cached for a while). */
+export function useLibraryEmergencyArticle<TData = Awaited<ReturnType<typeof libraryEmergencyArticle>>, TError = ErrorType<unknown>>(
+ topic: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof libraryEmergencyArticle>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof libraryEmergencyArticle>>,
+          TError,
+          Awaited<ReturnType<typeof libraryEmergencyArticle>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary The best article for one emergency topic in the installed books (cached for a while). */
+export function useLibraryEmergencyArticle<TData = Awaited<ReturnType<typeof libraryEmergencyArticle>>, TError = ErrorType<unknown>>(
+ topic: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof libraryEmergencyArticle>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof libraryEmergencyArticle>>,
+          TError,
+          Awaited<ReturnType<typeof libraryEmergencyArticle>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary The best article for one emergency topic in the installed books (cached for a while). */
+export function useLibraryEmergencyArticle<TData = Awaited<ReturnType<typeof libraryEmergencyArticle>>, TError = ErrorType<unknown>>(
+ topic: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof libraryEmergencyArticle>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary The best article for one emergency topic in the installed books (cached for a while). */
+export function useLibraryEmergencyArticle<TData = Awaited<ReturnType<typeof libraryEmergencyArticle>>, TError = ErrorType<unknown>>(
+ topic: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof libraryEmergencyArticle>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getLibraryEmergencyArticleQueryOptions(topic,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

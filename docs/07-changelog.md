@@ -13,6 +13,26 @@ under **Unreleased**.
 
 ### Added
 
+- Files module (`/files`): a shared folder on the Pi. Everyone on its
+  network can upload (button or drag and drop, with progress), make
+  folders, rename, open and download files; deleting asks for the control
+  PIN. Files are plain files in `FILES_DATA_DIR` (point it at the SSD);
+  `FILES_MAX_UPLOAD_MB` and `FILES_MIN_FREE_MB` limit uploads. Re-run
+  `./install.sh` and choose Files to add it.
+- Board (`/board`): a notice board for notices, needs, offers and
+  check-ins, no accounts needed. Needs and offers can be marked done;
+  pinning and deleting ask for the control PIN. It is part of outpost
+  itself (posts in `CORE_DATA_DIR/board.json`), so it is there after
+  `./start.sh`, no install step needed.
+- Supplies module (`/supplies`): your emergency stock with quantities,
+  places and best-before dates. Warns about expired, expiring and low
+  items and shows how many days the water lasts for your household.
+  Re-run `./install.sh` and choose Supplies to add it.
+- Library: an "In an emergency" section on the library home with topics
+  such as CPR, bleeding, burns, hypothermia and water purification; each
+  opens the best article in your books. Without a searchable book it
+  offers an emergency starter set (WikiMed, Military medicine, NHS
+  Medicines, CD3WD), which CHOOSE BOOKS can also tick in one go.
 - Network module (`/network`): who is on the Pi's Wi-Fi hotspot, with
   MAC address, vendor (looked up offline), IP, hostname, signal, traffic
   and the devices of the last 30 days. Devices can be blocked (with a

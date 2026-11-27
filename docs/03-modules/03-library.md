@@ -18,14 +18,50 @@ The screen starts with a `Works offline` banner, then:
 - **Books**: every installed book with its language, number of articles,
   date and size. `TITLES ONLY` means the book has no full-text index, so
   search finds it by title only. Tap a book to read it.
+- **In an emergency**: the topics that matter first (see
+  [In an emergency](#in-an-emergency)). HIDE folds it away; the browser
+  remembers that.
 - The CHOOSE BOOKS button, to add or remove books.
 
 The context line shows the number of books, their total size and the date
 of the newest one.
 
+## In an emergency
+
+Above the books, the Library lists the topics you may need fast, in four
+groups:
+
+| Group | Topics |
+|---|---|
+| Act now | CPR, severe bleeding, choking, shock, allergic reaction, heart attack, stroke |
+| Injuries and exposure | Burns, broken bones, head injury, wounds, hypothermia, frostbite, heat stroke, carbon monoxide, poisoning |
+| Illness | Dehydration, oral rehydration, diarrhoea, fever |
+| Water, food and hygiene | Water purification, food preservation, sanitation, hand washing |
+
+Each row names the article it opens and the book it is in, for example
+`Hypothermia · WikiMed`. Tap it to read the article. When no installed book
+has an article on a topic, the row says so and opens a search instead.
+
+The topics are searched in your English books (or, without English books,
+in the language you have most books in), with full-text search. The first
+look-up of each topic can take a few seconds on a Pi; after that the answer
+is kept for 10 minutes, and searched again when your books change.
+
+Without a book that has a full-text index, the section offers the
+**emergency starter set** instead: WikiMed, Military medicine, NHS
+Medicines A-Z and CD3WD (first aid, medicines and water, about 2.4 GB).
+CHOOSE opens CHOOSE BOOKS with the set already ticked; check and press
+APPLY. The same set is offered at the top of CHOOSE BOOKS.
+
+The articles are general knowledge, not medical advice for your case. Call
+the emergency number (112; in Switzerland 144 for an ambulance) when you
+can.
+
 ## Choosing books
 
-Press CHOOSE BOOKS. The catalog lists curated books by topic. Each row has
+Press CHOOSE BOOKS. At the top, the **emergency starter set** banner ticks
+the books the emergency topics need in one go (TICK ALL). Below it, the
+catalog lists curated books by topic. Each row has
 a short description, the language, an approximate size and a state badge:
 
 | Badge | Meaning |

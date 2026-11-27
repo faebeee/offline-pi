@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1
  */
 import type { ModuleStatusBusy } from './moduleStatusBusy';
+import type { ModuleStatusNav } from './moduleStatusNav';
 
 export interface ModuleStatus {
   id: string;
@@ -16,6 +17,8 @@ export interface ModuleStatus {
   /** web route of the module (e.g. /maps/); also its passthrough under /svc */
   path: string;
   optional: boolean;
+  /** nav group: apps on top, system screens (System, Logs, ...) at the bottom */
+  nav: ModuleStatusNav;
   /** podman container name, outpost-<service> */
   container: string;
   installed: boolean;

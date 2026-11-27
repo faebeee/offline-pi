@@ -1,0 +1,98 @@
+/* Supplies: layout only, tokens only (components from @outpost/ui). */
+
+.supplies {
+  gap: var(--space-4);
+}
+
+.supplies-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.supplies-water {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.supplies-water p {
+  margin: 0;
+}
+
+.supplies-water-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.supplies-readout {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.supplies-counts {
+  margin: 0;
+}
+
+.supplies-settings {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.supplies-bar,
+.supplies-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.supplies-bar .h2,
+.supplies-section-head .label {
+  margin: 0;
+}
+
+.supplies-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.supplies-list > li {
+  background: var(--s1);
+}
+
+.supplies-list .row-main {
+  min-width: 0;
+}
+
+.supplies-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.supplies-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+/* destructive action at the far left of the dialog's actions */
+.supplies-delete {
+  margin-right: auto;
+}
+
+@media (max-width: 560px) {
+  .supplies-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .supplies-fields {
+    grid-template-columns: 1fr 1fr;
+  }
+}

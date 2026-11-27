@@ -7,6 +7,7 @@
   "service": "knowledge",
   "path": "/library/",
   "portEnv": "KNOWLEDGE_PORT",
+  "port": 8082,
   "stripPrefix": false,
   "health": "/svc/library/",
   "dirs": ["KNOWLEDGE_CONTENT_DIR"],

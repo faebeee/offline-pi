@@ -91,6 +91,22 @@ connection and send PIN are asked while mesh is not configured yet.
 | `NETWORK_IFACE` | empty | Hotspot interface, e.g. `wlan0`. Empty: the first Wi-Fi interface in access-point mode. |
 | `NETWORK_LEASES_PATH` | `/var/lib/NetworkManager` | Folder with the hotspot's DHCP lease files (IP and hostname), mounted read-only. `install.sh` points it at `NETWORK_DATA_DIR` on hosts without NetworkManager. |
 
+## Files
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `FILES_PORT` | `8086` | Internal port. |
+| `FILES_DATA_DIR` | `./data/files` | The shared folder: everything uploaded, as plain files and folders. Grows with every upload; point it at the SSD. |
+| `FILES_MAX_UPLOAD_MB` | `4096` | Largest file one upload may be, in MB. |
+| `FILES_MIN_FREE_MB` | `1024` | An upload is refused when it would leave less free space than this on the disk, in MB. |
+
+## Supplies
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `SUPPLIES_PORT` | `8088` | Internal port. |
+| `SUPPLIES_DATA_DIR` | `./data/supplies` | The list and the household settings (`supplies.db`, SQLite, small). People, water per day, target days and the expiry warning are set on the Supplies screen, not in `.env`. |
+
 ## Development only
 
 These are not in `.env.example`. They are read by core or the Vite dev

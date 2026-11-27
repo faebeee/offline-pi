@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CATALOG } from '../domain/catalog';
+import { STARTER_SET } from '../domain/emergency';
 import type { CatalogBook, CatalogGroup, LibraryCatalog } from '../domain/library.dto';
 import { ContentDir, zimKey } from '../infrastructure/content-dir';
 import { KnowledgeCommands } from '../infrastructure/knowledge.commands';
@@ -64,7 +65,7 @@ export class CatalogService {
       .map((k) => book(k, k, 'Added by its Kiwix name.', null, null));
     if (others.length) groups.push({ id: 'other', label: 'Other books', books: others });
 
-    return { groups, freeBytes };
+    return { groups, freeBytes, starter: [...STARTER_SET] };
   }
 
   async select(keys: string[]): Promise<LibraryCatalog> {

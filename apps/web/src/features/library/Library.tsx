@@ -4,6 +4,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { Badge, Banner, Icon } from "../../ui/outpost";
 import { KIWIX_ROOT, monogramFor, searchScopes, useBooks } from "./books";
+import { EmergencySection } from "./Emergency";
 import { SearchResults } from "./SearchResults";
 import { SyncStatus, syncBadge, useSync } from "./SyncStatus";
 import "./library.css";
@@ -70,7 +71,12 @@ export function Library({ search }: { search: LibrarySearch }) {
       {search.q ? (
         <SearchResults books={books} search={search} />
       ) : (
-        books && <BookList books={books} syncing={sync?.state === "running"} badge={syncBadge(sync)} />
+        books && (
+          <>
+            <EmergencySection bookCount={books.length} />
+            <BookList books={books} syncing={sync?.state === "running"} badge={syncBadge(sync)} />
+          </>
+        )
       )}
 
       <div className="lib-foot body-sm fg3">
