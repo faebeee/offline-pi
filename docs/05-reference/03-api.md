@@ -98,10 +98,11 @@ Sending needs the header `X-Send-PIN` when `MESH_SEND_PIN` is set.
 | `POST` | `files/move` | Rename or move a file or folder |
 | `DELETE` | `files/entries?path=` | Delete a file, or a folder with everything in it (control PIN) |
 
-The bytes go through the passthrough, not the API: `GET /svc/files/raw/<path>`
-downloads (`?download=true` as an attachment; HTML, SVG and other files a
-browser could run are always attachments), `PUT /svc/files/raw/<path>`
-uploads the request body (`?overwrite=true` replaces a file; needs
+The bytes have their own routes (not in the OpenAPI document):
+`GET files/raw/<path>` downloads (`?download=true` as an attachment; HTML,
+SVG and other files a browser could run are always attachments, with range
+requests), `PUT files/raw/<path>` uploads the request body as
+`application/octet-stream` (`?overwrite=true` replaces a file; needs
 `X-Pi-Monitor: 1`).
 
 ## board

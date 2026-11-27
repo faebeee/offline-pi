@@ -130,7 +130,7 @@ unless you confirm deleting it.
 ## How it works
 
 - The service `knowledge` in `compose.yml` in the repo root runs as
-  container `outpost-knowledge` (image `localhost/outpost-knowledge`)
+  container `outpost-knowledge` (image `<OUTPOST_REGISTRY>/outpost-knowledge:sha-<commit>`)
   with host networking, so ZIM downloads don't depend on Podman's bridge
   DNS; kiwix-serve binds `127.0.0.1:KNOWLEDGE_PORT`.
 - The container entrypoint (`container/knowledge.sh serve`) builds

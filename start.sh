@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
-# start.sh - (re)start outpost from an existing installation: rebuild what
-# changed, recreate the containers, then core starts the modules that are
-# switched on in the dashboard. Run ./install.sh first.
+# start.sh - (re)start outpost from an existing installation: get the
+# images of this version (download, or build when there are none), recreate
+# the containers, then core starts the modules that are switched on in the
+# dashboard. Run ./install.sh first.
 #
-#   ./start.sh [--pull] [--no-cache]
-#     --pull      also pull newer base images (node, python, kiwix) first
-#     --no-cache  rebuild every image from scratch, ignoring the layer cache
+#   ./start.sh [--build] [--no-cache] [--boot]
+#     --build     build the images here instead of downloading them
+#     --no-cache  build them from scratch (implies --build)
+#     --boot      only start the existing containers (used at boot by
+#                 outpost.service); a full start when there are none
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -23,14 +26,17 @@ source "$ROOT_DIR/lib/common.sh"
 source "$ROOT_DIR/lib/modules.sh"
 # shellcheck source=lib/migrate.sh
 source "$ROOT_DIR/lib/migrate.sh"
+# shellcheck source=lib/images.sh
+source "$ROOT_DIR/lib/images.sh"
 load_module_hooks
 
-BUILD_FLAGS=()
+BOOT=false
 for arg in "$@"; do
   case "$arg" in
-    --pull) BUILD_FLAGS+=("$(compose_pull_flag)") ;;
-    --no-cache) BUILD_FLAGS+=(--no-cache) ;;
-    -h|--help) sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    --build) export IMAGES_BUILD=true ;;
+    --no-cache) export IMAGES_BUILD=true IMAGES_NO_CACHE=true ;;
+    --boot) BOOT=true ;;
+    -h|--help) sed -n '2,11p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) log_error "Unknown option: $arg (see ./start.sh --help)"; exit 1 ;;
   esac
 done
@@ -54,24 +60,42 @@ load_env
 read_lines MODS installed_modules
 
 # Every bind-mounted directory must be there (an unplugged SSD would
-# otherwise make podman fail with a less helpful error).
-for m in core ${MODS[@]+"${MODS[@]}"}; do
-  for var in $(module_dirs "$m"); do
+# otherwise make podman fail with a less helpful error). At boot the drive
+# may take a moment to mount.
+dirs_ready() {
+  local var dir
+  for var in $(active_dir_vars); do
     dir="${!var:-}"
     if [[ -z "$dir" || ! -d "$dir" ]]; then
-      log_error "$var '${dir}' is not available (is the drive mounted?). Re-run ./install.sh to pick another."
-      exit 1
+      echo "$var '${dir}'"
+      return 1
     fi
   done
+}
+tries=1
+[[ "$BOOT" == true ]] && tries=60
+missing=""
+for i in $(seq 1 "$tries"); do
+  if missing="$(dirs_ready)"; then break; fi
+  if [[ "$i" -lt "$tries" ]]; then sleep 2; fi
 done
+if [[ -n "${missing:-}" ]]; then
+  log_error "$missing is not available (is the drive mounted?). Re-run ./install.sh to pick another."
+  exit 1
+fi
 
-prepare_builds core ${MODS[@]+"${MODS[@]}"}
-# a failed build stops here: the running containers keep their old images.
-# The flags go after the services: podman-compose's --pull takes an optional
-# value and would read the first service name as it.
-if ! ui_run "Building images${BUILD_FLAGS[*]:+ (${BUILD_FLAGS[*]})}" \
-  compose build core ${MODS[@]+"${MODS[@]}"} ${BUILD_FLAGS[@]+"${BUILD_FLAGS[@]}"}; then
-  log_error "Build failed; the running containers keep their old images."
+# --boot: the containers are there from the last start, core starts the
+# modules switched on; nothing to download or recreate
+if [[ "$BOOT" == true ]] && podman container exists outpost-core 2>/dev/null; then
+  ui_run "Starting core" podman start outpost-core
+  log_ok "outpost started (boot)"
+  exit 0
+fi
+
+# the images of this version; a failed download or build stops here and
+# the running containers keep their old images
+if ! get_images core ${MODS[@]+"${MODS[@]}"}; then
+  log_error "The running containers keep their old images."
   exit 1
 fi
 
@@ -106,6 +130,8 @@ done
 remove_retired_modules
 
 ui_run "Starting core" compose up -d --force-recreate core
+# images of earlier versions are no longer used: free the disk
+remove_old_images
 
 PORT="${PORT:-8080}"
 # macOS: the containers' host network is the Podman machine's; forward the

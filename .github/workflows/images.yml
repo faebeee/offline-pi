@@ -1,0 +1,86 @@
+# Container images of outpost, so a Pi downloads them instead of building
+# them (10-30 minutes there). Every push to main and every release tag
+# publishes ghcr.io/<owner>/outpost-<service> for amd64 and arm64:
+#
+#   :sha-<7 chars>   every commit; install/start/update pull the one that
+#                    matches the checkout (lib/images.sh)
+#   :main            the newest commit on main
+#   :<version>, :latest   release tags v<version>
+#
+# Built with Podman/Buildah (AGENTS.md: no Docker), each architecture on a
+# native runner (no emulation), then joined into one multi-arch manifest.
+# The images must be public: GitHub > Packages > outpost-<service> > Package
+# settings > Change visibility (once per image, after its first push).
+name: images
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: images-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [core, maps, knowledge, mesh, network]
+        arch: [amd64, arm64]
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Podman
+        run: command -v podman || { sudo apt-get update -qq && sudo apt-get install -y -qq podman; }
+      - name: Image name
+        id: name
+        run: |
+          owner="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
+          echo "image=ghcr.io/$owner/outpost-${{ matrix.service }}" >> "$GITHUB_OUTPUT"
+          echo "sha=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+      - name: Log in to ghcr.io
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Build
+        run: |
+          podman build --platform linux/${{ matrix.arch }} \
+            -f apps/${{ matrix.service }}/Dockerfile \
+            -t "${{ steps.name.outputs.image }}:${{ steps.name.outputs.sha }}-${{ matrix.arch }}" .
+      - name: Push
+        run: podman push "${{ steps.name.outputs.image }}:${{ steps.name.outputs.sha }}-${{ matrix.arch }}"
+
+  manifest:
+    needs: build
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        service: [core, maps, knowledge, mesh, network]
+    steps:
+      - name: Log in to ghcr.io
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Join the architectures and tag
+        run: |
+          owner="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
+          image="ghcr.io/$owner/outpost-${{ matrix.service }}"
+          sha="sha-${GITHUB_SHA::7}"
+          tags=("$sha")
+          if [[ "$GITHUB_REF" == refs/heads/main ]]; then tags+=(main); fi
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then tags+=("${GITHUB_REF#refs/tags/v}" latest); fi
+          podman manifest create "$image:$sha"
+          for arch in amd64 arm64; do
+            podman manifest add "$image:$sha" "docker://$image:$sha-$arch"
+          done
+          for tag in "${tags[@]}"; do
+            podman manifest push --all "$image:$sha" "docker://$image:$tag"
+          done

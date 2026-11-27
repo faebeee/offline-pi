@@ -27,7 +27,8 @@ Terms used across these docs and in the project, in alphabetical order.
 | **Podman** | The container engine outpost uses, rootless (as your user, not root). Never Docker. |
 | **Podman machine** | On macOS, the small Linux VM in which Podman runs the containers (`podman machine start`). |
 | **podman.socket** | The user's Podman API socket. Core uses it to start and stop module containers. |
-| **podman-restart.service** | A Podman systemd user service that starts the containers with `restart: always` after a reboot. outpost has none, so it does not start at boot. |
+| **outpost.service** | The systemd user unit `install.sh` sets up so outpost starts when the host boots (`./manage.sh autostart on\|off`). |
+| **podman-restart.service** | A Podman systemd user service that starts the containers with `restart: always` after a reboot. outpost doesn't use it; it has `outpost.service`. |
 | **POI** | Point of interest: a place saved on the Maps screen, kept in the maps database. |
 | **Reconcile** | What core does when it starts: bring every installed module into its desired state (started when switched on and configured, stopped when switched off). |
 | **Region** | A map area downloaded on the Maps screen (a country or a smaller area), stored as one `.pmtiles` file in `MAPS_DATA_DIR`. |
@@ -46,7 +47,8 @@ Three states that are easy to mix up:
 1. **Installed**: chosen in `./install.sh`, listed in `MODULES`. Only
    installed modules have a container.
 2. **Switched on**: chosen on the home page. Core keeps it running and
-   starts it again after a reboot.
+   starts it again after a reboot. Files, Board, Supplies and the system
+   screens are part of core and always on.
 3. **Running**: the container is up right now. A switched-on module may be
    briefly not running while it starts, after a crash, or when it is not
    configured (`requires`).

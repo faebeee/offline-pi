@@ -11,7 +11,7 @@ downloaded the maps and books you want, outpost runs without it.
 
 ## Pages
 
-- [Install](01-install.md): requirements, the five steps of `install.sh`,
+- [Install](01-install.md): requirements, the one-line install and what `install.sh` asks,
   the first start, re-running it.
 - [Storage and SSD](02-storage.md): every data directory, what grows where,
   moving data to an SSD.

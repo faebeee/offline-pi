@@ -1,7 +1,6 @@
-// The files domain's contract: a shared folder on the Pi. The files
-// container (Python) speaks snake_case; infrastructure/files.client.ts maps
-// it onto these classes. The bytes themselves go through core's passthrough:
-// GET /svc/files/raw/<path> downloads, PUT uploads (X-Pi-Monitor: 1).
+// The files domain's contract: a shared folder on the Pi, kept by core
+// (infrastructure/shared-folder.ts). The bytes go through
+// GET /api/files/raw/<path> (download) and PUT (upload, X-Pi-Monitor: 1).
 import { IsString, Matches, MaxLength, MinLength } from 'class-validator';
 
 export class FilesStatus {
@@ -30,7 +29,7 @@ export class FileEntry {
   mime!: string | null;
   /** folders: entries directly inside */
   items!: number | null;
-  /** the passthrough URL of a file's bytes (null for folders) */
+  /** the URL of a file's bytes, /api/files/raw/<path> (null for folders) */
   url!: string | null;
 }
 

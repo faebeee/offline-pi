@@ -17,32 +17,38 @@ compose.yml              # the whole stack, project "outpost"
 compose.macos.yml        # added on macOS (lib/common.sh): what the remote API lacks
 .env.example             # checked in; documents every var
 .env                     # gitignored; written by install.sh only
-install.sh               # choose + configure modules, build, then start.sh
-start.sh                 # rebuild, (re)create containers; core starts modules
+get.sh                   # one-line install: installs git, clones, runs install.sh
+install.sh               # choose modules + data folder, get images, autostart, start.sh
+start.sh                 # get images, (re)create containers; core starts modules
 stop.sh                  # stop core, then every module (nothing removed)
-update.sh                # git pull a new version, then start.sh --pull
+update.sh                # git pull a new version, then its install.sh --yes
 manage.sh                # status, start/stop, logs, module commands
 uninstall.sh             # remove containers/images; data only on confirmation
 lib/common.sh            # log helpers, compose wrapper, .env helpers
 lib/ui.sh                # prompts: inputs, menus, checkboxes, spinner (ui_*)
 lib/platform.sh          # Linux/macOS differences, Bash 3.2 stand-ins
 lib/install.sh           # install.sh's steps (host check, basics, modules)
-lib/storage.sh           # prompt_dir / resync_dir (relocatable data)
+lib/storage.sh           # the data folder(s): storage_configure, prompt_dir, resync_dir
+lib/images.sh            # get_images: download the commit's images or build them
+lib/autostart.sh         # outpost.service: start at boot (systemd user unit)
 lib/serial.sh            # USB serial device picker (mesh)
 lib/modules.sh           # module registry for the scripts, hooks, core_api
 lib/migrate.sh           # adopts the old per-app layout, offline-pi -> outpost
 lib/update.sh            # update.sh: git checks, versions, incoming changes, new settings
-lib/modules/<name>.sh    # per-module hooks (configure, prepare, manage, ...)
+lib/modules/<name>.sh    # per-module hooks (configure, post_build, manage, ...)
 package.json             # npm workspaces root (apps/*, apps/maps/*, packages/*)
 package-lock.json        # the one lockfile of every JS workspace
 turbo.json               # Turborepo tasks: build, typecheck, dev
 tsconfig.base.json       # shared TypeScript base config
 .dockerignore            # images build with the repo root as context
+.github/workflows/images.yml # CI: every service's image per commit, to ghcr.io
 apps/<name>/             # one module: Dockerfile, code, module.json, README
 apps/core/               # the API (domains), passthrough, supervisor (always on)
 apps/logs/               # a screen served by core: module.json + README only
 apps/diagnostics/        # the same: troubleshooting checks (core domain diagnostics)
 apps/info/               # the docs screen, served by core (reads docs/)
+apps/files/              # the shared folder, served by core (domain files)
+apps/supplies/           # the supplies list, served by core (domain supplies)
 apps/board/              # the notice board, served by core (domain board)
 apps/web/                # the web app: every screen of every module
 apps/maps/backend/       # a module's container code (API, data, jobs)
@@ -95,7 +101,6 @@ browser ──> core :8080
             ├─ /ui/              @outpost/ui
             └─ /svc/<module>/*   passthrough to a module's raw files
 core ──HTTP/WS──> maps :8081 · knowledge :8082 · mesh :8084 · network :8085
-                  files :8086 · supplies :8088
 ```
 
 - **core** (`apps/core`, NestJS) is the only service the LAN reaches, on
@@ -121,11 +126,12 @@ core ──HTTP/WS──> maps :8081 · knowledge :8082 · mesh :8084 · network
   `src/modules/podman.service.ts`). Which installed modules run is chosen
   on the dashboard and stored in `CORE_DATA_DIR/modules.json` (the modules
   switched *off*). Every service, core included, uses
-  `restart: on-failure`: podman restarts a crash but not a stop, and
-  **nothing starts on its own** when Podman or the host boots (no
-  `restart: always`, so `podman-restart.service` skips outpost). When core
-  starts (after `./start.sh`) it brings every module into its desired state
-  (`ModulesService.reconcile`).
+  `restart: on-failure`: podman restarts a crash but not a stop (no
+  `restart: always`, so `podman-restart.service` skips outpost). **At
+  boot** the systemd user unit `outpost.service` (`lib/autostart.sh`,
+  enabled by `install.sh`, with lingering) runs `start.sh --boot`, which
+  starts the existing core container. When core starts it brings every
+  module into its desired state (`ModulesService.reconcile`).
 - **Installed vs running**: `MODULES` in `.env` (written by `install.sh`) is
   what gets built and has a container. The dashboard can only start
   installed modules; adding one means re-running `./install.sh`.
@@ -248,12 +254,13 @@ namespace). Never call another module's container from the browser.
    (`RADIO_PORT`, `RADIO_DATA_DIR`, ...), with the next free internal port.
 5. Optional `lib/modules/<name>.sh` with hooks (dashes in the name become
    underscores, e.g. `field_radio_configure`):
-   - `<name>_configure`: install.sh, every run while installed: prompts,
-     storage (`prompt_dir` + `resync_dir` + `set_env`), device checks.
-   - `<name>_prepare`: before every build (install.sh, start.sh), for files
-     the build needs that are not in the checkout (shared code is not one of
-     them: images build from the repo root and use `packages/*` directly).
-   - `<name>_post_build`: install.sh, after building (one-off setup).
+   - `<name>_configure`: install.sh, every run while installed: prompts
+     that are really needed (Mesh: how the radio is connected), device
+     checks. Not the data folders: `storage_configure` (`lib/storage.sh`)
+     sets every `*_DIR` listed in `dirs`, before the hooks run. Ask
+     anything optional only with `INSTALL_ADVANCED=true` (`--advanced`).
+   - `<name>_post_build`: install.sh, once the images are there (one-off
+     setup). An image must build from the checkout alone: CI builds it.
    - `<name>_manage` / `<name>_usage`: `./manage.sh <name> <cmd>`; return 2
      for "unknown command" (prints the usage).
 6. Its domain in core (`apps/core/src/domains/<name>/`, see "Core:
@@ -263,7 +270,18 @@ namespace). Never call another module's container from the browser.
 7. A row in the root `README.md` module table and an `apps/<name>/README.md`,
    plus its user page in `docs/03-modules/` and a row in the module table
    of `docs/01-overview/README.md`.
-8. Images and `*_DIR` vars in `uninstall.sh`'s config block.
+8. Its `*_DIR` vars in `uninstall.sh`'s config block, its name in the
+   image pattern there, and the service in both matrices of
+   `.github/workflows/images.yml`.
+
+**Or inside core.** A feature whose data is small and that needs no
+program, device or host access of its own (Board, Supplies, Files) is a
+domain of core, not a container: `apps/<name>/module.json` with
+`"service": "core"`, `"optional": false`, `"nav": "apps"` and no
+`portEnv`; its data in `CORE_DATA_DIR` through `JsonFile`
+(`src/platform/storage/json-file.ts`), or a `*_DIR` of its own mounted into
+core when it grows (Files: `FILES_DATA_DIR`). Steps 1 (manifest only), 6 and
+7 apply. Fewer containers make installs faster and simpler; prefer this.
 
 ## Scripts
 
@@ -277,20 +295,39 @@ ROOT_DIR="$SCRIPT_DIR"
 
 then sources `lib/common.sh` (and what else it needs).
 
-- **`install.sh`** `[--yes] [--plain] [--verbose]`: idempotent, five
-  steps. 1. System check: offers to install podman and a compose backend
+- **`get.sh`**: `curl -fsSL .../get.sh | bash` (arguments go to
+  install.sh). Refuses root, installs git (apt/dnf/brew), clones to
+  `~/outpost` (`OUTPOST_HOME`) or reuses that clone, `exec`s `install.sh`
+  with `/dev/tty` as stdin. All in `main()`, so a cut-off download runs
+  nothing.
+- **`install.sh`** `[--advanced] [--yes] [--build] [--no-cache] [--plain]
+  [--verbose]`: idempotent, four steps, **as few questions as possible**.
+  1. System check: offers to install podman and a compose backend
   (`ensure_podman`: apt/dnf, Homebrew on macOS plus the Podman machine);
   creates `.env` from `.env.example`; adopts old `apps/*` installs
   (`migrate_old_apps`); detects the vcio device, Podman's storage root and
-  socket (enables `podman.socket`). 2. Web app: `PORT`, `BIND_ADDRESS`,
-  `CONTROL_PIN` on the first run, later only if the user wants to change
-  them. 3. Which modules to install (checkboxes, current choice as default).
-  4. `core_configure` and each module's configure hook. 5. A summary and a
-  confirmation, then builds (one `ui_run` per image, output in
-  `install.log`), runs post-build hooks, `ensure_linger` and ends by
-  `exec`'ing `start.sh`.
-- **`start.sh`**: requires `.env` (`log_error "Run ./install.sh first."`,
-  never prompts). Checks every `*_DIR` exists, runs prepare hooks, builds,
+  socket (enables `podman.socket`). 2. Which modules to install
+  (checkboxes, current choice as default). 3. One data folder
+  (`OUTPOST_DATA_DIR`; `storage_configure` puts every `*_DIR` in it under
+  its default name and moves existing data), then each module's configure
+  hook. 4. A summary, `get_images`, post-build hooks, `ensure_linger`,
+  `autostart_enable`, `exec start.sh`. `--advanced` adds the port,
+  `BIND_ADDRESS`, `CONTROL_PIN`, the Mesh send PIN, a folder per `*_DIR` and
+  a confirmation before installing; the defaults (8080, every device, no
+  PINs) are otherwise used without asking.
+- **Images** (`lib/images.sh`): compose names them
+  `$OUTPOST_REGISTRY/outpost-<service>:$OUTPOST_TAG`, the tag being
+  `sha-<commit>` of the checkout (`images_init` in `lib/common.sh`, run by
+  `compose`), `sha-<commit>-local` with local changes. CI
+  (`.github/workflows/images.yml`) publishes amd64 + arm64 images of every
+  commit on main and every tag. `get_images` pulls each one (`podman pull`:
+  podman-compose skips services with a `build:`) and builds only what is
+  missing, or everything with `--build`/`OUTPOST_BUILD=true`/local changes.
+  `start.sh` then removes images of other versions (`remove_old_images`).
+- **`start.sh`** `[--build] [--no-cache] [--boot]`: requires `.env`
+  (`log_error "Run ./install.sh first."`, never prompts). Checks every
+  `*_DIR` exists (`active_dir_vars`; with `--boot` it waits up to 2 min for
+  a drive to mount), `get_images`,
   `compose up -d --no-start --force-recreate <modules>`, removes containers
   of modules no longer installed and the containers and images of retired
   modules (`retired_modules` in `lib/modules.sh`, e.g. mesh-map, merged
@@ -301,8 +338,8 @@ then sources `lib/common.sh` (and what else it needs).
   the Mac into it (`macos_expose_port`). Waits until core answers, then
   prints the local + LAN URL. Output of the steps goes to `start.log` (or
   `install.log` when run by install.sh).
-  `./start.sh --pull` also pulls newer base images, `--no-cache` ignores
-  the layer cache.
+  `--boot` (outpost.service) only `podman start`s the existing core
+  container; without one it does a full start.
 - **`stop.sh`**: stops the running `outpost-*` containers, core first (so
   it can't start a module meanwhile), with plain `podman stop`: nothing is
   removed and `modules.json` is untouched, so `./start.sh` restores the
@@ -313,12 +350,13 @@ then sources `lib/common.sh` (and what else it needs).
   touched modules, asks (default yes), `git merge --ff-only`, then re-runs
   the **new** `update.sh` (`--apply <old commit>`) so a changed update
   procedure applies to the same run. That half lists settings new in
-  `.env.example` (it never writes `.env`: compose's `${VAR:-default}`
-  covers them) and `exec`s `start.sh --pull` (`--no-cache` with
-  `--clean`). Never discards local commits or changes; prints the
+  `.env.example` and `exec`s the new `install.sh --yes` (`--no-cache` with
+  `--clean`), which keeps every answer, places new `*_DIR`s in the data
+  folder and gets the new images. Never discards local commits or changes; prints the
   `git reset --hard <old> && ./start.sh` way back.
 - **`manage.sh`**: `status`, `start|stop <module>` (through core's API, so
-  the dashboard state stays right), `logs [module]`, `<module> <cmd>`.
+  the dashboard state stays right), `logs [module]`, `autostart
+  on|off|status`, `<module> <cmd>`.
   Destructive commands confirm first and never silently delete data.
 - **`uninstall.sh`** `[--purge] [--yes]`: works with or without `.env` and
   without Podman. Shows what it will do, asks once (default no). Always
@@ -327,11 +365,12 @@ then sources `lib/common.sh` (and what else it needs).
   deleted after its own confirmation (or `--purge`); never `/`, `$HOME`,
   mount roots or anything containing the checkout. `.env` is removed only
   when all data was deleted (a missing dir counts as kept: the SSD may just
-  be unplugged). Doesn't touch Podman, `podman-restart.service`, lingering
-  or `podman.socket`. Uses plain `read` prompts.
+  be unplugged). Removes `outpost.service` (start at boot). Doesn't touch
+  Podman, `podman-restart.service`, lingering or `podman.socket`. Uses
+  plain `read` prompts.
 - Only `install.sh` writes `.env` (`set_env`); `start.sh`/`manage.sh` read
-  it. Core writes only to `CORE_DATA_DIR` (`modules.json`, `history.json`,
-  the board's `board.json`).
+  it. Core writes to `CORE_DATA_DIR` (`modules.json`, `history.json`,
+  `board.json`, `supplies.json`) and the Files folder (`FILES_DATA_DIR`).
 - Every compose call goes through `compose` in `lib/common.sh`, which adds
   `-p outpost -f compose.yml --env-file .env` and prefers `podman compose`
   over `podman-compose`. On macOS it always uses `podman-compose` (`podman
@@ -373,9 +412,11 @@ specifics (apt vs brew, systemd, devices). Never `producer | grep -q` under
 
 - Always Podman Compose in scripts, docs and compose files, never
   `docker`/`docker-compose`.
-- Rootless Podman. outpost does not start at boot: after a reboot the user
-  runs `./start.sh`. Lingering (`ensure_linger`) keeps it running after a
-  logout. Never use `restart: always` or enable `podman-restart.service`.
+- Rootless Podman. outpost starts at boot through its own systemd user
+  unit (`outpost.service`, `./manage.sh autostart off` to stop that);
+  lingering (`ensure_linger`) makes the user's systemd run at boot and keeps
+  outpost running after a logout. Never use `restart: always` or enable
+  `podman-restart.service`.
 - macOS (development): Podman runs in a VM (`podman machine`). The
   containers' host network, `/`, the Podman socket and storage root
   (`PODMAN_*` in `.env`) are the VM's; `*_DIR`s must be under a path the
@@ -386,8 +427,9 @@ specifics (apt vs brew, systemd, devices). Never `producer | grep -q` under
 ### Compose rules (`compose.yml`)
 
 - `build: { context: ., dockerfile: apps/<name>/Dockerfile }`,
-  `image: outpost-<name>`, `container_name: outpost-<name>`; or a
-  pinned upstream image. The context is always the repo root (see
+  `image: ${OUTPOST_REGISTRY:-ghcr.io/faebeee}/outpost-<name>:${OUTPOST_TAG:-local}`
+  (see "Images"), `container_name: outpost-<name>`; or a pinned upstream
+  image. The context is always the repo root (see
   "Monorepo"), so `COPY` paths in a Dockerfile start at the root
   (`COPY apps/<name>/app/ app/`).
 - Every value `${VAR:-default}`, so `.env` is the single source of truth.
@@ -418,12 +460,15 @@ path in `compose.yml`. That is what lets a user put data on an SSD instead of
 the SD card.
 
 - `compose.yml`: `- ${MAPS_DATA_DIR:-./data/maps}:/app/data`.
-- `.env.example`: a comment per dir saying what grows there and to point it
-  at the SSD (e.g. `/mnt/ssd/outpost/maps`).
-- The module's configure hook re-prompts it on **every** `install.sh` run
-  (`prompt_dir`, default = current value): expands to an absolute path,
-  `mkdir -p`, checks it is writable, fails fast if not (SSD not mounted).
-- When the answer differs, `resync_dir` treats it as "move my data here":
+- `.env.example`: a comment per dir saying what grows there; its default
+  `./data/<name>` also gives its name inside the data folder.
+- `install.sh` asks for **one** data folder on every run
+  (`OUTPOST_DATA_DIR`, `storage_configure`; `prompt_dir`, default = current
+  value: expands to an absolute path, `mkdir -p`, checks it is writable,
+  fails fast if not, e.g. SSD not mounted) and sets every `*_DIR` of
+  `active_dir_vars` to `<folder>/<name>`. A `*_DIR` set elsewhere by hand
+  is left alone. `--advanced` asks for each `*_DIR` instead.
+- When a location changes, `resync_dir` treats it as "move my data here":
   confirm, copy (`rsync`, falling back to `cp -r`), remove the old copy,
   then `set_env`. If the copy fails, both copies stay and `.env` is left
   alone. An empty or missing old dir: just create the new one.

@@ -61,9 +61,10 @@ the module as "Not configured" and core does not start it.
 
 ### Restarts and reboots
 
-- outpost does not start on its own when the Pi boots or Podman starts.
-  After a reboot, run `./start.sh`. `install.sh` enables "lingering" for
-  your user, so outpost keeps running after you log out.
+- outpost starts by itself when the Pi boots (`./manage.sh autostart off`
+  turns that off) and stops cleanly when it shuts down. `install.sh` also
+  enables "lingering" for your user, so outpost keeps running after you
+  log out.
 - When core starts, it brings every installed module to the state you
   chose: it starts the ones switched on (a module after the ones it needs) and stops the
   ones switched off.

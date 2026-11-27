@@ -29,9 +29,9 @@ and off on the dashboard.
 | [Maps](apps/maps/README.md) | `/maps` | `/api/maps` | `8081` | Self-hosted vector maps: download a region once, then pan, zoom and search with no internet connection. With Mesh installed, the Meshtastic nodes are a layer that can be switched on and off. |
 | [Mesh](apps/mesh/README.md) | `/mesh` | `/api/mesh` | `8084` | Messaging over a USB Meshtastic LoRa node: channel and direct messages, node list, history kept on the Pi. |
 | [Network](apps/network/README.md) | `/network` | `/api/network` | `8085` | Who is on the Pi's Wi-Fi hotspot: MAC address, vendor (offline IEEE registry), IP, hostname, signal, traffic; block and unblock devices, switch the hotspot on and off (through the host helper [`host/network-guard`](host/network-guard)). |
-| [Files](apps/files/README.md) | `/files` | `/api/files` | `8086` | A shared folder for everyone on the Pi's network: upload, download, folders, rename; uploads and downloads stream through `/svc/files/raw/`. |
+| [Files](apps/files/README.md) (core) | `/files` | `/api/files` | | A shared folder for everyone on the Pi's network: upload, download, folders, rename; uploads and downloads stream through `/api/files/raw/`. |
 | [Board](apps/board/README.md) (core) | `/board` | `/api/board` | | Notice board: notices, needs, offers and check-ins, without accounts; needs and offers can be marked done. |
-| [Supplies](apps/supplies/README.md) | `/supplies` | `/api/supplies` | `8088` | The household's emergency stock: what, how much, where, best-before dates; warns about expired, expiring and low items and says how many days the water lasts. |
+| [Supplies](apps/supplies/README.md) (core) | `/supplies` | `/api/supplies` | | The household's emergency stock: what, how much, where, best-before dates; warns about expired, expiring and low items and says how many days the water lasts. |
 | [Library](apps/knowledge/README.md) | `/library` | `/api/library` | `8082` | Offline Wikipedia, medical and survival guides via `kiwix-serve`; you choose the books on the Library screen, the container downloads them itself. |
 
 Modules listen on `127.0.0.1` only; the LAN sees just `PORT` (8080), where
@@ -46,35 +46,40 @@ boot and whenever it is plugged in, for the maps and library data.
 
 ## Quick start
 
-Requirements: a Raspberry Pi (or any Linux box) with Podman and a compose
-backend (`install.sh` offers to install both via apt or dnf). A USB
-Meshtastic node for Mesh; an SSD recommended for maps and library data.
+On a Raspberry Pi (64-bit Raspberry Pi OS) or any Linux machine, as your
+normal user:
 
 ```sh
-git clone https://github.com/faebeee/offline-pi.git
-cd outpost
-./install.sh
+curl -fsSL https://raw.githubusercontent.com/faebeee/offline-pi/main/get.sh | bash
 ```
 
 Then open `http://<pi>:8080/`.
 
-`install.sh` walks through five steps with arrow-key menus: a system check
-(Podman, compose, Pi hardware), the web app (port, who can reach it, an
-optional control PIN; asked on the first run, later only if you want to
-change them), which modules to install (checkbox list), where each module
-keeps its data plus module specifics (e.g. the Meshtastic USB device), and a
-summary before it builds the images and runs `start.sh`. The build output
+That installs git if needed, clones outpost to `~/outpost` and runs
+`install.sh`, which asks only:
+
+1. which modules (Maps, Mesh, Library, Network; Files, Board and Supplies
+   are always there),
+2. where to keep the data (one folder, e.g. on an SSD),
+3. what a module can't run without (Mesh: which USB device is the radio).
+
+It installs Podman if needed, downloads the ready-made images of this
+version (built by CI for arm64 and amd64; built locally only when there are
+none), starts outpost and makes it **start by itself at boot**. The output
 goes to `install.log`; on an error the installer shows its end.
 
 ```sh
+./install.sh --advanced  # also ask port, access, control PIN, a folder per module
 ./install.sh --yes       # no questions: keep the current answers (defaults on a first run)
+./install.sh --build     # build the images here instead of downloading them
 ./install.sh --plain     # line-by-line prompts instead of menus (also used without a terminal)
-./install.sh --verbose   # show the build output instead of a progress line
+./install.sh --verbose   # show the download/build output instead of a progress line
 ```
 
-Re-run `./install.sh` any time to add or remove modules, reconfigure one, or
-move data to another disk: every data directory is asked again, defaulting to
-the current location, and existing data is moved to the new one.
+Re-run `./install.sh` (or the one-line command) any time to add or remove
+modules, reconfigure one, or move the data to another disk: answer with the
+new folder and the existing data is moved there. Details:
+[Install](docs/02-installation/01-install.md).
 
 ### macOS (development)
 
@@ -91,8 +96,8 @@ in). Differences from a Pi:
 - Data directories must be under a path the machine shares (`/Users` by
   default).
 - USB devices can't reach the VM: Mesh needs a node on the network (tcp).
-- Nothing starts at login: after a restart run `podman machine start` and
-  `./start.sh`.
+- Nothing starts at login: after a restart run `./start.sh` (it starts the
+  Podman machine).
 
 ### Upgrading from the per-app layout
 
@@ -100,35 +105,37 @@ Older versions had one stack per app under `apps/<name>/`. After
 `git pull`, run `./install.sh` once: it reads each `apps/<name>/.env`, takes
 over the settings and data locations (nothing is downloaded again), removes
 the old containers and images, and renames the old files to `.env.migrated`.
-The storage questions then offer to move the data out of `apps/`.
+The data stays where it was.
 
 ## Day to day
 
 ```sh
-./update.sh                     # install a new version: git pull, rebuild every container
+./update.sh                     # install a new version: git pull, new images, recreate
 ./update.sh --check             # only show whether a new version is available
-./start.sh                      # rebuild + restart everything (after editing .env)
+./start.sh                      # restart everything (after editing .env)
 ./stop.sh                       # stop everything (./start.sh brings it back)
 ./manage.sh status              # every module: installed, running
 ./manage.sh start maps          # same as the switch on the home page
 ./manage.sh stop knowledge
 ./manage.sh logs [module]       # follow logs (default: core)
+./manage.sh autostart off       # don't start at boot (on|off|status)
 ./manage.sh knowledge list      # module commands, see ./manage.sh help
 ./manage.sh mesh set-region EU_868
 ```
 
 `update.sh` shows the new commits and which modules they touch, asks, then
-fast-forwards the checkout and runs `start.sh --pull` (fresh base images,
-every image rebuilt, every container recreated). Data and `.env` are kept;
-settings a new version adds are listed with the defaults they get. It
-refuses when tracked files have local changes, and prints the command to go
-back to the previous version. `--clean` rebuilds without the layer cache,
-`--rebuild` rebuilds even when up to date, `--yes` doesn't ask. A failed
-build leaves the running containers on their old images.
+fast-forwards the checkout and runs the new `install.sh --yes` (every answer
+kept, the new images downloaded, every container recreated). Data and
+`.env` are kept; settings a new version adds are listed with the defaults
+they get. It refuses when tracked files have local changes, and prints the
+command to go back to the previous version. `--clean` builds the images
+here from scratch, `--rebuild` reinstalls even when up to date, `--yes`
+doesn't ask. A failed download or build leaves the running containers on
+their old images.
 What a new version changes is in the [changelog](docs/07-changelog.md).
 
-outpost does not start on its own when the host boots or Podman starts:
-run `./start.sh` after a reboot. Switching a module off on the dashboard
+outpost starts by itself when the host boots (a systemd user unit,
+`outpost.service`) and stops cleanly at shutdown. Switching a module off on the dashboard
 stops its container; it stays off until it is switched on again. A crashed
 container is restarted by Podman.
 
@@ -139,13 +146,14 @@ documents every variable. The main ones:
 
 | Variable | Default | Description |
 |---|---|---|
+| `OUTPOST_DATA_DIR` | `./data` | The one data folder (asked by `install.sh`); every `*_DIR` below is a subfolder of it. Point at the SSD. |
 | `PORT` | `8080` | The one port on the LAN: dashboard and all modules. |
 | `BIND_ADDRESS` | `0.0.0.0` | `0.0.0.0` for LAN/hotspot, `127.0.0.1` for this Pi only. |
 | `MODULES` | `maps,knowledge` | Installed modules (set by `install.sh`). |
 | `CORE_LOG_LEVEL` | `log` | Least severe level core logs and the Logs screen shows for core (`debug` for more detail). |
-| `CONTROL_PIN` | empty | PIN asked before starting/stopping modules on the dashboard. |
+| `CONTROL_PIN` | empty | PIN asked before control actions: starting/stopping modules, deleting shared data. |
 | `CORE_INTERNET_CHECK_URLS` | Protomaps, Kiwix | Servers asked about once a minute for the `NET` item in the status strip. Empty: no check. |
-| `CORE_DATA_DIR` | `./data/core` | Dashboard history, power events, module on/off state. |
+| `CORE_DATA_DIR` | `./data/core` | Dashboard history, power events, module on/off state, Board posts, Supplies list. |
 | `MAPS_DATA_DIR` | `./data/maps` | Map regions (GBs) and POIs. Point at the SSD. |
 | `MAPS_ASSETS_DIR` | `./data/maps-assets` | Map fonts and sprites (~100 MB). |
 | `KNOWLEDGE_CONTENT_DIR` | `./data/knowledge` | ZIM files chosen on the Library screen (MB to hundreds of GB). Point at the SSD. |
@@ -155,8 +163,8 @@ documents every variable. The main ones:
 | `NETWORK_IFACE` / `NETWORK_LEASES_PATH` | | Hotspot interface (empty: auto) and its DHCP leases folder. |
 | `FILES_DATA_DIR` | `./data/files` | The shared files (grows with every upload). Point at the SSD. |
 | `FILES_MAX_UPLOAD_MB` / `FILES_MIN_FREE_MB` | `4096` / `1024` | Largest upload; free space every upload must leave. |
-| `SUPPLIES_DATA_DIR` | `./data/supplies` | Supplies list (SQLite, small). |
 | `*_PORT` | `8081`... | Internal (loopback) port of each module. |
+| `OUTPOST_REGISTRY` / `OUTPOST_BUILD` | `ghcr.io/faebeee` / `false` | Where the ready-made images come from; `true` always builds them locally. |
 
 Edit `.env` and run `./start.sh` to apply a change; storage paths are changed
 with `./install.sh` so the data moves along.
@@ -170,8 +178,9 @@ with `./install.sh` so the data moves along.
 
 Always removes the containers and images. Each data directory is kept unless
 you confirm deleting it (or pass `--purge`), and `.env` stays as long as any
-data does, so `./install.sh` picks it up again. Podman, `podman-restart.service`,
-lingering and `podman.socket` are left alone.
+data does, so `./install.sh` picks it up again. Removes the start at boot;
+Podman, `podman-restart.service`, lingering and `podman.socket` are left
+alone.
 
 ## Design and development
 

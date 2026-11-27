@@ -3,21 +3,23 @@
 # core is the only service reachable from the LAN: on PORT it serves the web
 # app (/), the one API (/api/<domain>/, a NestJS domain module per feature,
 # which talks to the module containers) and a passthrough for the modules'
-# raw files (/svc/maps/, /svc/library/, /svc/mesh/, /svc/network/,
-# /svc/files/, ...). Modules
+# raw files (/svc/maps/, /svc/library/, /svc/mesh/, /svc/network/). Modules
 # bind MODULES_BIND_ADDRESS (127.0.0.1) on their own internal port.
 #
-# Nothing starts on its own when Podman or the host boots: every service,
-# core included, uses restart: on-failure, so podman restarts a crash but
-# podman-restart.service (which only starts restart: always containers)
-# leaves outpost alone. ./start.sh starts core, and core starts the modules
+# Every service, core included, uses restart: on-failure: podman restarts a
+# crash, and podman-restart.service (only restart: always) leaves outpost
+# alone. At boot the systemd user unit outpost.service (lib/autostart.sh)
+# runs ./start.sh --boot, which starts core; core starts the modules
 # switched on in the dashboard (CORE_DATA_DIR/modules.json). start.sh only
 # creates containers for the modules listed in MODULES (.env).
 #
 # Rules for every service (AGENTS.md): host networking, ${VAR:-default}
 # everywhere, relocatable *_DIR bind mounts, CMD-SHELL healthchecks.
 #
-# Every image builds with the repo root as context (the npm/Turborepo
+# Images: CI publishes every one for each commit
+# (.github/workflows/images.yml); the scripts pull the one matching the
+# checkout (OUTPOST_TAG=sha-<commit>, lib/images.sh) and build only when
+# there is none. Builds use the repo root as context (the npm/Turborepo
 # monorepo: apps/<name>/Dockerfile, packages/*), see .dockerignore.
 
 services:
@@ -26,7 +28,7 @@ services:
     build:
       context: .
       dockerfile: apps/core/Dockerfile
-    image: outpost-core
+    image: ${OUTPOST_REGISTRY:-ghcr.io/faebeee}/outpost-core:${OUTPOST_TAG:-local}
     container_name: outpost-core
     # Host networking and PID namespace so /proc/net/dev, /proc/1/mounts and
     # the process count describe the Pi, not the container.
@@ -47,8 +49,11 @@ services:
       # the project folder (set by lib/common.sh): the Settings screen reads
       # its .env through /hostfs and resolves relative *_DIRs against it
       OUTPOST_DIR: ${OUTPOST_DIR:-}
+      FILES_DIR: /app/files
     volumes:
       - ${CORE_DATA_DIR:-./data/core}:/app/data
+      # the Files screen's shared folder (grows with every upload)
+      - ${FILES_DATA_DIR:-./data/files}:/app/files
       # Host root, read-only: /sys, /etc/os-release, every mounted filesystem
       # (storage card), podman's state DB and healthcheck logs (containers
       # card), and podman.socket (module start/stop; connecting to a unix
@@ -72,7 +77,7 @@ services:
     build:
       context: .
       dockerfile: apps/maps/Dockerfile
-    image: outpost-maps
+    image: ${OUTPOST_REGISTRY:-ghcr.io/faebeee}/outpost-maps:${OUTPOST_TAG:-local}
     container_name: outpost-maps
     # runs as node (uid 1000); keep-id maps the host user onto it so the bind
     # mounts stay writable (needs x-podman.in_pod: false below)
@@ -100,7 +105,7 @@ services:
     build:
       context: .
       dockerfile: apps/knowledge/Dockerfile
-    image: outpost-knowledge
+    image: ${OUTPOST_REGISTRY:-ghcr.io/faebeee}/outpost-knowledge:${OUTPOST_TAG:-local}
     container_name: outpost-knowledge
     # runs as user (uid 1001), see maps
     userns_mode: "keep-id:uid=1001,gid=1001"
@@ -130,7 +135,7 @@ services:
     build:
       context: .
       dockerfile: apps/mesh/Dockerfile
-    image: outpost-mesh
+    image: ${OUTPOST_REGISTRY:-ghcr.io/faebeee}/outpost-mesh:${OUTPOST_TAG:-local}
     container_name: outpost-mesh
     network_mode: host
     environment:
@@ -168,7 +173,7 @@ services:
     build:
       context: .
       dockerfile: apps/network/Dockerfile
-    image: outpost-network
+    image: ${OUTPOST_REGISTRY:-ghcr.io/faebeee}/outpost-network:${OUTPOST_TAG:-local}
     container_name: outpost-network
     # Host networking: `iw station dump` and /proc/net/arp describe the Pi's
     # Wi-Fi. Runs as the container's root = the host user (rootless), so it
@@ -191,54 +196,8 @@ services:
       retries: 3
       start_period: 10s
 
-  # ------------------------------------------------------------- files --
-  files:
-    build:
-      context: .
-      dockerfile: apps/files/Dockerfile
-    image: outpost-files
-    container_name: outpost-files
-    # Runs as the container's root = the host user (rootless), so the shared
-    # folder belongs to that user. Uploads and downloads stream through core's
-    # passthrough (/svc/files/raw/...).
-    network_mode: host
-    environment:
-      PORT: ${FILES_PORT:-8086}
-      HOST: ${MODULES_BIND_ADDRESS:-127.0.0.1}
-      FILES_MAX_UPLOAD_MB: ${FILES_MAX_UPLOAD_MB:-4096}
-      FILES_MIN_FREE_MB: ${FILES_MIN_FREE_MB:-1024}
-    volumes:
-      - ${FILES_DATA_DIR:-./data/files}:/app/data
-    restart: on-failure
-    healthcheck:
-      test: ["CMD-SHELL", "python -c \"import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:' + os.environ.get('PORT', '8086') + '/api/health', timeout=4)\""]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
 
 
-  # ---------------------------------------------------------- supplies --
-  supplies:
-    build:
-      context: .
-      dockerfile: apps/supplies/Dockerfile
-    image: outpost-supplies
-    container_name: outpost-supplies
-    # Items and settings in SQLite (supplies.db); runs as the host user.
-    network_mode: host
-    environment:
-      PORT: ${SUPPLIES_PORT:-8088}
-      HOST: ${MODULES_BIND_ADDRESS:-127.0.0.1}
-    volumes:
-      - ${SUPPLIES_DATA_DIR:-./data/supplies}:/app/data
-    restart: on-failure
-    healthcheck:
-      test: ["CMD-SHELL", "python -c \"import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:' + os.environ.get('PORT', '8088') + '/api/status', timeout=4)\""]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
 
 # userns_mode keep-id cannot be combined with a pod.
 x-podman:

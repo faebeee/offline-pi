@@ -10,11 +10,9 @@
 NETWORK_GUARD_ENV="/etc/outpost-network-guard.env"
 
 network_configure() {
-  local old new leases guard_dir
-  old="$(get_env NETWORK_DATA_DIR)"; old="${old:-./data/network}"
-  new="$(prompt_dir "Network: where should the block list be stored?" "$old")"
-  resync_dir "$old" "$new" "network block list"
-  set_env NETWORK_DATA_DIR "$new"
+  local new leases guard_dir
+  # set by install.sh's storage step (lib/storage.sh)
+  new="$(get_env NETWORK_DATA_DIR)"
 
   # the leases folder is bind-mounted, so it has to exist
   leases="$(get_env NETWORK_LEASES_PATH)"; leases="${leases:-/var/lib/NetworkManager}"
@@ -39,7 +37,8 @@ network_configure() {
   else
     ui_note "Network: blocking devices and the hotspot switch need a small helper on the host (root, systemd, nftables)."
   fi
-  if ui_confirm "Network: install it now (asks for your sudo password)?" y; then
+  # unattended (--yes, e.g. update.sh): no sudo password prompt
+  if [[ "${UI_ASSUME_YES:-}" != true ]] && ui_confirm "Network: install it now (asks for your sudo password)?" y; then
     if sudo "$ROOT_DIR/host/network-guard/install-network-guard.sh" --data-dir "$new"; then
       return 0
     fi

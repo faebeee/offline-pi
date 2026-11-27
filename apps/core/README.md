@@ -31,7 +31,7 @@ Modules are started and stopped through the Podman REST API on your user's
 `podman.socket` (`PODMAN_SOCKET`, detected by `install.sh`), reached through
 the read-only `/hostfs` mount (read-only doesn't block connecting to a
 socket). The modules switched off are kept in `CORE_DATA_DIR/modules.json`.
-When core starts (after `./start.sh`; nothing starts at boot) it starts every installed module that is switched
+When core starts (after `./start.sh`, or at boot through `outpost.service`) it starts every installed module that is switched
 on and configured (`requires` in its manifest), dependencies first, and stops
 the ones switched off. A crash in between is handled by Podman
 (`restart: on-failure`); a stop isn't undone.

@@ -110,7 +110,7 @@ don't spam: `MESH_SEND_RATE_LIMIT` limits each browser.
 ## How it works
 
 - The service `mesh` in `compose.yml` in the repo root runs as container
-  `outpost-mesh` (image `localhost/outpost-mesh`) with host
+  `outpost-mesh` (image `<OUTPOST_REGISTRY>/outpost-mesh:sha-<commit>`) with host
   networking, bound to `127.0.0.1:MESH_PORT`.
 - Python: FastAPI + uvicorn, the official `meshtastic` library, SQLite.
   API only, no static files.

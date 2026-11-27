@@ -1,11 +1,8 @@
 import { ConflictException, Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
-import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { JsonFile } from '../../../platform/storage/json-file';
 import type { BoardPost, BoardStatus, CreatePostRequest, PostKind, UpdatePostRequest } from '../domain/board.dto';
 import { POST_KINDS } from '../domain/board.dto';
 
-const DATA_DIR = process.env.DATA_DIR ?? join(process.cwd(), 'data');
-const FILE = join(DATA_DIR, 'board.json');
 export const MAX_POSTS = 5000;
 
 type Stored = { nextId: number; posts: BoardPost[] };
@@ -18,26 +15,20 @@ const order = (a: BoardPost, b: BoardPost) =>
 
 /**
  * The board's posts, kept by core in CORE_DATA_DIR/board.json (small: at
- * most MAX_POSTS short posts). Held in memory, every change written at once
- * to a temp file and renamed into place, one write at a time, so a power
- * cut leaves the old or the new file, never half of one.
+ * most MAX_POSTS short posts). Held in memory, every change saved at once.
  */
 @Injectable()
 export class BoardStore implements OnModuleInit {
   private readonly logger = new Logger('BoardStore');
+  private readonly file = JsonFile.inDataDir<Partial<Stored>>('board.json', () => ({}));
   private data: Stored = { nextId: 1, posts: [] };
-  private writing: Promise<void> = Promise.resolve();
 
   async onModuleInit(): Promise<void> {
-    try {
-      const raw = JSON.parse(await readFile(FILE, 'utf8')) as Partial<Stored>;
-      const posts = Array.isArray(raw.posts) ? raw.posts.filter((p) => POST_KINDS.includes(p?.kind)) : [];
-      const nextId = Math.max(Number(raw.nextId) || 1, ...posts.map((p) => p.id + 1));
-      this.data = { nextId, posts };
-      this.logger.log(`Loaded ${posts.length} posts from ${FILE}`);
-    } catch (err) {
-      if ((err as NodeJS.ErrnoException).code !== 'ENOENT') this.logger.warn(`ignoring unreadable ${FILE}: ${(err as Error).message}`);
-    }
+    const raw = await this.file.load();
+    const posts = Array.isArray(raw.posts) ? raw.posts.filter((p) => POST_KINDS.includes(p?.kind)) : [];
+    const nextId = Math.max(Number(raw.nextId) || 1, ...posts.map((p) => p.id + 1));
+    this.data = { nextId, posts };
+    if (posts.length) this.logger.log(`Loaded ${posts.length} posts from ${this.file.path}`);
   }
 
   list(kind?: PostKind, includeDone = true): BoardPost[] {
@@ -100,16 +91,7 @@ export class BoardStore implements OnModuleInit {
     return post;
   }
 
-  /** Writes are chained, so two changes never write the file at once. */
   private save(): Promise<void> {
-    const text = JSON.stringify(this.data);
-    const write = async () => {
-      await mkdir(DATA_DIR, { recursive: true });
-      const tmp = `${FILE}.tmp`;
-      await writeFile(tmp, text, 'utf8');
-      await rename(tmp, FILE);
-    };
-    this.writing = this.writing.then(write, write);
-    return this.writing;
+    return this.file.save(this.data);
   }
 }

@@ -1,8 +1,8 @@
 # Updating
 
 New versions of outpost come from the Git repository you cloned.
-`update.sh` installs one: it pulls the new code, rebuilds every image and
-recreates every container. Your data and `.env` are kept. The Pi needs
+`update.sh` installs one: it pulls the new code, downloads the new images
+and recreates every container. Your data and `.env` are kept. The Pi needs
 internet access for the update.
 
 ## Commands
@@ -16,8 +16,8 @@ internet access for the update.
 |---|---|
 | `--check` | Only shows whether a new version is available, and what it changes. Changes nothing. |
 | `--yes` | Does not ask before updating. |
-| `--clean` | Rebuilds every image from scratch, without the layer cache. Slower; use it when a build behaves strangely. |
-| `--rebuild` | Rebuilds and recreates everything even when outpost is already up to date. |
+| `--clean` | Builds every image on this machine, from scratch, instead of downloading it. Slow on a Pi (10 to 30 minutes); use it when an image behaves strangely. |
+| `--rebuild` | Reinstalls even when outpost is already up to date. |
 | `--help` | Prints the usage. |
 
 ## What it does
@@ -40,14 +40,16 @@ internet access for the update.
    - prints the command to go back (see below),
    - lists settings the new version added to `.env.example` that your
      `.env` does not have yet, with their defaults,
-   - runs `./start.sh --pull` (with `--no-cache` when you passed `--clean`):
-     fresh base images, every image rebuilt, every container recreated.
+   - runs the new version's `./install.sh --yes`: it keeps every answer
+     you gave, puts data folders the new version adds into your data
+     folder, downloads the new images (builds them with `--clean`), and
+     recreates every container.
 
-New settings need no action: they are not written to `.env`, and the
-defaults apply. To change one, add it to `.env` and run `./start.sh`, or
-re-run `./install.sh`.
+New settings need no action: the defaults apply. To change one, add it to
+`.env` and run `./start.sh`, or re-run `./install.sh`.
 
-If the build fails, the running containers keep their old images. The code
+If the download or build fails, the running containers keep their old
+images. The code
 is already the new version at that point; fix the problem and run
 `./start.sh`, or go back.
 

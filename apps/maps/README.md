@@ -218,7 +218,7 @@ too. Backend dev runs `tsc --watch` next to `node --watch dist/main.js`, so a sa
 ### In outpost
 
 The service `maps` in `compose.yml` in the repo root runs as container
-`outpost-maps` (image `localhost/outpost-maps`) with host networking,
+`outpost-maps` (image `<OUTPOST_REGISTRY>/outpost-maps:sha-<commit>`) with host networking,
 listening on `127.0.0.1:MAPS_PORT`; only core is reachable from the LAN.
 The image builds only the backend. `./install.sh` builds the image and runs the first-run setup
 (pmtiles binary, fonts, sprites); the same by hand:

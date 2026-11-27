@@ -14,24 +14,35 @@ new in `.env.example`.
 
 | Kind | Variables | How to change them |
 |---|---|---|
-| Asked by `install.sh` | `PORT`, `BIND_ADDRESS`, `CONTROL_PIN`, `MODULES`, every `*_DIR`, `MESH_CONNECTION`, `MESH_DEVICE`, `MESH_HOST`, `MESH_SEND_PIN`, `NETWORK_LEASES_PATH` | Re-run `./install.sh` and answer differently |
+| Asked by `install.sh` | `MODULES`, `OUTPOST_DATA_DIR` (and from it every `*_DIR`), `MESH_CONNECTION`, `MESH_DEVICE`, `MESH_HOST`, `NETWORK_LEASES_PATH` | Re-run `./install.sh` and answer differently |
+| Asked by `install.sh --advanced` | `PORT`, `BIND_ADDRESS`, `CONTROL_PIN`, `MESH_SEND_PIN`, each `*_DIR` on its own | Re-run `./install.sh --advanced` |
 | Detected by `install.sh` | `PODMAN_GRAPH_ROOT`, `PODMAN_SOCKET`, `VCIO_DEVICE` | Leave as is; detected again on every run |
 | Edited by hand | everything else (`SAMPLE_INTERVAL_MS`, `CORE_LOG_LEVEL`, the ports, `KNOWLEDGE_AUTO_SYNC`, ...) | Edit `.env`, then `./start.sh` |
 
-`install.sh` asks `PORT`, `BIND_ADDRESS` and `CONTROL_PIN` on the first run;
-on later runs it shows them and asks whether to change them. The mesh
-connection and send PIN are asked while mesh is not configured yet.
+Without `--advanced`, `PORT`, `BIND_ADDRESS`, `CONTROL_PIN` and
+`MESH_SEND_PIN` keep their current values (the defaults on a first run:
+`8080`, every device, no PINs). The mesh connection is asked while mesh is
+not configured yet.
 
 ## Applying a change
 
 - **Any variable edited by hand**: run `./start.sh`. It recreates every
   container, so the new values are used.
-- **A `*_DIR`**: run `./install.sh` instead of editing `.env`. It asks for
-  every directory again (the current value is the default) and, when the
-  answer differs, moves the existing data there before it writes `.env`. See
+- **The data folder or a `*_DIR`**: run `./install.sh` (or
+  `./install.sh --advanced` for one directory) instead of editing `.env`.
+  It asks again (the current value is the default) and, when the answer
+  differs, moves the existing data there before it writes `.env`. See
   [Storage](../02-installation/02-storage.md).
 - **`MODULES`**: run `./install.sh` and pick the modules again. Which
   installed modules run is chosen on the home page, not in `.env`.
+
+## Setup
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `OUTPOST_DATA_DIR` | `./data` | The folder all data lives in; every `*_DIR` is a subfolder of it unless set on its own with `install.sh --advanced`. |
+| `OUTPOST_REGISTRY` | `ghcr.io/faebeee` | Where the ready-made images come from (`<registry>/outpost-<service>:sha-<commit>`). A fork that publishes its own images sets its `ghcr.io/<owner>`. |
+| `OUTPOST_BUILD` | `false` | `true`: always build the images on this machine instead of downloading them. |
 
 ## Core
 
@@ -40,11 +51,11 @@ connection and send PIN are asked while mesh is not configured yet.
 | `PORT` | `8080` | The one port the network sees: the web app, the API and every module under its path. Host networking, so this is the port on the Pi itself. |
 | `BIND_ADDRESS` | `0.0.0.0` | `0.0.0.0` for access from the LAN or hotspot, `127.0.0.1` for this machine only. |
 | `MODULES_BIND_ADDRESS` | `127.0.0.1` | Address the modules listen on. Keep `127.0.0.1`: modules are reached through core and must not be exposed on their own. |
-| `MODULES` | `maps,knowledge` | Installed modules, comma separated. Available: `maps`, `knowledge`, `mesh`. Only these are built and get a container. |
-| `CORE_DATA_DIR` | `./data/core` | Dashboard data: 24 h metric history and power events (`history.json`), and `modules.json` (the modules switched off). Small; the SD card is fine. |
+| `MODULES` | `maps,knowledge` | Installed modules, comma separated. Available: `maps`, `knowledge`, `mesh`, `network`. Only these get an image and a container; Files, Board and Supplies are part of core. |
+| `CORE_DATA_DIR` | `./data/core` | Core's data: 24 h metric history and power events (`history.json`), `modules.json` (the modules switched off), Board posts (`board.json`) and the Supplies list with its household settings (`supplies.json`). Small. |
 | `SAMPLE_INTERVAL_MS` | `2000` | How often the Pi is sampled and pushed to open dashboards, in milliseconds (minimum 500). |
 | `CORE_LOG_LEVEL` | `log` | Least severe level core logs: `verbose`, `debug`, `log`, `warn`, `error`, `fatal`. The Logs screen shows core's lines from this level up. |
-| `CONTROL_PIN` | empty | PIN asked before starting or stopping a module from the web app. Empty: anyone who can open the web app can start and stop modules. |
+| `CONTROL_PIN` | empty | PIN asked before control actions in the web app: starting or stopping a module, blocking devices, deleting shared files, Board posts and supplies, pinning posts. Empty: anyone who can open the web app may do them. |
 | `CORE_INTERNET_CHECK_URLS` | `https://build.protomaps.com/,https://download.kiwix.org/` | Servers asked whether the Pi gets out to the internet, for `NET` in the status strip: a HEAD request to the first that answers. These are servers outpost downloads from anyway. Empty: no check, no `NET` item. |
 | `CORE_INTERNET_CHECK_INTERVAL_MS` | `60000` | How often that check runs, in milliseconds (minimum 10000). |
 | `PODMAN_GRAPH_ROOT` | empty | Podman's storage root on the host; its `db.sql` lists the containers. Empty: core searches the default locations. Detected. |
@@ -93,19 +104,13 @@ connection and send PIN are asked while mesh is not configured yet.
 
 ## Files
 
+The shared folder is served by core itself (no container).
+
 | Variable | Default | Meaning |
 |---|---|---|
-| `FILES_PORT` | `8086` | Internal port. |
 | `FILES_DATA_DIR` | `./data/files` | The shared folder: everything uploaded, as plain files and folders. Grows with every upload; point it at the SSD. |
 | `FILES_MAX_UPLOAD_MB` | `4096` | Largest file one upload may be, in MB. |
 | `FILES_MIN_FREE_MB` | `1024` | An upload is refused when it would leave less free space than this on the disk, in MB. |
-
-## Supplies
-
-| Variable | Default | Meaning |
-|---|---|---|
-| `SUPPLIES_PORT` | `8088` | Internal port. |
-| `SUPPLIES_DATA_DIR` | `./data/supplies` | The list and the household settings (`supplies.db`, SQLite, small). People, water per day, target days and the expiry warning are set on the Supplies screen, not in `.env`. |
 
 ## Development only
 

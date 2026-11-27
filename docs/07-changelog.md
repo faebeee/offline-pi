@@ -13,21 +13,33 @@ under **Unreleased**.
 
 ### Added
 
-- Files module (`/files`): a shared folder on the Pi. Everyone on its
-  network can upload (button or drag and drop, with progress), make
-  folders, rename, open and download files; deleting asks for the control
-  PIN. Files are plain files in `FILES_DATA_DIR` (point it at the SSD);
-  `FILES_MAX_UPLOAD_MB` and `FILES_MIN_FREE_MB` limit uploads. Re-run
-  `./install.sh` and choose Files to add it.
+- One-line install:
+  `curl -fsSL https://raw.githubusercontent.com/faebeee/offline-pi/main/get.sh | bash`
+  installs git if needed, clones outpost to `~/outpost` and runs the
+  installer.
+- Ready-made images: every version's images are published for 64-bit
+  Raspberry Pis and PCs, so installing and updating download them in a few
+  minutes instead of building for 10 to 30 minutes on the Pi. Without
+  published images (local changes, a fork) they are still built locally;
+  `--build` forces that.
+- outpost starts by itself when the Pi boots, and stops cleanly at
+  shutdown, so a power cut no longer leaves it off. `./manage.sh autostart
+  off` turns that off. Existing installs get it with the next
+  `./install.sh` or `./update.sh`.
+- Files (`/files`): a shared folder on the Pi. Everyone on its network can
+  upload (button or drag and drop, with progress), make folders, rename,
+  open and download files; deleting asks for the control PIN. Files are
+  plain files in `FILES_DATA_DIR`; `FILES_MAX_UPLOAD_MB` and
+  `FILES_MIN_FREE_MB` limit uploads. Part of outpost itself: always there.
 - Board (`/board`): a notice board for notices, needs, offers and
   check-ins, no accounts needed. Needs and offers can be marked done;
   pinning and deleting ask for the control PIN. It is part of outpost
   itself (posts in `CORE_DATA_DIR/board.json`), so it is there after
   `./start.sh`, no install step needed.
-- Supplies module (`/supplies`): your emergency stock with quantities,
-  places and best-before dates. Warns about expired, expiring and low
-  items and shows how many days the water lasts for your household.
-  Re-run `./install.sh` and choose Supplies to add it.
+- Supplies (`/supplies`): your emergency stock with quantities, places
+  and best-before dates. Warns about expired, expiring and low items and
+  shows how many days the water lasts for your household. Part of outpost
+  itself (`CORE_DATA_DIR/supplies.json`): always there.
 - Library: an "In an emergency" section on the library home with topics
   such as CPR, bleeding, burns, hypothermia and water purification; each
   opens the best article in your books. Without a searchable book it
@@ -98,13 +110,24 @@ under **Unreleased**.
 
 ### Changed
 
-- outpost no longer starts on its own when the Pi boots or Podman starts:
-  run `./start.sh` after a reboot. Core's restart policy is now
-  `on-failure` like the modules' (a crash is still restarted), and
-  `install.sh` no longer enables `podman-restart.service`. It is left
-  enabled on existing installs, since other containers may use it; disable
-  it with `systemctl --user disable podman-restart.service` if nothing
-  else needs it. Takes effect with the next `./start.sh`.
+- The installer asks much less. A first install asks which modules, one
+  folder for all data (for example on the SSD) and what a module can't do
+  without (the Mesh radio). Port, access, control PIN, the Mesh send PIN
+  and a folder per module are asked only with `./install.sh --advanced`.
+  Re-running it with a new data folder moves all data there.
+- `./update.sh` now downloads the new images instead of rebuilding them
+  and keeps every installer answer. `--clean` builds them locally from
+  scratch.
+- `./start.sh` downloads the images of the installed version when they are
+  missing and removes images of older versions to free the disk.
+  `--build` builds them locally instead; `--pull` is gone.
+- Core's restart policy is now `on-failure` like the modules' (a crash is
+  still restarted), and `install.sh` no longer enables
+  `podman-restart.service`: outpost starts at boot through its own unit
+  (see Added). `podman-restart.service` is left enabled on existing
+  installs, since other containers may use it; disable it with
+  `systemctl --user disable podman-restart.service` if nothing else needs
+  it.
 - The menu is split in two: your apps (Maps, Mesh, Library) at the top,
   the screens of outpost itself (System, Logs, Info, Settings,
   Diagnostics) at the bottom. On a phone the bottom bar shows a line

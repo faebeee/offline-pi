@@ -9,15 +9,19 @@ for the user is in [Everyday commands](../04-operations/01-everyday-commands.md)
 
 | File | Role |
 |---|---|
-| `install.sh` | Choose and configure modules, write `.env`, build, then `exec start.sh` |
-| `start.sh` | Rebuild, recreate the containers; core starts the modules |
+| `get.sh` | One-line install: git, clone to `~/outpost`, `exec install.sh` |
+| `install.sh` | Choose modules and the data folder, write `.env`, get images, autostart, then `exec start.sh` |
+| `start.sh` | Get the images, recreate the containers; core starts the modules (`--boot`: only start core) |
 | `stop.sh` | Stop core, then every module (nothing removed, switches kept) |
-| `update.sh` | Pull a new version, then `start.sh --pull` |
+| `update.sh` | Pull a new version, then its `install.sh --yes` |
 | `manage.sh` | Status, start/stop, logs, module commands |
 | `uninstall.sh` | Remove containers and images; data only after confirmation |
 | `lib/common.sh` | Log helpers, the `compose` wrapper, `.env` helpers, Podman checks |
 | `lib/platform.sh` | Linux and macOS differences, Bash 3.2 stand-ins |
 | `lib/ui.sh` | Prompts, menus and the progress spinner |
+| `lib/storage.sh` | The data folder(s): `storage_configure`, `prompt_dir`, `resync_dir` |
+| `lib/images.sh` | `get_images`: download this commit's images, build what is missing |
+| `lib/autostart.sh` | `outpost.service`, the start at boot |
 | `lib/storage.sh` | `prompt_dir` and `resync_dir` (relocatable data) |
 | `lib/modules.sh` | Module registry from the manifests, hooks, `core_api` |
 | `lib/install.sh`, `lib/update.sh`, `lib/migrate.sh`, `lib/serial.sh` | Steps of `install.sh` and `update.sh`, old layout and old name (offline-pi) migration, USB serial picker |
@@ -133,28 +137,30 @@ module has none.
 
 | Hook | Called by |
 |---|---|
-| `<name>_configure` | `install.sh`, every run while installed |
-| `<name>_prepare` | `install.sh` and `start.sh`, before building |
-| `<name>_post_build` | `install.sh`, after building |
+| `<name>_configure` | `install.sh`, every run while installed, after the data folders are set |
+| `<name>_post_build` | `install.sh`, once the images are there |
 | `<name>_manage` / `<name>_usage` | `./manage.sh <name> <cmd>`; return 2 for an unknown command |
 
-A configure hook re-asks every data directory, with the current value as
-default:
+A configure hook does not ask for data directories: `storage_configure`
+has already set every `*_DIR` in the manifest's `dirs` (inside the data
+folder, or one by one with `--advanced`). It asks only what the module
+cannot run without, and anything optional only with `--advanced`:
 
 ```bash
 radio_configure() {
-  local old new
-  old="$(get_env RADIO_DATA_DIR)"; old="${old:-./data/radio}"
-  new="$(prompt_dir "Radio: where should its data be stored?" "$old")"
-  resync_dir "$old" "$new" "radio data"
-  set_env RADIO_DATA_DIR "$new"
+  mkdir -p "$(get_env RADIO_DATA_DIR)/recordings"
+  if [[ "${INSTALL_ADVANCED:-}" == true ]]; then
+    ui_input "Radio: PIN for recording (empty = none)" "$(get_env RADIO_PIN)"
+    set_env RADIO_PIN "$UI_REPLY"
+  fi
 }
 ```
 
 ## Safety rules
 
 - `install.sh` is idempotent: safe to re-run, the current answers are the
-  defaults.
+  defaults. Keep its questions few: a default and `--advanced` beat a
+  prompt.
 - Destructive commands confirm first and never silently delete data.
 - `uninstall.sh` keeps every `*_DIR` unless each is confirmed (or
   `--purge`), and never deletes `/`, `$HOME`, mount roots or anything

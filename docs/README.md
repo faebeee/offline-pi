@@ -34,5 +34,5 @@ Read it wherever is easiest:
 2. Read [Troubleshooting](04-operations/05-troubleshooting.md).
 3. Follow the logs with `./manage.sh logs` (core) or
    `./manage.sh logs <module>`.
-4. Re-run `./start.sh`: it rebuilds what changed and recreates every
-   container. `./install.sh` is safe to re-run too.
+4. Re-run `./start.sh`: it gets the images of this version and recreates
+   every container. `./install.sh` is safe to re-run too.

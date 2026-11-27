@@ -30,7 +30,7 @@ export interface FileEntry {
      */
   items: number | null;
   /**
-     * the passthrough URL of a file's bytes (null for folders)
+     * the URL of a file's bytes, /api/files/raw/<path> (null for folders)
      * @nullable
      */
   url: string | null;

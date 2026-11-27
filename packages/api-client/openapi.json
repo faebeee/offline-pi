@@ -4640,7 +4640,7 @@
           "url": {
             "type": "string",
             "nullable": true,
-            "description": "the passthrough URL of a file's bytes (null for folders)"
+            "description": "the URL of a file's bytes, /api/files/raw/<path> (null for folders)"
           }
         },
         "required": [

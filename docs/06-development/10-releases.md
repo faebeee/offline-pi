@@ -53,5 +53,8 @@ change.
 5. Tag the commit: `git tag -a v<version> -m "outpost <version>"`, then
    push the branch and the tag (`git push --follow-tags`).
 
-`./update.sh` on a Pi then shows the new version number, and the Info
-module shows the new changelog after the update.
+Pushing the tag also publishes the images as `<version>` and `latest`
+(`.github/workflows/images.yml`); every commit on `main` already has its
+`sha-<commit>` images, which is what a Pi downloads. `./update.sh` on a Pi
+then shows the new version number, and the Info module shows the new
+changelog after the update.

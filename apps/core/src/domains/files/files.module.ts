@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { FilesController } from './api/files.controller';
-import { FilesClient } from './infrastructure/files.client';
+import { SharedFolder } from './infrastructure/shared-folder';
 
-/** Domain "files": a shared folder on the Pi, backed by the files container. */
+/** Domain "files": a shared folder on the Pi, kept by core (FILES_DATA_DIR). */
 @Module({
   controllers: [FilesController],
-  providers: [FilesClient],
-  exports: [FilesClient],
+  providers: [SharedFolder],
+  exports: [SharedFolder],
 })
 export class FilesModule {}

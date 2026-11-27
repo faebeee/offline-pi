@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
-# install.sh - set up outpost: check dependencies, write .env, choose and
-# configure the modules, build the images, then start everything. Safe to
-# re-run: it is also how you add/remove modules, move data to an SSD (every
-# *_DIR is re-asked, defaulting to the current value) or reconfigure a module.
-# Runs on a Raspberry Pi / Linux and on macOS (Podman machine).
+# install.sh - set up outpost: check Podman, choose modules and where the
+# data goes, download the images, start everything and make it start at
+# boot. Safe to re-run: it is also how you add or remove modules or move the
+# data (e.g. to an SSD). Runs on a Raspberry Pi / Linux and on macOS.
 #
-#   ./install.sh [--yes] [--plain] [--verbose]
-#     --yes      don't ask: keep the current answers (defaults on a first run)
-#     --plain    line-by-line prompts instead of menus (also without a terminal)
-#     --verbose  show the build output instead of a progress line
+#   ./install.sh [--advanced] [--yes] [--build] [--no-cache] [--plain] [--verbose]
+#     --advanced  also ask for the port, who may connect, the control PIN,
+#                 the Mesh send PIN and a folder per module
+#     --yes       don't ask: keep the current answers (defaults on a first run)
+#     --build     build the images here instead of downloading them
+#     --no-cache  build them from scratch (implies --build)
+#     --plain     line-by-line prompts instead of menus (also without a terminal)
+#     --verbose   show the build/download output instead of a progress line
 #
 # Also adopts an installation of the old per-app layout (apps/*/.env), see
 # lib/migrate.sh.
@@ -20,14 +23,17 @@ ROOT_DIR="$SCRIPT_DIR"
 
 for arg in "$@"; do
   case "$arg" in
+    -a|--advanced) export INSTALL_ADVANCED=true ;;
     -y|--yes) export UI_ASSUME_YES=true ;;
+    --build) export IMAGES_BUILD=true ;;
+    --no-cache) export IMAGES_BUILD=true IMAGES_NO_CACHE=true ;;
     --plain) export UI_PLAIN=true ;;
     -v|--verbose) export UI_VERBOSE=true ;;
-    -h|--help) sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "Unknown option: $arg (see ./install.sh --help)" >&2; exit 1 ;;
   esac
 done
-# every step's full output (builds, downloads); start.sh appends to it
+# every step's full output (downloads, builds); start.sh appends to it
 export UI_LOG="$ROOT_DIR/install.log"
 : >"$UI_LOG"
 
@@ -41,11 +47,15 @@ source "$ROOT_DIR/lib/serial.sh"
 source "$ROOT_DIR/lib/modules.sh"
 # shellcheck source=lib/migrate.sh
 source "$ROOT_DIR/lib/migrate.sh"
+# shellcheck source=lib/images.sh
+source "$ROOT_DIR/lib/images.sh"
+# shellcheck source=lib/autostart.sh
+source "$ROOT_DIR/lib/autostart.sh"
 # shellcheck source=lib/install.sh
 source "$ROOT_DIR/lib/install.sh"
 load_module_hooks
 
-STEPS=5
+STEPS=4
 ui_banner "outpost" "installer $UI_DOT $(platform_label)"
 
 # ---------------------------------------------------------- 1. the system --
@@ -64,41 +74,31 @@ else
 fi
 install_host_check
 
-# ------------------------------------------------------------- 2. basics --
-ui_step 2 "$STEPS" "Web app"
-install_basics "$fresh"
-
-# ------------------------------------------------------------ 3. modules --
-ui_step 3 "$STEPS" "Modules"
+# ------------------------------------------------------------ 2. modules --
+ui_step 2 "$STEPS" "Modules"
 install_choose_modules
 read_lines MODS installed_modules
 
-# ------------------------------------------------- 4. module configuration --
-ui_step 4 "$STEPS" "Storage and settings"
-ui_note "Directories that grow can live on an SSD, e.g. /mnt/ssd/outpost/maps."
-ui_note "Changing one offers to move what is already there."
-core_configure
+# ----------------------------------------------------------- 3. settings --
+ui_step 3 "$STEPS" "Data and settings"
+storage_configure
+[[ "${INSTALL_ADVANCED:-}" == true ]] && install_basics
 for m in ${MODS[@]+"${MODS[@]}"}; do
   run_hook "$m" configure || [[ $? -eq 127 ]] || exit 1
 done
 
-# -------------------------------------------------------------- 5. build --
-ui_step 5 "$STEPS" "Build and start"
-install_summary ${MODS[@]+"${MODS[@]}"}
-if ! ui_confirm "Build and start outpost now?" y; then
-  log_info "Settings saved in .env. Run ./install.sh again to build and start."
+# ------------------------------------------------------------ 4. install --
+ui_step 4 "$STEPS" "Download and start"
+install_summary
+if [[ "${INSTALL_ADVANCED:-}" == true ]] && ! ui_confirm "Install and start outpost now?" y; then
+  log_info "Settings saved in .env. Run ./install.sh again to install and start."
   exit 0
 fi
 
-prepare_builds core ${MODS[@]+"${MODS[@]}"}
-is_pi && ui_note "The first build takes a while on a Pi (10-30 minutes); later ones reuse the cache."
-for m in core ${MODS[@]+"${MODS[@]}"}; do
-  if [[ "$m" == core ]]; then label="Dashboard and web app"; else label="$(module_label "$m")"; fi
-  if ! ui_run "Building $label" compose build "$m"; then
-    log_error "Building $label failed; nothing was started. Fix the error above and re-run ./install.sh."
-    exit 1
-  fi
-done
+if ! get_images core ${MODS[@]+"${MODS[@]}"}; then
+  log_error "Nothing was started. Fix the error above (full output in install.log) and re-run ./install.sh."
+  exit 1
+fi
 for m in ${MODS[@]+"${MODS[@]}"}; do
   if declare -F "${m//-/_}_post_build" >/dev/null; then
     ui_run "Setting up $(module_label "$m")" run_hook "$m" post_build || exit 1
@@ -106,6 +106,7 @@ for m in ${MODS[@]+"${MODS[@]}"}; do
 done
 
 ensure_linger
+autostart_enable
 
 log_ok "Install complete."
 exec "$ROOT_DIR/start.sh"

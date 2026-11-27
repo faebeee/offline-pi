@@ -27,9 +27,36 @@ ENV_EXAMPLE="$ROOT_DIR/.env.example"
 # On macOS always podman-compose (`podman compose` may hand over to Docker
 # Compose, which resolves bind mounts like / on the Mac instead of in the
 # Podman machine), plus compose.macos.yml for what the remote API lacks.
+# images_init - export OUTPOST_REGISTRY and OUTPOST_TAG for compose: the
+# images of this commit (sha-<commit>), "-local" with local changes, "local"
+# outside a git clone. See lib/images.sh.
+images_init() {
+  local sha
+  OUTPOST_REGISTRY="${OUTPOST_REGISTRY:-$(get_env OUTPOST_REGISTRY)}"
+  OUTPOST_REGISTRY="${OUTPOST_REGISTRY:-ghcr.io/faebeee}"
+  sha="$(git -C "$ROOT_DIR" rev-parse --short=7 HEAD 2>/dev/null || true)"
+  if [[ -z "$sha" ]]; then
+    OUTPOST_TAG=local
+  elif [[ -n "$(git -C "$ROOT_DIR" status --porcelain --untracked-files=no 2>/dev/null)" ]]; then
+    # local changes: built here, never mistaken for CI's image of the commit
+    OUTPOST_TAG="sha-$sha-local"
+  else
+    OUTPOST_TAG="sha-$sha"
+  fi
+  export OUTPOST_REGISTRY OUTPOST_TAG
+}
+
+# image_ref SERVICE - the image of a compose service.
+image_ref() {
+  [[ -n "${OUTPOST_TAG:-}" ]] || images_init
+  printf '%s/outpost-%s:%s\n' "$OUTPOST_REGISTRY" "$1" "$OUTPOST_TAG"
+}
+
 compose() {
   # core's Settings screen reads .env and resolves relative *_DIRs from here
   export OUTPOST_DIR="$ROOT_DIR"
+  # the image names (registry and the checkout's commit)
+  [[ -n "${OUTPOST_TAG:-}" ]] || images_init
   local -a args=(-p "$PROJECT_NAME" -f "$ROOT_DIR/compose.yml")
   is_macos && args+=(-f "$ROOT_DIR/compose.macos.yml")
   [[ -f "$ENV_FILE" ]] && args+=(--env-file "$ENV_FILE")
@@ -42,19 +69,6 @@ compose() {
   fi
 }
 
-# compose_pull_flag - the `compose build` option that always pulls newer
-# base images. The backends disagree: podman-compose 1.3 (Raspberry Pi OS)
-# has a plain `--pull` switch and rejects `--pull=always`, 1.5+ takes
-# `--pull[=policy]` and still accepts the older `--pull-always`, Docker
-# Compose has only the switch.
-compose_pull_flag() {
-  local help
-  help="$(compose build --help 2>&1 || true)"
-  case "$help" in
-    *--pull-always*) printf '%s\n' --pull-always ;;
-    *) printf '%s\n' --pull ;;
-  esac
-}
 
 # offer_install LABEL PACKAGE - install a missing requirement with the
 # host's package manager after asking, or explain and exit.
@@ -117,16 +131,14 @@ ensure_podman_machine() {
   esac
 }
 
-# ensure_linger - outpost does not start at boot (no container has
-# restart: always, so podman-restart.service skips it); ./start.sh starts it.
-# Lingering keeps the user's systemd manager, podman.socket and the
-# containers running after the user logs out (e.g. an SSH session ends).
+# ensure_linger - lingering starts the user's systemd manager at boot
+# (so outpost.service, lib/autostart.sh, can start outpost) and keeps
+# podman.socket and the containers running after the user logs out.
 ensure_linger() {
   if is_macos; then
-    log_info "outpost does not start on its own: after a restart run 'podman machine start' and ./start.sh."
+    log_info "On macOS outpost does not start on its own: after a restart run ./start.sh."
     return
   fi
-  log_info "outpost does not start on its own at boot: run ./start.sh after a reboot."
   if ! has_cmd loginctl; then
     return
   fi

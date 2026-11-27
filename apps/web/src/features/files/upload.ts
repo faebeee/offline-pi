@@ -1,9 +1,9 @@
 import { useCallback, useRef, useState } from "react";
 
-/** Where a file's bytes live: core's passthrough to the files container. */
-export const RAW_ROOT = "/svc/files/raw/";
+/** Where a file's bytes live: core serves them itself. */
+export const RAW_ROOT = "/api/files/raw/";
 
-/** "Photos/a b.jpg" -> "/svc/files/raw/Photos/a%20b.jpg" */
+/** "Photos/a b.jpg" -> "/api/files/raw/Photos/a%20b.jpg" */
 export function rawUrl(path: string): string {
   return RAW_ROOT + path.split("/").map(encodeURIComponent).join("/");
 }
@@ -30,8 +30,9 @@ let nextId = 1;
 
 /**
  * Uploads to the shared folder, one at a time, with progress. A PUT of the
- * raw bytes through the passthrough (XMLHttpRequest, because fetch() can't
- * report upload progress); X-Pi-Monitor is the CSRF guard core asks for.
+ * raw bytes (XMLHttpRequest, because fetch() can't report upload progress);
+ * X-Pi-Monitor is the CSRF guard core asks for. Always sent as
+ * octet-stream: core would parse a .json file's own type as a JSON body.
  */
 export function useUploads(onDone: () => void) {
   const [uploads, setUploads] = useState<Upload[]>([]);
@@ -50,6 +51,7 @@ export function useUploads(onDone: () => void) {
     running.current = { id: next.id, xhr };
     xhr.open("PUT", rawUrl(next.path) + (next.overwrite ? "?overwrite=true" : ""));
     xhr.setRequestHeader("X-Pi-Monitor", "1");
+    xhr.setRequestHeader("Content-Type", "application/octet-stream");
     xhr.upload.onprogress = (e) => patch(next.id, { sent: e.loaded });
     const finish = (p: Partial<Upload>) => {
       running.current = null;

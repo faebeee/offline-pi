@@ -9,50 +9,61 @@ an SSD mounted at `/mnt/ssd`.
 
 | Variable | Default | What is in it | Size |
 |---|---|---|---|
-| `CORE_DATA_DIR` | `./data/core` | Dashboard history and power events (`history.json`), modules switched off (`modules.json`), notice board posts (`board.json`) | about 1 MB |
+| `CORE_DATA_DIR` | `./data/core` | Dashboard history and power events (`history.json`), modules switched off (`modules.json`), Board posts (`board.json`), the Supplies list (`supplies.json`) | about 1 MB |
 | `MAPS_DATA_DIR` | `./data/maps` | Map regions (`regions/*.pmtiles`, `regions.json`), unfinished downloads (`downloads/`), your points of interest (`offline-maps.db`), the region catalog | many GB possible |
 | `MAPS_ASSETS_DIR` | `./data/maps-assets` | Map fonts and sprites | about 100 MB |
 | `KNOWLEDGE_CONTENT_DIR` | `./data/knowledge` | Library books (ZIM files in `zim/`), partial downloads, your book selection (`selection.txt`) | MB to hundreds of GB |
 | `MESH_DATA_DIR` | `./data/mesh` | Message history and node list (`mesh.db`) | small |
 | `NETWORK_DATA_DIR` | `./data/network` | Hotspot block list and the devices seen | a few KB |
 | `FILES_DATA_DIR` | `./data/files` | The shared files, as plain files and folders | grows with every upload |
-| `SUPPLIES_DATA_DIR` | `./data/supplies` | Supplies list and household settings (`supplies.db`) | small |
 
 The ones that grow are `MAPS_DATA_DIR`, `KNOWLEDGE_CONTENT_DIR` and
-`FILES_DATA_DIR`. Put those on an SSD if you plan to download large regions
-or many books, or to share many files. The others
-are fine on the SD card.
+`FILES_DATA_DIR`. Put the data folder on an SSD if you plan to download
+large regions or many books, or to share many files.
 
 ## Choosing or changing a location
 
+All data lives in one folder, `OUTPOST_DATA_DIR` (`./data` in the project
+folder by default), with one subfolder per directory above: `core`,
+`files`, `maps`, `maps-assets`, `knowledge`, `mesh`, `network`.
+
 Do not edit the `*_DIR` lines in `.env` by hand. Re-run `./install.sh`
-instead. In step 4 it asks for every directory again, with the current
-location as the default. For each answer it:
+instead. It asks "Where should outpost keep its data?" with the current
+folder as the default. For the answer it:
 
 1. turns the path into an absolute path,
-2. creates the directory if needed and checks that it is writable (if not,
+2. creates the folder if needed and checks that it is writable (if not,
    it asks again; with `--yes` it stops with an error),
 3. shows how much space is free there.
 
-When the answer differs from the current location and the old directory
-has content, it treats that as "move my data there":
+When the answer is a new folder, it moves every data directory there:
 
-1. It asks for confirmation and shows the size.
+1. It asks for confirmation for each one that has content and shows the
+   size.
 2. It copies the data (with `rsync`, or `cp -r` if `rsync` is missing).
 3. It deletes the old copy.
-4. It writes the new path to `.env`.
+4. It writes the new paths to `.env`.
 
-If the copy fails, both copies are kept and `.env` is left unchanged. Fix
-the problem and run `./install.sh` again. If you decline the move, `.env`
-points at the new, empty directory and your data stays at the old location
-until you move it yourself.
+If a copy fails, both copies are kept and `.env` is left unchanged. Fix
+the problem and run `./install.sh` again. If you decline a move, that
+directory's data stays at the old location until you move it yourself.
 
-Example answers for an SSD mounted at `/mnt/ssd`:
+For an SSD mounted at `/mnt/ssd`, answer `/mnt/ssd/outpost`. `.env` then
+holds:
 
 ```ini
+OUTPOST_DATA_DIR=/mnt/ssd/outpost
 MAPS_DATA_DIR=/mnt/ssd/outpost/maps
 KNOWLEDGE_CONTENT_DIR=/mnt/ssd/outpost/knowledge
+FILES_DATA_DIR=/mnt/ssd/outpost/files
 ```
+
+### One folder per directory
+
+To keep, say, the books on the SSD but everything else on the SD card, run
+`./install.sh --advanced`: it asks for every directory on its own, with the
+same checks and moves. A directory set this way is left where it is by
+later runs without `--advanced`.
 
 ## Mount the drive automatically
 

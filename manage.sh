@@ -11,6 +11,8 @@ ROOT_DIR="$SCRIPT_DIR"
 source "$ROOT_DIR/lib/common.sh"
 # shellcheck source=lib/modules.sh
 source "$ROOT_DIR/lib/modules.sh"
+# shellcheck source=lib/autostart.sh
+source "$ROOT_DIR/lib/autostart.sh"
 load_module_hooks
 
 usage() {
@@ -20,6 +22,7 @@ Usage: ./manage.sh <command> [args]
   status                      every module: installed, running, health
   start MODULE / stop MODULE  same as the dashboard's START / STOP
   logs [MODULE]               follow the logs (default: core)
+  autostart on|off|status     start outpost when this machine boots (on by default)
 
 Module commands:
 USAGE
@@ -79,6 +82,16 @@ case "${1:-}" in
     require_env
     if [[ -n "${2:-}" && "$2" != core ]]; then require_module "$2"; fi
     podman logs -f "outpost-${2:-core}"
+    ;;
+  autostart)
+    case "${2:-status}" in
+      on) require_env; ensure_linger; autostart_enable ;;
+      off) autostart_disable ;;
+      status)
+        if autostart_enabled; then log_ok "outpost starts at boot"; else log_info "outpost does not start at boot (./manage.sh autostart on)"; fi
+        ;;
+      *) usage; exit 1 ;;
+    esac
     ;;
   help|-h|--help) usage ;;
   *)

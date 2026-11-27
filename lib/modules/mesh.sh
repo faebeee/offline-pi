@@ -6,10 +6,9 @@
 # dashboard knows), run the meshtastic CLI in a one-off container from the
 # same image, then start it again.
 
-MESH_IMAGE="localhost/outpost-mesh:latest"
 
 mesh_configure() {
-  local conn old new device host
+  local conn device host
   conn="$(get_env MESH_CONNECTION)"
   if [[ -z "$conn" ]]; then
     if is_macos; then
@@ -22,14 +21,12 @@ mesh_configure() {
         "tcp|Network|Wi-Fi or Ethernet, by hostname or IP"
       conn="$UI_REPLY"
     fi
-    ui_input "Mesh: PIN for sending from the web UI (empty = no PIN)" ""
+  fi
+  # a send PIN only when asked for (--advanced); empty = anyone may send
+  if [[ "${INSTALL_ADVANCED:-}" == true ]]; then
+    ui_input "Mesh: PIN for sending from the web UI (empty = no PIN)" "$(get_env MESH_SEND_PIN)"
     set_env MESH_SEND_PIN "$UI_REPLY"
   fi
-
-  old="$(get_env MESH_DATA_DIR)"; old="${old:-./data/mesh}"
-  new="$(prompt_dir "Mesh: where should the message history be stored?" "$old")"
-  resync_dir "$old" "$new" "message history"
-  set_env MESH_DATA_DIR "$new"
 
   if [[ "$conn" == tcp ]]; then
     host="$(get_env MESH_HOST)"
@@ -99,8 +96,8 @@ mesh_cli() {
     target=(--port "$MESH_DEVICE")
   fi
   [[ -t 1 ]] && run_opts+=(-t)
-  if ! podman image exists "$MESH_IMAGE"; then
-    log_error "Image $MESH_IMAGE not found. Run ./install.sh first."
+  if ! podman image exists "$(image_ref mesh)"; then
+    log_error "Image $(image_ref mesh) not found. Run ./install.sh first."
     exit 1
   fi
 
@@ -110,7 +107,7 @@ mesh_cli() {
     # start it again however the CLI ends (error, Ctrl+C)
     trap 'log_info "Starting Mesh again..."; module_start mesh || log_warn "Could not restart Mesh; start it on the dashboard."' EXIT
   fi
-  podman run "${run_opts[@]}" "$MESH_IMAGE" meshtastic "${target[@]}" "$@"
+  podman run "${run_opts[@]}" "$(image_ref mesh)" meshtastic "${target[@]}" "$@"
 }
 
 mesh_status() {

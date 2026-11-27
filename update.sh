@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# update.sh - install a new version of outpost: pull it from git, then
-# rebuild every image (with fresh base images) and recreate every container.
-# Data and settings (.env) are kept; settings a new version adds are listed
-# with their defaults.
+# update.sh - install a new version of outpost: pull it from git, then run
+# the new version's ./install.sh --yes, which keeps every answer, downloads
+# the new images and recreates every container. Data and settings (.env)
+# are kept; settings a new version adds are listed with their defaults.
 #
 #   ./update.sh [--check] [--yes] [--clean] [--rebuild]
 #     --check     only show whether a new version is available
 #     --yes       don't ask before updating
-#     --clean     rebuild every image from scratch (no layer cache; slower)
-#     --rebuild   rebuild and recreate everything even when already up to date
+#     --clean     build every image here, from scratch (slow on a Pi)
+#     --rebuild   reinstall even when already up to date
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -45,8 +45,8 @@ fi
 # applies to this very update.
 if [[ -n "$apply_from" ]]; then
   read_lines new_settings new_env_settings "$apply_from"
-  start_flags=(--pull)
-  [[ "$clean" == true ]] && start_flags+=(--no-cache)
+  install_flags=(--yes)
+  [[ "$clean" == true ]] && install_flags+=(--no-cache)
   if [[ "$apply_from" != "$(git rev-parse HEAD)" ]]; then
     log_ok "Updated $(version "$apply_from") -> $(version HEAD)"
     echo "  Something wrong with the new version? Go back with:"
@@ -58,8 +58,8 @@ if [[ -n "$apply_from" ]]; then
     printf '    %s\n' "${new_settings[@]}"
     echo "  To change one, edit .env and run ./start.sh, or re-run ./install.sh."
   fi
-  log_info "Rebuilding every image and recreating every container..."
-  exec "$ROOT_DIR/start.sh" "${start_flags[@]}"
+  log_info "Installing the new version (your answers are kept)..."
+  exec "$ROOT_DIR/install.sh" "${install_flags[@]}"
 fi
 
 # --------------------------------------------------------- 1. pull (old) --
@@ -77,7 +77,7 @@ if (( BEHIND == 0 )); then
   [[ "$check" == true ]] && exit 0
   if [[ "$rebuild" != true ]]; then
     if [[ "$yes" == true ]]; then exit 0; fi
-    ui_confirm "Rebuild and recreate every container anyway?" n || exit 0
+    ui_confirm "Reinstall it anyway?" n || exit 0
   fi
   exec "$ROOT_DIR/update.sh" --apply "$(git rev-parse HEAD)" $([[ "$clean" == true ]] && echo --clean)
 fi
@@ -89,8 +89,8 @@ if [[ "$check" == true ]]; then
 fi
 
 if [[ "$yes" != true ]]; then
-  echo "The update rebuilds every image and recreates every container: the"
-  echo "modules are unavailable for a few minutes. Data and settings are kept."
+  echo "The update downloads the new images and recreates every container:"
+  echo "outpost is unavailable for a few minutes. Data and settings are kept."
   if ! ui_confirm "Install the update now?" y; then
     log_info "Nothing changed."
     exit 0

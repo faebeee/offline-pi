@@ -5,9 +5,16 @@ jobs, but no UI of its own. Its screen is part of the web app, its API is a
 domain in core. This page lists every step, using a made-up module `radio`
 as the example.
 
-Before you start, read [Architecture](01-architecture.md). For a screen that
-core serves itself, without a container (like System, Logs or Info), skip
-steps 1, 3, 4 and 5 and see the note in step 2.
+Before you start, read [Architecture](01-architecture.md).
+
+**First ask whether it needs a container.** A feature with small data and
+no program, device or host access of its own (Board, Supplies, Files) is
+better a domain of core: no image to build or download, nothing to install.
+Its manifest has `"service": "core"`, `"optional": false`, `"nav": "apps"`
+and no `portEnv`; it keeps its data in `CORE_DATA_DIR` through `JsonFile`
+(`apps/core/src/platform/storage/json-file.ts`), or in a `*_DIR` of its own
+mounted into core when the data grows (Files). For such a screen, skip
+steps 1, 3, 4, 5 and 8 and see the note in step 2.
 
 ## 1. The code
 
@@ -84,7 +91,7 @@ A service block in `compose.yml`:
     build:
       context: .
       dockerfile: apps/radio/Dockerfile
-    image: outpost-radio
+    image: ${OUTPOST_REGISTRY:-ghcr.io/faebeee}/outpost-radio:${OUTPOST_TAG:-local}
     container_name: outpost-radio
     network_mode: host
     environment:
@@ -128,7 +135,10 @@ RADIO_PORT=8089
 RADIO_DATA_DIR=./data/radio
 ```
 
-Add its data paths to `.dockerignore` if they can be inside the checkout.
+Add its data paths to `.dockerignore` if they can be inside the checkout,
+and the service to both `matrix.service` lists of
+`.github/workflows/images.yml`, so its image is published for every commit.
+The Dockerfile must build from the checkout alone.
 
 ## 5. Hooks
 
@@ -137,9 +147,8 @@ Optional: `lib/modules/radio.sh` with functions named after the service
 
 | Hook | When it runs | For |
 |---|---|---|
-| `radio_configure` | `install.sh`, every run while installed | Prompts, storage (`prompt_dir`, `resync_dir`, `set_env`), device checks |
-| `radio_prepare` | Before every build (`install.sh`, `start.sh`) | Files the build needs that are not in the checkout |
-| `radio_post_build` | `install.sh`, after building | One-off setup |
+| `radio_configure` | `install.sh`, every run while installed | Questions it can't run without, device checks. Its data folders are already set (`dirs` in the manifest); optional questions only with `INSTALL_ADVANCED=true` |
+| `radio_post_build` | `install.sh`, once the images are there | One-off setup |
 | `radio_manage` / `radio_usage` | `./manage.sh radio <cmd>` | Module commands; return 2 for an unknown command |
 
 See [Scripts](08-scripts.md) for the conventions.
@@ -159,8 +168,9 @@ imported in `src/app.module.ts`. Then `npm run api:gen`. Details in
 
 ## 8. Uninstall
 
-Add the image and the `*_DIR` variables to the configuration block at the
-top of `uninstall.sh` (`IMAGES` and `DATA_DIR_VARS`).
+Add the `*_DIR` variables to `DATA_DIR_VARS` and the service to the image
+pattern (`grep -E '/outpost-(core|maps|...)'`) in the configuration block
+at the top of `uninstall.sh`.
 
 ## 9. Developer docs
 

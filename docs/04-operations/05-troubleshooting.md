@@ -15,8 +15,8 @@ places to look below; they often point straight at the problem.
 | `install.log`, `start.log` | Full output of the last `./install.sh` or `./start.sh` (builds, downloads). |
 | The System screen (`/system`) | Under-voltage, throttling, temperature, full disks, container health. |
 
-When in doubt, run `./start.sh`: it rebuilds what changed and recreates
-every container. `./install.sh` is safe to re-run too.
+When in doubt, run `./start.sh`: it gets the images of this version and
+recreates every container. `./install.sh` is safe to re-run too.
 
 ## A module shows "Not configured"
 
@@ -102,10 +102,21 @@ or hotspot.
 
 ## Nothing comes back after a reboot
 
-**Cause:** this is on purpose: outpost does not start on its own when the
-Pi boots or Podman starts.
-**Fix:** run `./start.sh`. Core then starts the modules that are switched
-on. A module you switched off stays off.
+**Cause:** the start at boot is off or failed, for example because the USB
+drive with the data was not mounted within two minutes.
+**Fix:** run `./start.sh`. Check the start at boot with
+`./manage.sh autostart status` (`./manage.sh autostart on` to switch it on)
+and its log with `journalctl --user -u outpost.service`. A module you
+switched off stays off.
+
+## The installer builds the images instead of downloading them
+
+**Cause:** there are no ready-made images for this exact version: the
+checkout has local changes (`git status`), the commit is not on GitHub yet
+or CI is still building it (a few minutes after a push), or it is a fork
+that doesn't publish images (`OUTPOST_REGISTRY`).
+**Fix:** wait and re-run, or remove the local changes (`git stash`). The
+local build works too, it just takes 10 to 30 minutes on a Pi.
 
 ## outpost stops when I log out
 

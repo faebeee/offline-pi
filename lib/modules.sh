@@ -7,10 +7,9 @@
 # service's dashes turned into underscores:
 #
 #   <name>_configure    install.sh, every run while installed: prompts,
-#                       storage dirs (set_env), device checks
-#   <name>_prepare      install.sh and start.sh, before building: files the
-#                       build needs that are not in the checkout
-#   <name>_post_build   install.sh, after building: one-off setup runs
+#                       device checks (the data folders are set before it,
+#                       by lib/storage.sh)
+#   <name>_post_build   install.sh, once the images are there: one-off setup
 #   <name>_manage ARGS  ./manage.sh <service> ARGS
 #   <name>_usage        lines for ./manage.sh's help
 #
@@ -48,6 +47,23 @@ all_modules() {
   done | sort -n | awk '{print $2}'
 }
 
+# active_dir_vars - every *_DIR in use, once each: those of core and the
+# screens it serves itself ("optional": false; Files: FILES_DATA_DIR) and
+# of the installed modules.
+active_dir_vars() {
+  local f m seen=" " var
+  {
+    for f in "$ROOT_DIR"/apps/*/module.json; do
+      if [[ "$(manifest_field "$f" optional)" == false ]]; then manifest_list "$f" dirs; fi
+    done
+    for m in $(installed_modules); do module_dirs "$m"; done
+  } | while read -r var; do
+    [[ -z "$var" || "$seen" == *" $var "* ]] && continue
+    seen+="$var "
+    printf '%s\n' "$var"
+  done
+}
+
 # module_label SERVICE - human name from its manifest.
 module_label() {
   manifest_field "$ROOT_DIR/apps/$1/module.json" label
@@ -68,7 +84,8 @@ installed_modules() {
 # per line as "SERVICE:REPLACEMENT". start.sh removes their containers and
 # images, install.sh says where they went.
 retired_modules() {
-  printf '%s\n' "mesh-map:maps"
+  # REPLACEMENT "core": now a screen core serves itself, always there
+  printf '%s\n' "mesh-map:maps" "files:core" "board:core" "supplies:core"
 }
 
 # remove_retired_modules - containers and images of retired modules.
@@ -124,13 +141,6 @@ load_module_hooks() {
   done
 }
 
-# prepare_builds SERVICES... - run each <name>_prepare hook (core included).
-prepare_builds() {
-  local m
-  for m in "$@"; do
-    run_hook "$m" prepare || [[ $? -eq 127 ]] || exit 1
-  done
-}
 
 # core_api METHOD PATH - call core's API on this Pi (module start/stop from
 # manage.sh). Prints the response body; fails when core is unreachable.

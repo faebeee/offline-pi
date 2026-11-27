@@ -76,6 +76,7 @@ HOUSEHOLD on the summary card:
 
 ## Where the list is
 
-In `supplies.db` (SQLite) in `SUPPLIES_DATA_DIR` (`./data/supplies` by
-default), with the household settings. It exists only on this Pi: back it
+Supplies is part of outpost itself, like Board: always there, nothing to
+install. The list and the household settings are in `supplies.json` in
+`CORE_DATA_DIR` (`./data/core` by default). It exists only on this Pi: back it
 up (see [Backup and restore](../04-operations/03-backup-and-restore.md)).

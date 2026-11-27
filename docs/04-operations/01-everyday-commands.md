@@ -9,9 +9,9 @@ one they tell you to run `./install.sh` first.
 ## start.sh
 
 ```sh
-./start.sh              # rebuild what changed, recreate every container
-./start.sh --pull       # also pull newer base images first
-./start.sh --no-cache   # rebuild every image from scratch
+./start.sh              # get the images of this version, recreate every container
+./start.sh --build      # build the images on this machine instead of downloading
+./start.sh --no-cache   # build every image from scratch
 ```
 
 Run it after you edit `.env`, after a failed start, or whenever something
@@ -19,7 +19,8 @@ seems stuck. It:
 
 1. checks that every data directory exists (see
    [Storage and SSD](../02-installation/02-storage.md#when-the-drive-is-not-there)),
-2. builds the images (only what changed, unless `--no-cache`),
+2. gets the images of this version: those already here are used, the
+   others downloaded; only what can't be downloaded is built,
 3. recreates the container of every installed module without starting it,
 4. removes containers of modules no longer in `MODULES` (and the old
    Mesh map container and image, now part of Maps),
@@ -27,13 +28,26 @@ seems stuck. It:
    switched on,
 6. waits until the web app answers and prints its address.
 
-A failed build stops at step 2: the running containers keep their old
-images. If one module's container cannot be created (for example the
+A failed download or build stops at step 2: the running containers keep
+their old images. Images of earlier versions are removed at the end, to
+free the disk. If one module's container cannot be created (for example the
 Meshtastic node is unplugged), the others still start and the module is
 listed as "Not available" at the end. The full output goes to `start.log`.
 
-outpost does not start on its own when the Pi boots: run `./start.sh`
-after a reboot.
+## Start at boot
+
+outpost starts by itself when the Pi boots and stops cleanly when it shuts
+down (a systemd user unit, `outpost.service`, set up by `install.sh`). At
+boot it only starts the existing containers, so it is quick, and it waits
+up to two minutes for a USB drive to mount.
+
+```sh
+./manage.sh autostart status   # does it start at boot?
+./manage.sh autostart off      # no: start it with ./start.sh yourself
+./manage.sh autostart on       # yes again
+```
+
+On a Mac there is no start at boot: run `./start.sh` after a restart.
 
 ## stop.sh
 
@@ -55,9 +69,11 @@ machine running (`podman machine stop` stops it too).
 | `./manage.sh stop <module>` | Switches a module off. It stays off after a reboot. |
 | `./manage.sh logs` | Follows core's log (Ctrl+C to quit). |
 | `./manage.sh logs <module>` | Follows a module's log. |
+| `./manage.sh autostart on\|off\|status` | Whether outpost starts when the Pi boots (on by default). |
 | `./manage.sh help` | Prints the usage with every module command. |
 
-Module names are the ones in `MODULES`: `maps`, `knowledge`, `mesh`.
+Module names are the ones in `MODULES`: `maps`, `knowledge`, `mesh`,
+`network`. Files, Board and Supplies are part of core and always on.
 Note that the Library module is called `knowledge` here.
 
 `start` and `stop` go through core's API, so the home page shows the same

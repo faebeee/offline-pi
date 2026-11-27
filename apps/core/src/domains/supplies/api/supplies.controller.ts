@@ -10,28 +10,28 @@ import {
   UpdateItemRequest,
   UpdateSettingsRequest,
 } from '../domain/supplies.dto';
-import { SuppliesClient } from '../infrastructure/supplies.client';
+import { SuppliesStore } from '../infrastructure/supplies.store';
 
 /**
  * Domain "supplies": the household's emergency stock (what, how much,
- * where, until when), backed by the supplies container. Anyone on the
+ * where, until when), kept by core itself (CORE_DATA_DIR/supplies.json). Anyone on the
  * network may add and change items; deleting one is a control action
  * (CONTROL_PIN).
  */
 @ApiTags('supplies')
 @Controller('api/supplies')
 export class SuppliesController {
-  constructor(private readonly supplies: SuppliesClient) {}
+  constructor(private readonly supplies: SuppliesStore) {}
 
   /** Counts, warnings (expired, expiring, low) and how many days the water lasts. */
   @Get('status')
-  status(): Promise<SuppliesStatus> {
+  status(): SuppliesStatus {
     return this.supplies.status();
   }
 
   /** Every item, by category and name. */
   @Get('items')
-  items(): Promise<SupplyItem[]> {
+  items(): SupplyItem[] {
     return this.supplies.items();
   }
 
@@ -84,7 +84,7 @@ export class SuppliesController {
 
   /** People, water per day, target days and the expiry warning window. */
   @Get('settings')
-  settings(): Promise<SuppliesSettings> {
+  settings(): SuppliesSettings {
     return this.supplies.settings();
   }
 

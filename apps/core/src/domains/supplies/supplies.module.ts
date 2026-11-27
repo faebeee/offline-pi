@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { SuppliesController } from './api/supplies.controller';
-import { SuppliesClient } from './infrastructure/supplies.client';
+import { SuppliesStore } from './infrastructure/supplies.store';
 
-/** Domain "supplies": the household's emergency stock, backed by the supplies container. */
+/** Domain "supplies": the household's emergency stock, kept by core (CORE_DATA_DIR/supplies.json). */
 @Module({
   controllers: [SuppliesController],
-  providers: [SuppliesClient],
-  exports: [SuppliesClient],
+  providers: [SuppliesStore],
+  exports: [SuppliesStore],
 })
 export class SuppliesModule {}

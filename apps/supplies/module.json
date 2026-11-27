@@ -4,14 +4,9 @@
   "label": "Supplies",
   "icon": "crate",
   "description": "Emergency supplies: what you have, where, when it expires, and how long the water lasts.",
-  "service": "supplies",
+  "service": "core",
   "path": "/supplies/",
-  "portEnv": "SUPPLIES_PORT",
-  "port": 8088,
-  "stripPrefix": true,
-  "health": "/api/status",
-  "dirs": ["SUPPLIES_DATA_DIR"],
-  "optional": true,
-  "requires": [],
-  "dependsOn": []
+  "dirs": [],
+  "optional": false,
+  "nav": "apps"
 }

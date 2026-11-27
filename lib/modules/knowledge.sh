@@ -5,13 +5,9 @@
 
 KNOWLEDGE_CONTAINER="outpost-knowledge"
 
+# The books folder is set by install.sh's storage step (lib/storage.sh).
 knowledge_configure() {
-  local old new
-  old="$(get_env KNOWLEDGE_CONTENT_DIR)"; old="${old:-./data/knowledge}"
-  new="$(prompt_dir "Library: where should the books be stored (you choose them later in the web app; up to hundreds of GB)?" "$old")"
-  resync_dir "$old" "$new" "library content"
-  set_env KNOWLEDGE_CONTENT_DIR "$new"
-  mkdir -p "$new/zim"
+  mkdir -p "$(get_env KNOWLEDGE_CONTENT_DIR)/zim"
 }
 
 knowledge_usage() {

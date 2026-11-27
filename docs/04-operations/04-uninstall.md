@@ -36,7 +36,7 @@ It works with or without `.env` and even when Podman is already gone.
 
 The data directories it knows are `CORE_DATA_DIR`, `MAPS_DATA_DIR`,
 `MAPS_ASSETS_DIR`, `KNOWLEDGE_CONTENT_DIR`, `MESH_DATA_DIR`,
-`NETWORK_DATA_DIR`, `FILES_DATA_DIR` and `SUPPLIES_DATA_DIR`, read from
+`NETWORK_DATA_DIR` and `FILES_DATA_DIR`, read from
 `.env` (or their defaults under `data/`).
 
 ## Safety rules
@@ -53,7 +53,8 @@ The data directories it knows are `CORE_DATA_DIR`, `MAPS_DATA_DIR`,
   need it.
 - Podman itself.
 - `podman-restart.service` and lingering for your user (other containers
-  may rely on them; outpost no longer enables `podman-restart.service`).
+  may rely on them; outpost doesn't use `podman-restart.service`). The
+  start at boot (`outpost.service`) is removed.
 - `podman.socket`. To stop it:
   `systemctl --user disable --now podman.socket`.
 - The Wi-Fi hotspot fallback. It has its own uninstaller, see

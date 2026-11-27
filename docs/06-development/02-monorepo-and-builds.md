@@ -82,6 +82,22 @@ Core's image also copies every `apps/*/module.json` (the module manifests)
 and the built web app. Other images use a pinned upstream base (kiwix-serve
 for knowledge, Python for mesh).
 
+### Published images
+
+`.github/workflows/images.yml` builds every image for amd64 and arm64 on
+each push to `main` and each `v*` tag, each architecture on a native GitHub
+runner with Podman, and pushes `ghcr.io/<owner>/outpost-<service>` with the
+tags `sha-<commit>` (always), `main`, and `<version>` + `latest` for a
+release. `install.sh`, `start.sh` and `update.sh` download the images
+tagged with the checkout's commit (`lib/images.sh`) and build only when
+there are none: a fork without the workflow, an unpushed commit, local
+changes, `--build` or `OUTPOST_BUILD=true`. So a Dockerfile must build from
+the checkout alone.
+
+The packages on ghcr.io must be **public**, or a Pi can't download them:
+once per image, after its first push, GitHub > Packages >
+`outpost-<service>` > Package settings > Change visibility.
+
 ### .dockerignore
 
 Because the context is the whole repo, the root `.dockerignore` keeps it
@@ -107,4 +123,5 @@ in core need a restart of `dev:core`.
   `npm run dev:maps` next to it.
 - `CORE_URL` points the dev server at another core, for example the Pi:
   `CORE_URL=http://raspberrypi.local:8080 npm run dev:web`.
-- To test the real images, run `./start.sh` (it rebuilds what changed).
+- To test the real images, run `./start.sh`: with local changes it builds
+  them (tag `sha-<commit>-local`).

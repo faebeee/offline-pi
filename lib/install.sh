@@ -71,27 +71,20 @@ install_host_check() {
 
 # ---------------------------------------------------------------- basics --
 
-# install_basics FRESH - port, who can reach it, control PIN. Asked on a
-# fresh .env; afterwards only when the user wants to change them.
+# install_basics - port, who can reach it, control PIN (install.sh
+# --advanced; otherwise the defaults: 8080, every device, no PIN).
 install_basics() {
-  local fresh="$1" port bind pin who
+  local port bind pin
   port="$(get_env PORT)"; port="${port:-8080}"
   bind="$(get_env BIND_ADDRESS)"; bind="${bind:-0.0.0.0}"
   pin="$(get_env CONTROL_PIN)"
-  if [[ "$bind" == 127.0.0.1 ]]; then who="this machine only"; else who="the whole network"; fi
-
-  if [[ "$fresh" != true ]]; then
-    ui_note "Port $port, reachable from $who, control PIN ${pin:+set}${pin:-none}."
-    ui_confirm "Change these?" n || return 0
-  fi
-
   ui_input "Port for the web app" "$port" valid_port
   set_env PORT "$UI_REPLY"
   ui_select "Who can open it?" "$bind" \
     "0.0.0.0|Every device on the network|LAN, Wi-Fi hotspot (0.0.0.0)" \
     "127.0.0.1|Only this machine|127.0.0.1"
   set_env BIND_ADDRESS "$UI_REPLY"
-  ui_input "PIN to start/stop modules from the dashboard (empty = none)" "$pin" valid_pin
+  ui_input "PIN for control actions: start/stop modules, delete shared data (empty = none)" "$pin" valid_pin
   set_env CONTROL_PIN "$UI_REPLY"
 }
 
@@ -108,8 +101,12 @@ install_choose_modules() {
   old="$(get_env MODULES)"
   for entry in $(retired_modules); do
     if [[ ",$old," == *",${entry%%:*},"* ]]; then
-      ui_note "The ${entry%%:*} module is now part of ${entry#*:}; keep ${entry#*:} selected to use it."
-      merged+="${entry#*:} "
+      if [[ "${entry#*:}" == core ]]; then
+        ui_note "${entry%%:*} is now built in: always there, nothing to select."
+      else
+        ui_note "The ${entry%%:*} module is now part of ${entry#*:}; keep ${entry#*:} selected to use it."
+        merged+="${entry#*:} "
+      fi
     fi
   done
   for m in $(all_modules); do
@@ -121,31 +118,28 @@ install_choose_modules() {
     fi
     items+=("$m|$(module_label "$m")|$desc|$state")
   done
-  ui_note "The dashboard is always installed. Installed modules are switched on and off in the web app."
+  ui_note "Always included: home, Files, Board, Supplies, System, Logs, Info, Settings, Diagnostics."
+  ui_note "Installed modules are switched on and off in the web app."
   ui_multiselect "Which modules should be installed?" "${items[@]}"
   set_env MODULES "$UI_REPLY"
 }
 
 # --------------------------------------------------------------- summary --
 
-# install_summary MODULES... - what will be built, where the data lives.
+# install_summary - where to open it, the modules, where the data lives.
 install_summary() {
-  local m var ip seen=" "
+  local var ip
   load_env
   ip="$(lan_ip)"
   printf '\n' >&2
-  printf '  %-18s %s\n' "Web app" "http://localhost:${PORT}" >&2
+  printf '  %-22s %s\n' "Web app" "http://localhost:${PORT}" >&2
   if [[ -n "$ip" && "${BIND_ADDRESS}" != 127.0.0.1 ]]; then
-    printf '  %-18s %s\n' "" "http://${ip}:${PORT}" >&2
+    printf '  %-22s %s\n' "" "http://${ip}:${PORT}" >&2
   fi
-  printf '  %-18s %s\n' "Modules" "${MODULES:-none}" >&2
-  for m in core "$@"; do
-    for var in $(module_dirs "$m"); do
-      # skip a dir listed by two modules
-      [[ "$seen" == *" $var "* ]] && continue
-      seen+="$var "
-      printf '  %-18s %s\n' "$(printf '%s' "${var%_DIR}" | tr 'A-Z_' 'a-z ')" "${!var:-}" >&2
-    done
+  printf '  %-22s %s\n' "Modules" "${MODULES:-none}" >&2
+  printf '  %-22s %s\n' "Control PIN" "${CONTROL_PIN:+set}${CONTROL_PIN:-none (./install.sh --advanced)}" >&2
+  for var in $(active_dir_vars); do
+    printf '  %-22s %s\n' "$var" "${!var:-}" >&2
   done
   printf '\n' >&2
 }

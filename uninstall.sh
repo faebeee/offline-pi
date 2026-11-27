@@ -8,19 +8,17 @@ cd "$SCRIPT_DIR"
 
 # ------------------------------------------------------------ app config --
 APP_NAME="outpost"
-# Images to remove (locally built and/or pulled upstream ones).
-IMAGES=(
-  localhost/outpost-core:latest
-  localhost/outpost-maps:latest
-  localhost/outpost-knowledge:latest
-  ghcr.io/kiwix/kiwix-serve:3.8.2
-  localhost/outpost-mesh:latest
-  localhost/outpost-network:latest
-  localhost/outpost-files:latest
-  localhost/outpost-supplies:latest
-  # retired module (now part of maps), still on older installs
-  localhost/outpost-mesh-map:latest
-)
+# Images to remove: every version of outpost's own images (downloaded from
+# ghcr.io or built here; older installs named them localhost/outpost-*) and
+# the upstream base kiwix-serve.
+IMAGES=()
+if command -v podman >/dev/null 2>&1; then
+  while IFS= read -r image; do
+    IMAGES+=("$image")
+  done < <(podman images --format '{{.Repository}}:{{.Tag}}' 2>/dev/null \
+    | grep -E '/outpost-(core|maps|knowledge|mesh|network|files|board|supplies|mesh-map):' || true)
+fi
+IMAGES+=(ghcr.io/kiwix/kiwix-serve:3.8.2)
 # Persistent data directories as VAR=default (same vars as .env).
 DATA_DIR_VARS=(
   CORE_DATA_DIR=./data/core
@@ -30,10 +28,22 @@ DATA_DIR_VARS=(
   MESH_DATA_DIR=./data/mesh
   NETWORK_DATA_DIR=./data/network
   FILES_DATA_DIR=./data/files
-  SUPPLIES_DATA_DIR=./data/supplies
 )
 # podman.socket was enabled by install.sh for core; other tools may use it.
 EXTRA_STEPS=("leaves podman.socket enabled (stop it with: systemctl --user disable --now podman.socket)")
+# The boot unit install.sh writes (lib/autostart.sh) goes with outpost.
+AUTOSTART_UNIT_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/outpost.service"
+if [[ -f "$AUTOSTART_UNIT_FILE" ]]; then
+  EXTRA_STEPS+=("removes the start at boot ($AUTOSTART_UNIT_FILE)")
+fi
+app_uninstall_hook() {
+  if [[ -f "$AUTOSTART_UNIT_FILE" ]]; then
+    systemctl --user disable outpost.service >/dev/null 2>&1 || true
+    rm -f "$AUTOSTART_UNIT_FILE"
+    systemctl --user daemon-reload 2>/dev/null || true
+    log_ok "Removed the start at boot"
+  fi
+}
 # The Network module's host helper (root, systemd) has its own uninstaller.
 if [[ -f /etc/systemd/system/outpost-network-guard.path ]]; then
   EXTRA_STEPS+=("leaves the Network guard installed (remove it with: sudo host/network-guard/uninstall-network-guard.sh)")

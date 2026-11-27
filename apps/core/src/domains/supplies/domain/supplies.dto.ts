@@ -1,8 +1,7 @@
-// The supplies domain's contract: the household's emergency stock. The
-// supplies container (Python) speaks snake_case; infrastructure/
-// supplies.client.ts maps it onto these classes.
+// The supplies domain's contract: the household's emergency stock, kept by
+// core itself (infrastructure/supplies.store.ts).
 import { Transform } from 'class-transformer';
-import { IsIn, IsInt, IsNumber, IsOptional, IsString, Matches, Max, MaxLength, Min, MinLength, ValidateIf } from 'class-validator';
+import { IsIn, Validate, ValidatorConstraint, type ValidatorConstraintInterface, IsInt, IsNumber, IsOptional, IsString, Matches, Max, MaxLength, Min, MinLength, ValidateIf } from 'class-validator';
 
 export const CATEGORIES = ['water', 'food', 'medicine', 'hygiene', 'power', 'tools', 'other'] as const;
 export type Category = (typeof CATEGORIES)[number];
@@ -11,6 +10,19 @@ const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? val
 /** "" clears an optional field */
 const emptyToNull = ({ value }: { value: unknown }) => (typeof value === 'string' && value.trim() === '' ? null : trim({ value }));
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** A real calendar date (2027-02-30 is not). */
+@ValidatorConstraint({ name: 'calendarDate' })
+class CalendarDate implements ValidatorConstraintInterface {
+  validate(v: unknown): boolean {
+    if (typeof v !== 'string') return false;
+    const t = Date.parse(`${v}T00:00:00Z`);
+    return !Number.isNaN(t) && new Date(t).toISOString().slice(0, 10) === v;
+  }
+  defaultMessage(): string {
+    return 'expires must be a real date like 2027-03-31';
+  }
+}
 
 export class SupplyItem {
   id!: number;
@@ -107,6 +119,7 @@ export class CreateItemRequest {
   @Transform(emptyToNull)
   @ValidateIf((_, v) => v !== null)
   @Matches(DATE, { message: 'expires must be a date like 2027-03-31' })
+  @Validate(CalendarDate)
   expires?: string | null;
 
   @IsOptional()
@@ -160,6 +173,7 @@ export class UpdateItemRequest {
   @Transform(emptyToNull)
   @ValidateIf((_, v) => v !== null)
   @Matches(DATE, { message: 'expires must be a date like 2027-03-31' })
+  @Validate(CalendarDate)
   expires?: string | null;
 
   @IsOptional()
