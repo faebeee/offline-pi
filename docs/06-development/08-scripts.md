@@ -24,7 +24,7 @@ for the user is in [Everyday commands](../04-operations/01-everyday-commands.md)
 | `lib/autostart.sh` | `outpost.service`, the start at boot |
 | `lib/storage.sh` | `prompt_dir` and `resync_dir` (relocatable data) |
 | `lib/modules.sh` | Module registry from the manifests, hooks, `core_api` |
-| `lib/install.sh`, `lib/update.sh`, `lib/migrate.sh`, `lib/serial.sh` | Steps of `install.sh` and `update.sh`, old layout and old name (offline-pi) migration, USB serial picker |
+| `lib/install.sh`, `lib/update.sh`, `lib/migrate.sh` | Steps of `install.sh` and `update.sh`, old layout and old name (offline-pi) migration |
 | `lib/modules/<name>.sh` | One module's hooks |
 
 Put logic in `lib/*.sh` rather than growing the entry scripts.

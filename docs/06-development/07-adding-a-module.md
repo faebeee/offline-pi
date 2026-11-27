@@ -72,7 +72,7 @@ it with `sed`) and arrays on one line:
 | `health` | Health path on the module |
 | `dirs` | Its bind-mounted `*_DIR` variables, checked by `start.sh` |
 | `optional` | `true` for a module the user chooses in `install.sh` |
-| `requires` | Variables that must be non-empty before it may start (mesh: `MESH_CONNECTION`) |
+| `requires` | Variables that must be non-empty before it may start (radio: `RADIO_DEVICE`) |
 | `dependsOn` | Installed modules started together with it, first |
 
 A screen that core serves itself has `"service": "core"`, no `portEnv` and

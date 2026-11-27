@@ -12,7 +12,7 @@ const PODMAN_TS = /^(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d)(\.\d+)?(Z|[+-]\d\d:\d\d) /;
 /** Nest's ConsoleLogger: `[Nest] 1  - 11/09/2026, 10:00:00 AM     LOG [Ctx] message +3ms` */
 const NEST = /^\[Nest\]\s+\d+\s+-\s+.*?\s+(LOG|ERROR|WARN|DEBUG|VERBOSE|FATAL)\s+(?:\[([^\]]*)\]\s?)?(.*?)(?:\s\+\d+ms)?$/;
 
-/** Python logging (mesh): `2026-11-09 10:00:00,123 INFO mesh: message` */
+/** Python logging (network): `2026-11-09 10:00:00,123 INFO network: message` */
 const PYTHON = /^\d{4}-\d\d-\d\d[ T][\d:.,]+\s+(DEBUG|INFO|WARNING|WARN|ERROR|CRITICAL)\s+([^:\s]+):\s?(.*)$/;
 
 /** uvicorn and other `LEVEL: message` lines */
@@ -71,7 +71,7 @@ function parseJson(text: string): Pick<LogEntry, 'level' | 'context' | 'message'
 
 /**
  * Turns raw container log lines into LogEntry. Understands Nest's console
- * and JSON output (core, maps), Python logging (mesh) and `LEVEL:` prefixes;
+ * and JSON output (core, maps), Python logging (network) and `LEVEL:` prefixes;
  * anything else is level "log". Continuation lines (stack traces, indented
  * output, or any unparsed line right after an error, like the stack Nest
  * prints below an ERROR line) take the level and context of the line before

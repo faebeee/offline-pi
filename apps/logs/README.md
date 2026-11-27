@@ -26,7 +26,7 @@ its own**: like System it is served by core (`"service": "core"` in
 | modules | **Podman**: `GET /libpod/containers/<name>/logs` on the user's `podman.socket` (the same socket core uses for start/stop), with timestamps. Followed sources keep one stream open per source, shared by every browser, closed when nobody follows it any more. Lines reach the browser in batches every 250 ms. |
 
 Container lines are parsed into levels: Nest's console and JSON output
-(maps backend), Python logging (mesh), `LEVEL:` prefixes (uvicorn). Other
+(maps backend), Python logging (network), `LEVEL:` prefixes (uvicorn). Other
 lines (kiwix) are level `log`. Stack traces and indented lines
 take the level of the line before them, so an error keeps its stack when
 filtering.

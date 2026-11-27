@@ -2,7 +2,7 @@
 
 outpost is one web app. Open `http://<pi>:8080` in any browser on the
 same network or hotspot as the Pi (the port is `PORT` in `.env`, 8080 by
-default). Every module is a screen of that app: Maps, Library, Mesh,
+default). Every module is a screen of that app: Maps, Library,
 Network, Files, Board and Supplies, plus System, Logs, Info, Settings and Diagnostics, which are always there. This chapter
 explains how to use each screen.
 
@@ -42,10 +42,9 @@ Then the Pi's vitals: CPU temperature (`TEMP`), input voltage (`VOLT`), CPU
 and memory usage (`CPU`, `MEM`) and the system disk (`DISK 23/57 GB`), in
 amber or red when they need attention (see [System](05-system.md)). On a
 phone they get a second line. The last item is always the time in UTC
-(`14:32Z`). All times in the app are UTC, so they match between devices and
-radio messages.
+(`14:32Z`). All times in the app are UTC, so they match between devices.
 
-What belongs to one screen (its regions, the radio link, sync progress) is
+What belongs to one screen (its regions, sync progress) is
 shown on the screen itself, in the context line under the header or in a
 banner.
 
@@ -71,7 +70,7 @@ Maps use the light map with Daylight and Paper, the dark map with every
 other theme. Night vision tints the map and pictures red.
 
 Some screens have a context line under the header with more detail, such
-as the map zoom and coordinates, or the radio region and preset on Mesh.
+as the map zoom and coordinates on Maps.
 
 ### Module nav
 
@@ -90,7 +89,7 @@ place of its screen. It tells you why and what to do:
 | Banner | What it means | What to do |
 |---|---|---|
 | `<Module> is not installed` | The module was not chosen during installation | Re-run `./install.sh` on the Pi and select it |
-| `<Module> is not configured` | A required setting is missing (for Mesh: the radio connection) | Re-run `./install.sh` on the Pi |
+| `<Module> is not configured` | A setting the module needs is still empty | Re-run `./install.sh` on the Pi |
 | `<Module> is not running` | Installed, but stopped | Press the START button (for example START MAPS). The screen opens as soon as the module is up |
 | `Core is not reachable` | The browser cannot reach the Pi at all | Check the network, then see [Troubleshooting](../04-operations/05-troubleshooting.md) |
 
@@ -104,12 +103,9 @@ starts or stops a module. See [Home](01-home.md#the-control-pin).
 - [Home](01-home.md): the module tiles, their state badges and the switches
   to start and stop modules.
 - [Maps](02-maps.md): download map regions once, then use them offline,
-  with saved places and, with Mesh installed, the Meshtastic nodes as a
-  layer you can switch on and off.
+  with saved places.
 - [Library](03-library.md): choose, download, read and search offline
   books such as medical guides and Wikipedia.
-- [Mesh](04-mesh.md): text messages over a Meshtastic LoRa radio, without
-  internet or phone network.
 - [System](05-system.md): temperature, power, CPU, memory, storage,
   network, containers and connections of the Pi.
 - [Logs](06-logs.md): the log lines of core and every module, for finding

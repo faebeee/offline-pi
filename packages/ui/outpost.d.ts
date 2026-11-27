@@ -7,7 +7,7 @@ export const THEMES: readonly ThemeInfo[];
 export type LinkState = "ok" | "cau" | "crit";
 export type StatusState = "info" | "ok" | "cau" | "crit" | "off";
 // built-in ids; modules added through a manifest are plain strings
-export type ModuleId = "home" | "maps" | "mesh" | "knowledge" | "system" | (string & {});
+export type ModuleId = "home" | "maps" | "knowledge" | "system" | (string & {});
 
 /** `tone` colours the value: cau (elevated) or crit (act now). */
 export type StripItem = { label: string; value: string; tone?: "ok" | "cau" | "crit" };

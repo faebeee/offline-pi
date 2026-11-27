@@ -102,7 +102,7 @@ fi
 # Modules: create (or recreate after a build) without starting; core starts
 # the ones switched on. --force-recreate: podman-compose only replaces a
 # container when the compose config changed, not when the image did.
-# One at a time, so a module that can't be created (e.g. the Meshtastic node
+# One at a time, so a module that can't be created (e.g. a device
 # is unplugged: podman resolves devices at creation) doesn't stop the rest.
 # the project used to be called offline-pi: its containers go first
 migrate_project_rename
@@ -162,7 +162,7 @@ if [[ -n "$LAN_IP" && "${BIND_ADDRESS:-0.0.0.0}" != "127.0.0.1" ]]; then
 fi
 echo "  Modules: ${MODS[*]:-none} (start and stop them on the dashboard)"
 if [[ ${#failed[@]} -gt 0 ]]; then
-  log_warn "Not available: ${failed[*]} (see the errors above; for mesh, is the node plugged in?)"
+  log_warn "Not available: ${failed[*]} (see the errors above)"
 fi
 echo
 echo "Use './manage.sh status' for the state of every module, './manage.sh logs [module]' to follow logs."

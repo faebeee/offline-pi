@@ -2,7 +2,7 @@ import { connect, type Namespace, type NamespaceSocket, type ServerEvents } from
 import { useEffect, useRef, useState } from "react";
 
 /**
- * One Socket.IO connection per namespace (/system, /maps, /mesh), shared by
+ * One Socket.IO connection per namespace (/system, /maps, /logs), shared by
  * every component that uses it and closed when the last one unmounts.
  */
 const sockets = new Map<Namespace, { socket: NamespaceSocket<Namespace>; users: number }>();

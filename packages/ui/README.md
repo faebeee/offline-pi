@@ -46,14 +46,14 @@ Every screen (DESIGN.md section 6):
     <div data-strip></div>                      <!-- status strip -->
     <header class="header">
       <div class="header-title">
-        <span class="label" data-module-label>Module 02 · Mesh</span>
-        <h1 class="h1">Channels</h1>              <!-- the current view / title -->
+        <span class="label" data-module-label>Module 02 · Library</span>
+        <h1 class="h1">Catalog</h1>              <!-- the current view / title -->
       </div>
       <div class="header-actions">
         <button data-theme-toggle></button>      <!-- 44 px sun/moon -->
       </div>
     </header>
-    <div class="context">EU_868 · LONGFAST · 3 NODES</div>   <!-- optional -->
+    <div class="context">12 BOOKS · 48 GB</div>   <!-- optional -->
     <div class="frame-body">
       <main class="content grid-bg">…</main>     <!-- .content.bleed for maps -->
       <nav data-nav></nav>                        <!-- bottom nav / left rail -->
@@ -61,22 +61,22 @@ Every screen (DESIGN.md section 6):
   </div>
   <script type="module">
     import { frame } from "/ui/outpost.js";
-    const { strip } = frame("mesh");             // module id, see MODULES / module.json
-    strip.setLink("ok", "RADIO · LINKED");
-    strip.setItems([{ label: "BAT", value: "78%" }]);
+    const { strip } = frame("knowledge");        // module id, see MODULES / module.json
+    strip.setLink("ok", "LOCAL · 12 BOOKS");
+    strip.setItems([{ label: "SYNC", value: "3/5" }]);
   </script>
 ```
 
 `frame()` applies the stored theme (`outpost.theme`, default dark), builds the
 strip with a UTC clock, fills the module nav, wires the theme toggle and writes
-`moduleLabel(id)` ("Module 02 · Mesh", numbered by `MODULES[].num`) into every
+`moduleLabel(id)` ("Module 02 · Library", numbered by `MODULES[].num`) into every
 `[data-module-label]`. The nav links are paths on the same origin (core serves
-every module under its path, e.g. `/mesh/`): drawn from the built-in
+every module under its path, e.g. `/library/`): drawn from the built-in
 `MODULES` first, then redrawn from core's `/api/modules` (installed modules,
 with `running` state). `frame()` returns `{ strip, modules }`; `modules`
 resolves once that list is loaded, after which `MODULES` and
 `moduleUrl(id)` reflect what is installed (use it for links to another
-module, e.g. mesh's "show on map"). Listen for `outpost:theme` on `window` to react to theme
+module, e.g. a link from Library to Maps). Listen for `outpost:theme` on `window` to react to theme
 changes (e.g. swap the map style).
 
 Vite apps bundle the package, so `/ui/theme-boot.js` has no URL before the
@@ -89,9 +89,9 @@ data source**, written `<SOURCE> · <STATE>`.
 
 | LED | Meaning | Examples |
 |---|---|---|
-| ok | connected / loaded | `LOCAL · 3 REGIONS`, `MESH · LIVE`, `RADIO · LINKED`, `LOCAL · LIVE`, `LOCAL · 12 BOOKS` |
-| cau | connecting, reconnecting or stale | `LOCAL · CONNECTING` (the default until the app says otherwise), `RADIO · CONNECTING` |
-| crit | failed, with a short reason | `LOCAL · NO ANSWER`, `MESH · ACCESS BLOCKED`, `RADIO · PI UNREACHABLE` |
+| ok | connected / loaded | `LOCAL · 3 REGIONS`, `LOCAL · LIVE`, `LOCAL · 12 BOOKS` |
+| cau | connecting, reconnecting or stale | `LOCAL · CONNECTING` (the default until the app says otherwise) |
+| crit | failed, with a short reason | `LOCAL · NO ANSWER` |
 
 Other facts (GNSS, battery, counts) go in `strip.setItems()`, never in the
 link text. Host vitals go in `strip.setHost()`
@@ -150,7 +150,7 @@ does use `frame()`.
 | Badges | `.badge` + `.badge-ok/-info/-cau/-crit/-acc/-sos`, or `badge(state, text)` (icon + word) |
 | LED | `.led` + `.led-ok/-info/-cau/-crit/-off`, `.led-sq` (strip), `.led-lg` |
 | Readouts | `.readout` > `.label` + `.readout-value` (`.readout-unit`) + `.cells`/`.bars`; `powerCells()`, `signalBars()` |
-| Progress / storage | `.progress-head` + `progress(el, ratio, cells, tone)` (tone `"cau"`/`"crit"` = `.progress.is-cau/.is-crit`); `.stack` > `i.maps/.library/.mesh/.other` + `.legend` |
+| Progress / storage | `.progress-head` + `progress(el, ratio, cells, tone)` (tone `"cau"`/`"crit"` = `.progress.is-cau/.is-crit`); `.stack` > `i.maps/.library/.other` + `.legend` |
 | Banners | `.banner` + `.banner-info/-ok/-cau/-crit` > `.i` + `.banner-text` > `.banner-title` + `.banner-body`, optional trailing `.btn` (a `.btn-icon` dismiss tucks into the padding) |
 | Toast | `toast(message, { action, onAction })` |
 | Empty state | `.empty` > `.i` + `.empty-title` + `p` |
@@ -161,9 +161,8 @@ does use `frame()`.
 | Tiles | `a.tile` > icon + `.tile-name` + `.label` |
 | Dialog | `dialog.dialog` > `.dialog-head` + `.dialog-body` + `.dialog-actions` |
 | Table | `table.table` (`.num` for numbers), in `.table-wrap` to scroll sideways |
-| Chat | `.chat` > `.msg` (`.msg-out`) > `.msg-meta` + `.msg-text` + `.msg-state` (`.is-ok`/`.is-crit`); `.divider`; `.composer` + `.counter` |
 | Map stage | `.map-stage` > `aside.map-panel` (`.map-panel-head` [`.is-tabs`] > `.map-panel-title` / `.tabs` + `.btn-icon`; `.map-panel-body` [`.flush`]; `.map-panel-actions`) + `.map-view`. Side panel from 720 px (left or right by DOM order), bottom sheet under the map below; hide with `[hidden]` and call `map.resize()` |
-| Map | `.map-view` > `.map-canvas`, `.map-ctrls` (`.group`, `.map-compass` rotated by `--map-bearing`), `.map-locate`, `.map-badge` > `.map-badge-text` (ellipsis); markers `.mk` > `.mk-shape` + `.mk-label` with `.mk-diamond` / `.mk-own` / `.mk-sos` / `.mk-node` (round) and age `.is-fresh` / `.is-old` / `.is-stale`; popup content `.map-popup` > `.map-popup-head` (clears the close button) > `.map-popup-title` |
+| Map | `.map-view` > `.map-canvas`, `.map-ctrls` (`.group`, `.map-compass` rotated by `--map-bearing`), `.map-locate`, `.map-badge` > `.map-badge-text` (ellipsis); markers `.mk` > `.mk-shape` + `.mk-label` with `.mk-diamond` / `.mk-own` / `.mk-sos`; popup content `.map-popup` > `.map-popup-head` (clears the close button) > `.map-popup-title` |
 | Motifs | `.grid-bg`, `.brackets`, `.chamfer`, `.hatch` |
 | Type | `.display`, `.h1`, `.h2`, `.label`, `.mono`, `.data`, `.body-sm`, `.help`, `.fg2`, `.fg3`, `.acc` |
 | Icons | `icon(name)` / `iconHtml(name)`, class `.i` (`.i-sm`, `.i-xs`, `.i-lg`) |
@@ -176,7 +175,7 @@ Formatters: `utcTime` (`14:32Z`), `utcClock` (`14:32:05Z`), `utcDateTime`, `utcD
 (`47.37690 N · 008.54170 E`), `ago` (`3 MIN AGO`), `bytes`, `bearing`
 (`038°`), `distance`.
 
-Icons in `icons.svg`: map, library, mesh, nodes, hub, system, folder, board,
+Icons in `icons.svg`: map, library, hub, system, folder, board,
 crate, locate,
 waypoint, layers, search, send, download, plus, minus, back, chevron, close,
 trash, edit, external, fit, list, refresh, compass, message, sun, moon, battery, signal,

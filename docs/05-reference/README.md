@@ -25,4 +25,4 @@ file in the checkout disagree, the file wins:
 - [API](03-api.md): core's REST endpoints by domain, the Socket.IO
   namespaces and events, error codes and the control PIN.
 - [Glossary](04-glossary.md): core, module, domain, passthrough, ZIM,
-  PMTiles, Meshtastic and the other terms used in these docs.
+  PMTiles and the other terms used in these docs.

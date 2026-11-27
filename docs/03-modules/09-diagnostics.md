@@ -42,7 +42,6 @@ keep or to send to whoever helps you.
 - For every installed module: configured, container created, switched on,
   running, healthy and answering. A module started only minutes ago is
   marked, since a module that keeps crashing restarts again and again.
-- Mesh: the USB radio is plugged in (or the network node is set).
 
 **Storage**
 

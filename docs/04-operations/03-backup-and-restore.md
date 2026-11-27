@@ -9,7 +9,6 @@ you cannot get back and how to copy it by hand.
 | What | Where | Can you get it back without a backup? |
 |---|---|---|
 | Settings | `.env` in the project folder | Partly: `install.sh` asks again, but PINs, ports and module settings are lost. Small, always back it up. |
-| Mesh message history | `MESH_DATA_DIR` (`mesh.db`) | **No.** Messages exist only on this Pi. |
 | Points of interest | `MAPS_DATA_DIR` (`offline-maps.db`) | **No.** Places you saved yourself. |
 | Shared files | `FILES_DATA_DIR` | **No.** Whatever people uploaded. Plain files and folders: copy them as they are. |
 | Notice board | `CORE_DATA_DIR` (`board.json`) | **No.** The posts exist only on this Pi. |
@@ -22,10 +21,6 @@ you cannot get back and how to copy it by hand.
 
 The code itself is in Git and does not need a backup.
 
-`./manage.sh mesh export messages.csv` writes all messages as CSV. That is
-handy for reading or archiving, but it is not a backup you can restore
-from; copy `mesh.db` for that.
-
 Look up the actual locations in `.env`:
 
 ```sh
@@ -35,10 +30,9 @@ grep '_DIR=' .env
 ## Make a backup
 
 Stop outpost's modules first, so no database is written while you copy
-it. The simplest way is to stop the modules with data you care about:
+it. The simplest way is to stop the module with data you care about:
 
 ```sh
-./manage.sh stop mesh
 ./manage.sh stop maps
 ```
 
@@ -48,7 +42,6 @@ stick mounted at `/media/backup`:
 ```sh
 mkdir -p /media/backup/outpost
 cp .env /media/backup/outpost/
-rsync -a --no-perms --no-owner --no-group /path/to/mesh/ /media/backup/outpost/mesh/
 rsync -a --no-perms --no-owner --no-group /path/to/maps/ /media/backup/outpost/maps/
 ```
 
@@ -59,11 +52,10 @@ the copy can be large. Keeping the regions saves you from downloading them
 again, which matters when there is no internet. Copy `CORE_DATA_DIR` and
 `KNOWLEDGE_CONTENT_DIR` the same way if you want them.
 
-Switch the modules on again afterwards:
+Switch it on again afterwards:
 
 ```sh
 ./manage.sh start maps
-./manage.sh start mesh
 ```
 
 ## Restore onto a new SD card
@@ -91,8 +83,7 @@ Switch the modules on again afterwards:
 
 Some values in `.env` describe the old system (`PODMAN_SOCKET`,
 `PODMAN_GRAPH_ROOT`, `VCIO_DEVICE`); `install.sh` detects them again on every
-run. For a USB Meshtastic node it asks you to confirm the device, so plug the
-node in first.
+run.
 
 Which modules were switched off is stored in `CORE_DATA_DIR/modules.json`.
 Without it every installed module is switched on.

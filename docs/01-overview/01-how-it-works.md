@@ -14,13 +14,13 @@ to. On `PORT` (8080 by default) it serves:
 |---|---|
 | `/` | The web app: every screen of every module. |
 | `/api/<domain>/` | The API. Swagger UI at `/api/docs`. |
-| `/socket.io` | Live updates (dashboard readings, messages, download progress). |
+| `/socket.io` | Live updates (dashboard readings, download progress, log lines). |
 | `/svc/<module>/` | A passthrough to a module's raw files: map tiles, fonts, Kiwix articles. |
 
 Core also shows the System and Logs screens itself, and it starts and stops
 the other modules.
 
-**Modules** (Maps, Library, Mesh) are one container each, named
+**Modules** (Maps, Library, Network) are one container each, named
 `outpost-<name>`. They have no user interface of their own: just an API,
 their data and background jobs. Each listens only on `127.0.0.1` (the Pi
 itself) on an internal port, so nobody on the network can reach a module
@@ -30,7 +30,7 @@ directly. Core forwards to them.
 |---|---|---|
 | Maps | `outpost-maps` | `8081` |
 | Library | `outpost-knowledge` | `8082` |
-| Mesh | `outpost-mesh` | `8084` |
+| Network | `outpost-network` | `8085` |
 
 ## One port, one origin
 
@@ -55,9 +55,9 @@ A module goes through three states:
    `CORE_DATA_DIR/modules.json`.
 3. **Running**: the container is up.
 
-Some modules also need settings before they can start. Mesh, for example,
-needs `MESH_CONNECTION`. Until `install.sh` has set it, the home page shows
-the module as "Not configured" and core does not start it.
+A module can also need settings before it can start (`requires` in its
+manifest). Until `install.sh` has set them, the home page shows the module
+as "Not configured" and core does not start it.
 
 ### Restarts and reboots
 
@@ -96,7 +96,6 @@ There is no login. Anyone who can open the web app can use it. To limit
 that:
 
 - Set `CONTROL_PIN` to require a PIN before modules are started or stopped.
-- Set `MESH_SEND_PIN` to require a PIN before messages are sent.
 - Set `BIND_ADDRESS=127.0.0.1` to allow only the Pi itself.
 
 ## Nothing loaded from the internet at runtime

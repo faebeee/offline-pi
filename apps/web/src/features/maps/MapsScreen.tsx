@@ -26,9 +26,6 @@ import { formatBuild, isJobFinished, pmtilesUrl, toBbox, type Bbox } from "./lib
 import { MapView, type Cursor, type Fix, type RegionFocus } from "./MapView";
 import { PartialDownloads } from "./PartialDownloads";
 import "./maps.css";
-import { MeshMarkers, NodeList, RequestPositionsButton } from "./mesh/MeshNodes";
-import { nodeId, type Positioned } from "./mesh/nodes";
-import { MeshFeed, useMeshLayer } from "./mesh/useMeshLayer";
 import { PoiDialog, type PoiDraft } from "./PoiDialog";
 import { SetupGate } from "./SetupGate";
 import { useJob } from "./useJob";
@@ -36,20 +33,14 @@ import { usePois } from "./usePois";
 
 /** Side panel next to the map from this width; a bottom sheet below it. */
 const WIDE = "(min-width: 720px)";
-const isWide = () => window.matchMedia(WIDE).matches;
 
-/** Zoom when flying to a node picked from the list. */
-const NODE_ZOOM = 13;
-
-type PanelView = "regions" | "places" | "nodes" | "add";
+type PanelView = "regions" | "places" | "add";
 
 /**
- * Offline maps: the downloaded regions on one map, saved places, the
- * Meshtastic nodes as a layer that can be switched on and off, and the
+ * Offline maps: the downloaded regions on one map, saved places and the
  * add-region flow (search, detail level, estimate, confirm, progress).
- * `linkedNode` (?node=!abcd1234, Mesh's "Show on map") opens that node.
  */
-export function MapsScreen({ linkedNode }: { linkedNode?: string }) {
+export function MapsScreen() {
   const qc = useQueryClient();
   const theme = useThemeMode();
   const running = isRunning(useModule("maps"));
@@ -79,49 +70,7 @@ export function MapsScreen({ linkedNode }: { linkedNode?: string }) {
   const [selectedPoi, setSelectedPoi] = useState<string | null>(null);
   const [poiFocus, setPoiFocus] = useState<{ lat: number; lon: number } | null>(null);
 
-  // --- mesh nodes layer ---
-  const mesh = useMeshLayer();
-  const [map, setMap] = useState<MapLibreMap | null>(null);
-  const [selectedNode, setSelectedNode] = useState<number | null>(null);
-  const panelView: PanelView = view === "nodes" && !mesh.active ? "regions" : view;
-
-  const pickNode = useCallback(
-    (n: Positioned) => {
-      setSelectedNode(n.num);
-      map?.easeTo({ center: [n.longitude, n.latitude], zoom: Math.max(map.getZoom(), NODE_ZOOM), duration: 400 });
-      // the phone sheet covers the map: close it so the popup is visible
-      if (!isWide()) setPanelOpen(false);
-    },
-    [map],
-  );
-
-  const fitNodes = () => {
-    if (!map || !mesh.rows.length) return;
-    const nodeBounds = new LngLatBounds();
-    for (const n of mesh.rows) nodeBounds.extend([n.longitude, n.latitude]);
-    map.fitBounds(nodeBounds, { padding: 60, maxZoom: NODE_ZOOM, duration: 400 });
-  };
-
-  const toggleMesh = () => {
-    if (mesh.on) setSelectedNode(null);
-    mesh.setOn(!mesh.on);
-  };
-
-  // `?node=` from Mesh: show the layer, open the node once it is loaded, then
-  // drop the parameter (keeping the camera hash) so a reload doesn't jump back
-  const linked = useRef(linkedNode ?? null);
-  const { available: meshAvailable, on: meshOn, setOn: setMeshOn, rows: nodeRows } = mesh;
-  useEffect(() => {
-    if (linked.current && meshAvailable && !meshOn) setMeshOn(true);
-  }, [meshAvailable, meshOn, setMeshOn]);
-  useEffect(() => {
-    if (!map || !linked.current) return;
-    const n = nodeRows.find((x) => nodeId(x) === linked.current);
-    if (!n) return;
-    linked.current = null;
-    pickNode(n);
-    history.replaceState(history.state, "", `${location.pathname}${location.hash}`);
-  }, [map, nodeRows, pickNode]);
+  const panelView = view;
 
   const refresh = useCallback(async () => {
     await Promise.all([
@@ -281,19 +230,6 @@ export function MapsScreen({ linkedNode }: { linkedNode?: string }) {
                   >
                     Places · {pois.pois.length}
                   </button>
-                  {mesh.active && (
-                    <button
-                      type="button"
-                      role="tab"
-                      className="tab"
-                      id="tab-nodes"
-                      aria-controls="tabpanel-nodes"
-                      aria-selected={panelView === "nodes"}
-                      onClick={() => setView("nodes")}
-                    >
-                      Nodes · {mesh.rows.length}
-                    </button>
-                  )}
                 </div>
                 {regions.length > 0 && (
                   <button
@@ -307,11 +243,7 @@ export function MapsScreen({ linkedNode }: { linkedNode?: string }) {
                 )}
               </div>
 
-              {panelView === "nodes" ? (
-                <div className="map-panel-body" role="tabpanel" id="tabpanel-nodes" aria-labelledby="tab-nodes">
-                  <NodeList layer={mesh} selected={selectedNode} onPick={pickNode} />
-                </div>
-              ) : panelView === "regions" ? (
+              {panelView === "regions" ? (
                 <div className="map-panel-body" role="tabpanel" id="tabpanel-regions" aria-labelledby="tab-regions">
                   {downloading && job && (
                     <div className="card brackets">
@@ -422,15 +354,7 @@ export function MapsScreen({ linkedNode }: { linkedNode?: string }) {
               )}
 
               <div className="map-panel-actions">
-                {panelView === "nodes" ? (
-                  <>
-                    <RequestPositionsButton layer={mesh} />
-                    <button type="button" className="btn btn-block" disabled={!mesh.rows.length} onClick={fitNodes}>
-                      <Icon name="fit" />
-                      Show all nodes
-                    </button>
-                  </>
-                ) : panelView === "regions" ? (
+                {panelView === "regions" ? (
                   <button type="button" className="btn btn-primary btn-block" onClick={() => setView("add")}>
                     <Icon name="plus" />
                     {downloading ? "Show download" : "Add region"}
@@ -467,15 +391,7 @@ export function MapsScreen({ linkedNode }: { linkedNode?: string }) {
           panelOpen={showPanel}
           onTogglePanel={() => setPanelOpen(!showPanel)}
           onFix={setFix}
-          onMap={setMap}
-          meshNodes={mesh.available ? { on: mesh.on, onToggle: toggleMesh } : undefined}
         />
-        {mesh.active && (
-          <>
-            <MeshFeed onLink={mesh.setLink} />
-            <MeshMarkers map={map} layer={mesh} selected={selectedNode} onSelect={setSelectedNode} hasFix={!!fix} />
-          </>
-        )}
       </div>
     );
   }

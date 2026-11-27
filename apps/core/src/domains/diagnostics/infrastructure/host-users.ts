@@ -65,7 +65,7 @@ export interface HostUser {
 /**
  * The Pi user the containers write as. Rootless Podman maps every
  * container's user to the user that runs podman (keep-id for maps and
- * knowledge, root for mesh and core), so a data folder must be writable for
+ * knowledge, root for network and core), so a data folder must be writable for
  * that user. Taken from PODMAN_SOCKET (/run/user/<uid>/...), else the owner
  * of the project folder.
  */

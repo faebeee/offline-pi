@@ -3,7 +3,7 @@
 # core is the only service reachable from the LAN: on PORT it serves the web
 # app (/), the one API (/api/<domain>/, a NestJS domain module per feature,
 # which talks to the module containers) and a passthrough for the modules'
-# raw files (/svc/maps/, /svc/library/, /svc/mesh/, /svc/network/). Modules
+# raw files (/svc/maps/, /svc/library/, /svc/network/). Modules
 # bind MODULES_BIND_ADDRESS (127.0.0.1) on their own internal port.
 #
 # Every service, core included, uses restart: on-failure: podman restarts a
@@ -130,43 +130,6 @@ services:
       retries: 3
       start_period: 20s
 
-  # ------------------------------------------------------------------ mesh --
-  mesh:
-    build:
-      context: .
-      dockerfile: apps/mesh/Dockerfile
-    image: ${OUTPOST_REGISTRY:-ghcr.io/faebeee}/outpost-mesh:${OUTPOST_TAG:-local}
-    container_name: outpost-mesh
-    network_mode: host
-    environment:
-      PORT: ${MESH_PORT:-8084}
-      HOST: ${MODULES_BIND_ADDRESS:-127.0.0.1}
-      MESH_CONNECTION: ${MESH_CONNECTION:-serial}
-      MESH_DEVICE_PATH: ${MESH_DEVICE:-/dev/null}
-      MESH_HOST: ${MESH_HOST:-}
-      SEND_PIN: ${MESH_SEND_PIN:-}
-      SEND_RATE_LIMIT: ${MESH_SEND_RATE_LIMIT:-5/min}
-    volumes:
-      - ${MESH_DATA_DIR:-./data/mesh}:/app/data
-      # The whole host /dev, read-only, instead of mapping the USB node with
-      # `devices:` (install.sh writes its stable /dev/serial/by-id/ path to
-      # MESH_DEVICE_PATH above). `devices:` resolves the symlink to a fixed
-      # major:minor when the container is created and never updates it, so
-      # unplugging and replugging the node (which usually gets a new
-      # /dev/ttyACM*/ttyUSB* node) left the container stuck on the stale,
-      # now-dead device. Bind-mounting /dev keeps the container's view of it
-      # live, so the by-id symlink (and the node behind it) always resolves
-      # to whatever is currently plugged in.
-      - /dev:/dev:ro
-    group_add:
-      - keep-groups
-    restart: on-failure
-    healthcheck:
-      test: ["CMD-SHELL", "python -c \"import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:' + os.environ.get('PORT', '8084') + '/api/status', timeout=4)\""]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 20s
 
   # --------------------------------------------------------------- network --
   network:

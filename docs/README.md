@@ -1,9 +1,9 @@
 # outpost documentation
 
 outpost is one self-hosted app for a Raspberry Pi that keeps working
-without internet: offline maps, an emergency-knowledge library, Meshtastic
-messaging, a live map of the mesh and a dashboard for the Pi itself, all on
-one port and in one web app.
+without internet: offline maps, an emergency-knowledge library, shared files, a notice board,
+a supplies list and a dashboard for the Pi itself, all on one port and in
+one web app.
 
 This documentation is plain Markdown in the `docs/` folder of the project.
 Read it wherever is easiest:
@@ -21,7 +21,7 @@ Read it wherever is easiest:
 |---|---|
 | [1. Overview](01-overview/README.md) | What outpost is, how it is put together, which hardware it needs |
 | [2. Installation](02-installation/README.md) | Installing, storage on an SSD, network and hotspot, macOS for development |
-| [3. Modules](03-modules/README.md) | Using the web app: Home, Maps, Library, Mesh, System, Logs, Info |
+| [3. Modules](03-modules/README.md) | Using the web app: Home, Maps, Library, System, Logs, Info |
 | [4. Operations](04-operations/README.md) | Everyday commands, updates, backups, uninstalling, troubleshooting |
 | [5. Reference](05-reference/README.md) | Every setting, ports and paths, the API, a glossary |
 | [6. Development](06-development/README.md) | Architecture, the monorepo, adding features and modules, these docs |

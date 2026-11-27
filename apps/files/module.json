@@ -1,6 +1,6 @@
 {
   "id": "files",
-  "num": 5,
+  "num": 4,
   "label": "Files",
   "icon": "folder",
   "description": "A shared folder on the Pi: upload, download and share files with everyone on its network.",

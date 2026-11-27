@@ -1,6 +1,6 @@
 {
   "id": "board",
-  "num": 6,
+  "num": 5,
   "label": "Board",
   "icon": "board",
   "description": "Notice board: news, needs, offers and check-ins of everyone on the Pi's network.",

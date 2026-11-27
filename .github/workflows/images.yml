@@ -32,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        service: [core, maps, knowledge, mesh, network]
+        service: [core, maps, knowledge, network]
         arch: [amd64, arm64]
         include:
           - arch: amd64
@@ -65,7 +65,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        service: [core, maps, knowledge, mesh, network]
+        service: [core, maps, knowledge, network]
     steps:
       - name: Log in to ghcr.io
         run: echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u "${{ github.actor }}" --password-stdin

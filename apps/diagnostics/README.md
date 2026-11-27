@@ -14,7 +14,7 @@ it is served by core (`"service": "core"`, always on). Its domain lives in
 | Group | Check | Source |
 |---|---|---|
 | Setup | `.env` readable, Podman socket answers (`_ping`), container list readable, control PIN, clock | `OUTPOST_DIR`, `PodmanService`, `RuntimeService`, `/run/systemd/timesync/synchronized` |
-| Modules | Per module: installed, configured (`requires`), container exists, switched on, running, healthy, answers its `health` endpoint (4 s); the Mesh radio's device exists | `ModulesService`, `UpstreamService`, `/hostfs/dev` |
+| Modules | Per module: installed, configured (`requires`), container exists, switched on, running, healthy, answers its `health` endpoint (4 s) | `ModulesService`, `UpstreamService` |
 | Storage | The drive set up by `host/usb-storage` is mounted; per installed `*_DIR`: exists, on its drive (a path under `/media/<x>` or `/mnt/<x>` with nothing mounted there is on the SD card), not read-only, writable for the containers' user (the folder and its direct children); free space once per drive, the system disk always | `SettingsService`, `/proc/1/mounts`, `/hostfs/etc/fstab`, `stat` |
 | Host | CPU temperature, under-voltage and throttling (now and since boot), memory, uptime, internet | `CollectorService`, `InternetService` |
 
@@ -25,7 +25,7 @@ cause trouble), `fail` (broken now). Free space: `fail` below 1 GB or 2 %,
 ## Folder permissions
 
 The containers all write as the Pi user that runs Podman (keep-id for maps
-and knowledge, root in the container for mesh and core). That user comes
+and knowledge, root in the container for network and core). That user comes
 from `PODMAN_SOCKET` (`/run/user/<uid>/...`), else the owner of the project
 folder; its groups from `/hostfs/etc/passwd` and `/etc/group`. Core itself
 runs in rootless Podman's user namespace, so the owners it sees through

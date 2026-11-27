@@ -2,7 +2,7 @@
 
 outpost is **one app** meant to run offline on a host like a Raspberry Pi:
 one Podman Compose project, one set of scripts, one `.env`, one port. It is
-made of **modules** (maps, library, mesh, ...), each a container behind
+made of **modules** (maps, library, network, ...), each a container behind
 **core**. Core is the **one API** (NestJS, one domain module per feature)
 and serves the **one web app** (`apps/web`, React + TanStack), so the user
 works with every module through a single UI. The code is a **Turborepo
@@ -31,7 +31,6 @@ lib/install.sh           # install.sh's steps (host check, basics, modules)
 lib/storage.sh           # the data folder(s): storage_configure, prompt_dir, resync_dir
 lib/images.sh            # get_images: download the commit's images or build them
 lib/autostart.sh         # outpost.service: start at boot (systemd user unit)
-lib/serial.sh            # USB serial device picker (mesh)
 lib/modules.sh           # module registry for the scripts, hooks, core_api
 lib/migrate.sh           # adopts the old per-app layout, offline-pi -> outpost
 lib/update.sh            # update.sh: git checks, versions, incoming changes, new settings
@@ -71,7 +70,7 @@ data/                    # gitignored default home of every *_DIR
   and, where it makes sense, `dev` scripts. `turbo.json` orders them
   (`^build` first), so `npm run build`, `npm run typecheck` and
   `npx turbo run dev --filter=<workspace>` work from the root.
-- Modules without a JS build (mesh: Python, knowledge: kiwix) live in
+- Modules without a JS build (network: Python, knowledge: kiwix) live in
   `apps/` without a `package.json`; npm and turbo ignore them.
 - `@outpost/core` depends on `@outpost/web`, so `turbo prune
   @outpost/core` and `turbo run build --filter=@outpost/core` include
@@ -94,13 +93,13 @@ the "never silently delete user data" rules of `uninstall.sh`.
 
 ```
 browser ──> core :8080
-            ├─ /                 apps/web (SPA; /maps, /mesh, ... are its routes)
+            ├─ /                 apps/web (SPA; /maps, /library, ... are its routes)
             ├─ /api/<domain>/*   core's API, one Nest domain module per feature
             ├─ /api/docs         Swagger UI (/api/openapi.json)
             ├─ /socket.io        live updates, one namespace per domain
             ├─ /ui/              @outpost/ui
             └─ /svc/<module>/*   passthrough to a module's raw files
-core ──HTTP/WS──> maps :8081 · knowledge :8082 · mesh :8084 · network :8085
+core ──HTTP/WS──> maps :8081 · knowledge :8082 · network :8085
 ```
 
 - **core** (`apps/core`, NestJS) is the only service the LAN reaches, on
@@ -111,7 +110,7 @@ core ──HTTP/WS──> maps :8081 · knowledge :8082 · mesh :8084 · network
     `src/domains/<name>/` that talks to its module's container
     (see "Core: domains"),
   - `/socket.io`: one Socket.IO server, one namespace per domain
-    (`/system`, `/maps`, `/mesh`); domains bridge their container's live
+    (`/system`, `/maps`, `/logs`); domains bridge their container's live
     feed (SSE, WebSocket) onto it,
   - `/svc/<module path>/`: a streaming passthrough to each installed module
     (`src/platform/passthrough/passthrough.ts`) for what is not JSON: map
@@ -165,7 +164,7 @@ apps/core/src/domains/<name>/
   document. No interfaces for API types (the plugin can't see them). Request
   DTOs need `class-validator` decorators (`ValidationPipe` whitelists).
   Map the container's shapes to the domain model in `infrastructure/`
-  (e.g. mesh: snake_case -> camelCase).
+  (e.g. network: snake_case -> camelCase).
 - **Operation ids** are `<controller without "Controller"><Method>`
   (`MapsController.regions` -> `mapsRegions` -> `useMapsRegions()`), so name
   controller methods for the client.
@@ -191,8 +190,8 @@ apps/core/src/domains/<name>/
 
 A feature may combine domains: import the other domain's Nest module and
 inject its exported client or service. A screen may also use another
-domain's hooks (Maps' mesh nodes layer uses `useMeshNodes()` and the `/mesh`
-namespace). Never call another module's container from the browser.
+domain's hooks and namespaces (e.g. a Maps layer drawn from another domain's
+`useXxx()` hook and its Socket.IO namespace). Never call another module's container from the browser.
 
 ## Adding a module
 
@@ -242,7 +241,7 @@ namespace). Never call another module's container from the browser.
      (`install.sh` writes `.env` once, so an older install lacks the
      variables of modules added later).
    - `requires`: env vars that must be non-empty before it may start (e.g.
-     `MESH_CONNECTION`, set by its configure hook). `dependsOn`: installed
+     `RADIO_DEVICE`, set by its configure hook). `dependsOn`: installed
      modules started with it.
    - `dirs`: its bind-mounted `*_DIR` vars (checked by `start.sh`).
    - core picks up the manifest at the next build (its Dockerfile copies
@@ -255,8 +254,8 @@ namespace). Never call another module's container from the browser.
 5. Optional `lib/modules/<name>.sh` with hooks (dashes in the name become
    underscores, e.g. `field_radio_configure`):
    - `<name>_configure`: install.sh, every run while installed: prompts
-     that are really needed (Mesh: how the radio is connected), device
-     checks. Not the data folders: `storage_configure` (`lib/storage.sh`)
+     that are really needed (Network: whether to install its host
+     helper), device checks. Not the data folders: `storage_configure` (`lib/storage.sh`)
      sets every `*_DIR` listed in `dirs`, before the hooks run. Ask
      anything optional only with `INSTALL_ADVANCED=true` (`--advanced`).
    - `<name>_post_build`: install.sh, once the images are there (one-off
@@ -312,9 +311,8 @@ then sources `lib/common.sh` (and what else it needs).
   its default name and moves existing data), then each module's configure
   hook. 4. A summary, `get_images`, post-build hooks, `ensure_linger`,
   `autostart_enable`, `exec start.sh`. `--advanced` adds the port,
-  `BIND_ADDRESS`, `CONTROL_PIN`, the Mesh send PIN, a folder per `*_DIR` and
-  a confirmation before installing; the defaults (8080, every device, no
-  PINs) are otherwise used without asking.
+  `BIND_ADDRESS`, `CONTROL_PIN`, a folder per `*_DIR` and a confirmation
+  before installing; the defaults (8080, every device, no PIN) are otherwise used without asking.
 - **Images** (`lib/images.sh`): compose names them
   `$OUTPOST_REGISTRY/outpost-<service>:$OUTPOST_TAG`, the tag being
   `sha-<commit>` of the checkout (`images_init` in `lib/common.sh`, run by
@@ -330,8 +328,8 @@ then sources `lib/common.sh` (and what else it needs).
   a drive to mount), `get_images`,
   `compose up -d --no-start --force-recreate <modules>`, removes containers
   of modules no longer installed and the containers and images of retired
-  modules (`retired_modules` in `lib/modules.sh`, e.g. mesh-map, merged
-  into maps), then `compose up -d --force-recreate core`
+  modules (`retired_modules` in `lib/modules.sh`, e.g. files, now part
+  of core), then `compose up -d --force-recreate core`
   (core starts the modules). `--force-recreate` is required: podman-compose
   only replaces a container when the compose config changed, not the image.
   On macOS it starts the Podman machine if needed and forwards `PORT` from
@@ -488,7 +486,7 @@ tokens only and note them in the `DESIGN.md` changelog.
 ```
 apps/web/src/
   main.tsx              # QueryClient, router
-  routes/               # one file per screen (/, /system, /maps, /mesh, ...)
+  routes/               # one file per screen (/, /system, /maps, /library, ...)
   features/<domain>/    # components, hooks and CSS of one domain
   app/                  # Screen (frame), strip, Nav, realtime, maplibre
   ui/outpost.tsx        # React wrappers for the Outpost package

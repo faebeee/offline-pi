@@ -2,10 +2,8 @@
 #
 # On a Mac, Podman runs the containers in a VM and podman-compose talks to it
 # through the remote API, which rejects `--group-add keep-groups`. The groups
-# are only needed for Raspberry Pi devices (firmware mailbox, USB serial),
+# are only needed for Raspberry Pi devices (the firmware mailbox),
 # which don't exist on a Mac anyway.
 services:
   core:
-    group_add: !reset []
-  mesh:
     group_add: !reset []

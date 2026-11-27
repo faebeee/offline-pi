@@ -18,7 +18,6 @@
 migrate_module() {
   case "$1" in
     monitor) echo "" ;;
-    mesh-map) echo "maps" ;;  # the node map is a layer of Maps now
     *) echo "$1" ;;
   esac
 }
@@ -29,8 +28,6 @@ migrate_vars() {
     monitor) echo "DATA_DIR:CORE_DATA_DIR:dir PORT:PORT BIND_ADDRESS:BIND_ADDRESS SAMPLE_INTERVAL_MS:SAMPLE_INTERVAL_MS" ;;
     maps) echo "DATA_DIR:MAPS_DATA_DIR:dir ASSETS_DIR:MAPS_ASSETS_DIR:dir ALLOWED_ORIGINS:MAPS_ALLOWED_ORIGINS DATABASE_URL:MAPS_DATABASE_URL DB_LOGGING:MAPS_DB_LOGGING" ;;
     knowledge) echo "CONTENT_DIR:KNOWLEDGE_CONTENT_DIR:dir AUTO_SYNC:KNOWLEDGE_AUTO_SYNC" ;;
-    mesh) echo "DATA_DIR:MESH_DATA_DIR:dir MESH_CONNECTION:MESH_CONNECTION MESH_DEVICE:MESH_DEVICE MESH_HOST:MESH_HOST SEND_PIN:MESH_SEND_PIN SEND_RATE_LIMIT:MESH_SEND_RATE_LIMIT" ;;
-    mesh-map) echo "MAPS_DATA_DIR:MAPS_DATA_DIR:dir MAPS_ASSETS_DIR:MAPS_ASSETS_DIR:dir" ;;
   esac
 }
 
@@ -40,12 +37,9 @@ migrate_images() {
     monitor) echo "localhost/pi-monitor:latest" ;;
     maps) echo "localhost/offline-maps:latest" ;;
     knowledge) echo "localhost/offline-knowledge:latest ghcr.io/kiwix/kiwix-serve:3.8.2" ;;
-    mesh) echo "localhost/offline-pi-mesh:latest" ;;
-    mesh-map) echo "localhost/offline-pi-mesh-map:latest" ;;
   esac
 }
-# migrate in this order so mesh-map doesn't override the maps paths
-MIGRATE_ORDER=(monitor maps knowledge mesh mesh-map)
+MIGRATE_ORDER=(monitor maps knowledge)
 
 # old_env_value FILE VAR - VAR from an old .env (read, not sourced).
 old_env_value() {
@@ -93,10 +87,6 @@ migrate_old_apps() {
       if [[ "$kind" == dir && "$value" != /* ]]; then
         value="$dir/${value#./}"
       fi
-      # mesh-map only fills the maps paths when maps itself wasn't installed
-      if [[ "$app" == mesh-map && -f "$dir/../maps/.env.migrated" ]]; then
-        continue
-      fi
       set_env "$new" "$value"
     done
 
@@ -118,8 +108,6 @@ migrate_old_apps() {
   if [[ "$found" == true ]]; then
     for app in "${MIGRATE_ORDER[@]}"; do
       for value in $(migrate_images "$app"); do
-        # mesh keeps its image name; it is rebuilt anyway
-        [[ "$value" == *offline-pi-mesh:* ]] && continue
         if podman image exists "$value" 2>/dev/null && podman rmi "$value" >/dev/null 2>&1; then
           log_ok "Removed old image $value"
         fi

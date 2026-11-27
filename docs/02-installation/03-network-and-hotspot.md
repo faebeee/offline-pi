@@ -36,11 +36,10 @@ the Pi shows the current one.
 ## Access and PINs
 
 outpost has no user accounts. Anyone who can open the web app can read
-maps, books, messages and logs. Three settings limit what they can do:
+maps, books and logs. Two settings limit what they can do:
 
 - `CONTROL_PIN`: required to start and stop modules. The web app asks for
   it once per browser tab. `./manage.sh start|stop` sends it for you.
-- `MESH_SEND_PIN`: required to send Meshtastic messages from the web app.
 - `BIND_ADDRESS=127.0.0.1`: nobody but the Pi itself can open outpost.
 
 ## Wi-Fi hotspot fallback

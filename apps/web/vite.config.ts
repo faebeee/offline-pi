@@ -11,7 +11,7 @@ export default defineConfig({
     tanstackRouter({ target: "react", autoCodeSplitting: true }),
     react(),
   ],
-  // served by core at the site root; client-side routes (/maps/, /mesh/...)
+  // served by core at the site root; client-side routes (/maps/, /library/...)
   base: "/",
   server: {
     port: 5173,

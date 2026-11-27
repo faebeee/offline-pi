@@ -6,7 +6,7 @@
 #
 #   ./install.sh [--advanced] [--yes] [--build] [--no-cache] [--plain] [--verbose]
 #     --advanced  also ask for the port, who may connect, the control PIN,
-#                 the Mesh send PIN and a folder per module
+#                 and a folder per module
 #     --yes       don't ask: keep the current answers (defaults on a first run)
 #     --build     build the images here instead of downloading them
 #     --no-cache  build them from scratch (implies --build)
@@ -41,8 +41,6 @@ export UI_LOG="$ROOT_DIR/install.log"
 source "$ROOT_DIR/lib/common.sh"
 # shellcheck source=lib/storage.sh
 source "$ROOT_DIR/lib/storage.sh"
-# shellcheck source=lib/serial.sh
-source "$ROOT_DIR/lib/serial.sh"
 # shellcheck source=lib/modules.sh
 source "$ROOT_DIR/lib/modules.sh"
 # shellcheck source=lib/migrate.sh

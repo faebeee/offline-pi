@@ -177,12 +177,11 @@ export function themeToggle(button) {
 export const MODULES = [
   { id: "home", num: 0, label: "Home", icon: "hub", path: "/" },
   { id: "maps", num: 1, label: "Maps", icon: "map", path: "/maps/" },
-  { id: "mesh", num: 2, label: "Mesh", icon: "mesh", path: "/mesh/" },
-  { id: "knowledge", num: 3, label: "Library", icon: "library", path: "/library/" },
-  { id: "system", num: 4, label: "System", icon: "system", path: "/system/" },
+  { id: "knowledge", num: 2, label: "Library", icon: "library", path: "/library/" },
+  { id: "system", num: 7, label: "System", icon: "system", path: "/system/" },
 ];
 
-/** Header label for a module: "Module 02 · Mesh". */
+/** Header label for a module: "Module 02 · Library". */
 export function moduleLabel(id) {
   const m = MODULES.find((x) => x.id === id);
   if (!m) return "";
@@ -313,7 +312,7 @@ export function statusStrip(el) {
  * Wire the standard frame in one call: theme, status strip, module nav, the
  * theme toggle and the header's module label. Expects [data-strip],
  * [data-nav] and optionally [data-theme-toggle] and [data-module-label]
- * ("Module 02 · Mesh") inside `root` (default document). Call it once per
+ * ("Module 02 · Library") inside `root` (default document). Call it once per
  * page: it binds listeners and starts the strip clock. The nav is drawn from
  * the built-in list right away and redrawn from core's /api/modules once
  * loaded (`modules` resolves to whether that worked).

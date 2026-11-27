@@ -1,6 +1,6 @@
 {
   "id": "supplies",
-  "num": 7,
+  "num": 6,
   "label": "Supplies",
   "icon": "crate",
   "description": "Emergency supplies: what you have, where, when it expires, and how long the water lasts.",

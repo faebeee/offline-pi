@@ -36,13 +36,13 @@ The same badges appear on the tiles and in the switch list.
 | `STOPPED` | Red | Switched on, but not running. The line shows the error, or `Switched on but not running` | Check [Logs](06-logs.md), then switch it off and on again |
 | `UNHEALTHY` | Red | Running, but its health check fails | Check [Logs](06-logs.md) |
 | `NO CONTAINER` | Red | Installed, but its container is missing | Run `./start.sh` on the Pi |
-| `NOT CONFIGURED` | Amber | A required setting is missing (Mesh needs its radio connection) | Run `./install.sh` on the Pi |
+| `NOT CONFIGURED` | Amber | A setting the module needs (its `requires` in the manifest) is still empty | Run `./install.sh` on the Pi |
 | `NOT INSTALLED` | Grey | Not chosen during installation | Run `./install.sh` on the Pi and select it |
 
 ## Modules on this Pi
 
-The card at the bottom lists every optional module (Maps, Mesh,
-Library) with its badge, a short status line and an on/off switch. The card
+The card at the bottom lists every optional module (Maps,
+Library, Network) with its badge, a short status line and an on/off switch. The card
 head shows how many installed modules are running, for example
 `2 OF 3 RUNNING`.
 
@@ -53,7 +53,6 @@ head shows how many installed modules are running, for example
   says why.
 - If starting or stopping fails, a red banner `Could not start <module>`
   or `Could not stop <module>` shows the error.
-- The mesh nodes on the map in Maps need Mesh running as well as Maps.
 
 You can do the same from a terminal on the Pi with
 `./manage.sh start <module>` and `./manage.sh stop <module>`. See
@@ -67,7 +66,7 @@ it on again. outpost starts by itself when the Pi boots, and every module
 that is switched on is started again.
 
 Stopping a module never deletes its data. Maps regions, library books and
-mesh messages stay on disk.
+saved places stay on disk.
 
 ### Adding or removing modules
 

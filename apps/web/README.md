@@ -19,7 +19,7 @@ only to core (one origin, no CORS, no ports).
 src/
   main.tsx              QueryClient, router
   routes/               one file per screen: / (home), /system, /maps,
-                        /mesh, /library
+                        /library, ...
   features/<domain>/    components, hooks and CSS of one domain
   app/
     Screen.tsx          the frame: header (label, title, actions, theme

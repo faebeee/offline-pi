@@ -7,7 +7,7 @@
  * the payload classes, run `npm run api:gen`, then add them here.
  */
 import { io, type Socket } from "socket.io-client";
-import type { Job, LogBatch, LogFollowError, MeshLink, MeshMessage, MeshNode, RadioStatus, Snapshot, SystemInit } from "./generated/model";
+import type { Job, LogBatch, LogFollowError, Snapshot, SystemInit } from "./generated/model";
 
 export interface ServerEvents {
   "/system": {
@@ -17,15 +17,6 @@ export interface ServerEvents {
   "/maps": {
     /** a watched job changed (until it is done, failed or cancelled) */
     job: (data: Job) => void;
-  };
-  "/mesh": {
-    /** core's connection to the mesh container's live feed */
-    link: (data: MeshLink) => void;
-    status: (data: RadioStatus) => void;
-    /** a new message, or a change to one (sent, acked, failed) */
-    message: (data: MeshMessage) => void;
-    node: (data: MeshNode) => void;
-    nodes: (data: MeshNode[]) => void;
   };
   "/logs": {
     /** new lines of a followed source, in batches */
@@ -42,7 +33,6 @@ export interface ClientEvents {
     watchJob: (jobId: string) => void;
     unwatchJob: (jobId: string) => void;
   };
-  "/mesh": Record<string, never>;
   "/logs": {
     /** source = "core" or a module id */
     follow: (source: string) => void;

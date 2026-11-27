@@ -20,15 +20,14 @@ recreates every container. `./install.sh` is safe to re-run too.
 
 ## A module shows "Not configured"
 
-**Cause:** the module needs a setting that is still empty. For Mesh that is
-`MESH_CONNECTION`, which stays empty when no node was plugged in during
-`install.sh`. Core does not start a module that is not configured.
-**Fix:** plug the node in (data cable) and run `./install.sh`.
+**Cause:** the module needs a setting (`requires` in its manifest) that is
+still empty. Core does not start a module that is not configured.
+**Fix:** run `./install.sh` and answer the module's questions.
 
 ## A module shows "No container"
 
 **Cause:** the module is installed but its container was never created, or
-creating it failed (for Mesh: the node was unplugged during `./start.sh`).
+creating it failed.
 **Fix:** run `./start.sh` and read its output for that module.
 
 ## A module shows "Stopped", or START fails
@@ -53,29 +52,6 @@ systemctl --user enable --now podman.socket
 
 `install.sh` enables the socket and writes its path to `.env`
 (`PODMAN_SOCKET`).
-
-## Mesh
-
-The Mesh screen shows "Radio disconnected": the Mesh module cannot talk to
-the node. It retries on its own and keeps
-showing the message history meanwhile. Check, in this order:
-
-- **Unplugged or charge-only cable.** Use a data cable. `ls
-  /dev/serial/by-id/` should list the node.
-- **No permission.** Your user must be able to open the serial device
-  (usually group `dialout`). `install.sh` checks this and offers to add
-  you. Afterwards log out and back in (or reboot) and run `./install.sh`
-  again. By hand: `sudo usermod -aG dialout $USER`.
-- **ModemManager.** It probes new USB serial devices as modems and can grab
-  the node's port. If the radio keeps disconnecting:
-  `sudo systemctl disable --now ModemManager`.
-- **The node was replugged under another device.** Podman attaches the
-  device when the container is created. Run `./install.sh` to pick it
-  again, or `./start.sh` if the path is the same.
-- **A network node** (`MESH_CONNECTION=tcp`): check that `MESH_HOST` is
-  reachable from the Pi.
-
-`./manage.sh mesh status` shows the radio state and the last error.
 
 ## start.sh: "is not available (is the drive mounted?)"
 
@@ -131,8 +107,8 @@ warns if it could not.
 System screen shows under-voltage or throttling, and the Power events list
 records when. An SSD on USB can disconnect under write load; downloads then
 fail. `dmesg` shows "USB disconnect".
-**Fix:** use the official power supply for your Pi, or give the SSD and the
-Meshtastic node their own power (powered hub or enclosure). See
+**Fix:** use the official power supply for your Pi, or give the SSD its own
+power (powered hub or enclosure). See
 [Hardware](../01-overview/02-hardware.md#power-supply).
 
 ## No voltage or throttle readings

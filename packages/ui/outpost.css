@@ -1004,7 +1004,7 @@ a {
 .stack > i { min-width: 2px; }
 .stack .maps { background: var(--acc); }
 .stack .library { background: var(--info); }
-.stack .mesh { background: var(--ok); }
+.stack .files { background: var(--ok); }
 .stack .other { background: var(--fg3); }
 
 .legend {
@@ -1617,121 +1617,6 @@ a {
   text-align: right;
 }
 
-/* ================================================================ chat === */
-
-.chat {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.msg {
-  display: flex;
-  max-width: 80%;
-  flex-direction: column;
-  gap: var(--space-1);
-  align-self: flex-start;
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--line);
-  background: var(--s1);
-}
-
-.msg-out {
-  align-self: flex-end;
-  border-color: var(--acc);
-  background: var(--acc-soft);
-}
-
-.msg-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  color: var(--fg3);
-  font: 500 10px/14px var(--font-mono);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.msg-meta b {
-  color: var(--fg);
-  font-weight: 700;
-}
-
-.msg-text {
-  font-size: 16px;
-  line-height: 22px;
-  overflow-wrap: anywhere;
-  white-space: pre-wrap;
-}
-
-.msg-state {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  align-self: flex-end;
-  color: var(--fg3);
-  font: 500 10px/14px var(--font-mono);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.msg-state.is-ok { color: var(--ok); }
-.msg-state.is-crit { color: var(--crit); }
-
-.divider {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  color: var(--fg3);
-  font: 500 11px/16px var(--font-mono);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.divider::before,
-.divider::after {
-  height: 1px;
-  flex: 1;
-  content: "";
-  background: var(--line);
-}
-
-.composer {
-  display: flex;
-  flex: none;
-  align-items: flex-end;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  background: var(--s1);
-  border-top: 1px solid var(--line);
-}
-
-.composer .textarea {
-  min-height: 48px;
-  max-height: 160px;
-  padding: 11px var(--space-3);
-  resize: none;
-}
-
-.composer .btn-send {
-  width: 48px;
-  min-width: 48px;
-  height: 48px;
-  min-height: 48px;
-  padding: 0;
-}
-
-.counter {
-  color: var(--fg3);
-  font: 500 11px/16px var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.06em;
-}
-
-.counter.is-over {
-  color: var(--crit);
-}
-
 /* ================================================================= map === */
 
 /* Map stage: a map view plus a panel (Maps).
@@ -1981,28 +1866,6 @@ a {
   clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%);
   outline: 2px dashed var(--crit);
   outline-offset: 4px;
-}
-
-/* Round node marker (mesh). Age by stroke: fresh ok, old cau, stale faded
-   grey; write the age in the label too, never colour alone. */
-.mk-node .mk-shape {
-  border-radius: 50%;
-}
-
-.mk.is-fresh .mk-shape {
-  border-color: var(--ok);
-}
-
-.mk.is-old .mk-shape {
-  border-color: var(--cau);
-}
-
-.mk.is-stale .mk-shape {
-  border-color: var(--fg3);
-}
-
-.mk.is-stale {
-  opacity: 0.55;
 }
 
 .mk[aria-pressed="true"] .mk-shape,

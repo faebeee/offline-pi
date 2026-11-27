@@ -1,6 +1,6 @@
 {
   "id": "network",
-  "num": 4,
+  "num": 3,
   "label": "Network",
   "icon": "signal",
   "description": "Who is on the Pi's Wi-Fi hotspot: MAC address, vendor, signal, and a block switch per device.",

@@ -8,7 +8,7 @@ Logs in the module nav (`/logs`).
 ## Sources
 
 The chips at the top choose whose lines you see: core, and every installed
-module (Maps, Library, Mesh). Each chip has an LED for the state
+module (Maps, Library, Network). Each chip has an LED for the state
 of that module's container. The header title is the chosen source.
 
 - **core** shows the lines of the app itself (module start and stop, API
@@ -16,9 +16,9 @@ of that module's container. The header title is the chosen source.
   the list starts empty after core restarts. Older lines are in
   `./manage.sh logs` on the Pi.
 - **A module** shows the lines of its container, for example download
-  progress in Library or radio messages in Mesh.
+  progress in Library or hotspot clients in Network.
 
-You can link to one source directly: `/logs?source=mesh`.
+You can link to one source directly: `/logs?source=maps`.
 
 ## Lines
 
@@ -64,7 +64,7 @@ banner appears with a RESUME button. Press it once the module runs again.
 
 The download button saves the lines you see (after filters) as a `.log`
 file named after the source and the time, for example
-`outpost-mesh-2026-11-10T14-32-05-123Z.log`. Attach it when you ask
+`outpost-maps-2026-11-10T14-32-05-123Z.log`. Attach it when you ask
 someone for help.
 
 ## When lines are missing

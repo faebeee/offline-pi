@@ -6,7 +6,6 @@ import { InfoModule } from './domains/info/info.module';
 import { LibraryModule } from './domains/library/library.module';
 import { LogsModule } from './domains/logs/logs.module';
 import { MapsModule } from './domains/maps/maps.module';
-import { MeshModule } from './domains/mesh/mesh.module';
 import { NetworkModule } from './domains/network/network.module';
 import { SettingsModule } from './domains/settings/settings.module';
 import { ModulesModule } from './domains/modules/modules.module';
@@ -21,6 +20,6 @@ import { PlatformModule } from './platform/platform.module';
  * feature = a new domain module listed here (see AGENTS.md).
  */
 @Module({
-  imports: [PlatformModule, ModulesModule, SystemModule, MapsModule, MeshModule, NetworkModule, FilesModule, BoardModule, SuppliesModule, LibraryModule, LogsModule, InfoModule, SettingsModule, DiagnosticsModule],
+  imports: [PlatformModule, ModulesModule, SystemModule, MapsModule, NetworkModule, FilesModule, BoardModule, SuppliesModule, LibraryModule, LogsModule, InfoModule, SettingsModule, DiagnosticsModule],
 })
 export class AppModule {}

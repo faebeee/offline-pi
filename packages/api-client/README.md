@@ -24,4 +24,5 @@ The output is checked in; regenerate after every API change.
 | `src/fetcher.ts` | the one `fetch` behind every call: same origin, `ApiError` with core's message, `X-Pi-Monitor` and the control PIN on state-changing calls |
 
 Operation ids, and so the names, are `<controller><Method>`:
-`MeshController.send` -> `meshSend()` / `useMeshSend()`.
+`LibraryController.startSync` -> `libraryStartSync()` /
+`useLibraryStartSync()`.

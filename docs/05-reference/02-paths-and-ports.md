@@ -25,8 +25,7 @@ app.
 | Screen | Path | Module id | Data from |
 |---|---|---|---|
 | Home | `/` | | core |
-| Maps | `/maps` | `maps` | maps container; the mesh nodes layer from the mesh container |
-| Mesh | `/mesh`, `/mesh/nodes` | `mesh` | mesh container |
+| Maps | `/maps` | `maps` | maps container |
 | Library | `/library`, `/library/catalog`, `/library/read` | `knowledge` | knowledge container |
 | System | `/system` | `system` | core |
 | Logs | `/logs` | `logs` | core |
@@ -48,7 +47,6 @@ server-sent events, WebSockets and large downloads pass through unbuffered.
 |---|---|---|
 | `/svc/maps/x` | `http://127.0.0.1:8081/x` | Tiles, fonts, sprites, `.pmtiles` range requests |
 | `/svc/library/x` | `http://127.0.0.1:8082/svc/library/x` | kiwix articles and its viewer |
-| `/svc/mesh/x` | `http://127.0.0.1:8084/x` | Raw files of the mesh container |
 
 The library keeps its prefix (`stripPrefix: false` in its manifest), because
 `kiwix-serve` runs with `--urlRootLocation=/svc/library` and its links point
@@ -61,7 +59,6 @@ installed module answers `404`.
 |---|---|
 | `/system` | System: snapshots of the Pi |
 | `/maps` | Maps: job progress |
-| `/mesh` | Mesh: radio status, messages, nodes |
 | `/logs` | Logs: lines of a followed source |
 
 The events of each namespace are listed in [API](03-api.md#live-updates).
@@ -77,7 +74,6 @@ network.
 | `core` | `outpost-core` | `outpost-core` | `PORT` | `8080` | `BIND_ADDRESS` |
 | `maps` | `outpost-maps` | `outpost-maps` | `MAPS_PORT` | `8081` | `127.0.0.1` |
 | `knowledge` | `outpost-knowledge` | `outpost-knowledge` | `KNOWLEDGE_PORT` | `8082` | `127.0.0.1` |
-| `mesh` | `outpost-mesh` | `outpost-mesh` | `MESH_PORT` | `8084` | `127.0.0.1` |
 | `network` | `outpost-network` | `outpost-network` | `NETWORK_PORT` | `8085` | `127.0.0.1` |
 
 Files, Board and Supplies have no container: core serves them.
@@ -99,7 +95,6 @@ the checkout is called. Every container, core included, has
 | core | `GET /api/system/status` |
 | maps | `GET /api/status` |
 | knowledge | `GET /svc/library/` |
-| mesh | `GET /api/status` |
 | network | `GET /api/status` |
 
 ## Data directories
@@ -113,16 +108,12 @@ are relative to the project folder.
 | `MAPS_DATA_DIR` | `./data/maps` | maps: `/app/apps/maps/data` |
 | `MAPS_ASSETS_DIR` | `./data/maps-assets` | maps: `/app/apps/maps/assets` |
 | `KNOWLEDGE_CONTENT_DIR` | `./data/knowledge` | knowledge: `/data` |
-| `MESH_DATA_DIR` | `./data/mesh` | mesh: `/app/data` |
 | `NETWORK_DATA_DIR` | `./data/network` | network: `/app/data` |
 | `FILES_DATA_DIR` | `./data/files` | core: `/app/files` |
 
 Core also mounts the host's `/` read-only at `/hostfs` (for `/sys`, the
 mounted disks, Podman's state database and its API socket) and maps
-`VCIO_DEVICE` to `/dev/vcio_gencmd`. Mesh bind-mounts the host's `/dev`
-read-only (so replugging the radio into a new `/dev/ttyACM*`/`/dev/ttyUSB*`
-node keeps working) and reads the stable `/dev/serial/by-id/` path from
-`MESH_DEVICE` directly. Network mounts `NETWORK_LEASES_PATH`
+`VCIO_DEVICE` to `/dev/vcio_gencmd`. Network mounts `NETWORK_LEASES_PATH`
 (`/var/lib/NetworkManager`) read-only at `/leases` for the hotspot's DHCP
 leases.
 

@@ -85,7 +85,7 @@ installed_modules() {
 # images, install.sh says where they went.
 retired_modules() {
   # REPLACEMENT "core": now a screen core serves itself, always there
-  printf '%s\n' "mesh-map:maps" "files:core" "board:core" "supplies:core"
+  printf '%s\n' "files:core" "board:core" "supplies:core"
 }
 
 # remove_retired_modules - containers and images of retired modules.
@@ -97,9 +97,11 @@ remove_retired_modules() {
     if podman container exists "outpost-$m" 2>/dev/null; then
       podman rm -f "outpost-$m" >/dev/null && log_ok "Removed outpost-$m (retired module)"
     fi
-    if podman image exists "localhost/outpost-$m:latest" 2>/dev/null; then
-      podman rmi "localhost/outpost-$m:latest" >/dev/null 2>&1 && log_ok "Removed image outpost-$m (retired module)"
-    fi
+    for img in $(podman images --format '{{.Repository}}:{{.Tag}}' 2>/dev/null); do
+      case "$img" in
+        */outpost-"$m":*) podman rmi "$img" >/dev/null 2>&1 && log_ok "Removed image $img (retired module)" ;;
+      esac
+    done
   done
   return 0
 }

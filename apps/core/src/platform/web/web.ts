@@ -19,7 +19,7 @@ function webDir(): string | null {
 /**
  * Serves the web app (apps/web, @outpost/web) at /: its built files, and
  * index.html for every other page load (client-side routes such as /maps/
- * or /mesh/ch:0), so deep links and reloads work.
+ * or /library/read), so deep links and reloads work.
  */
 export function serveWeb(app: NestExpressApplication) {
   const dir = webDir();

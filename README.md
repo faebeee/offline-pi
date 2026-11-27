@@ -8,8 +8,8 @@
 > [changelog](docs/07-changelog.md) (also under **Info**).
 
 One self-hosted app for a Raspberry Pi that keeps working without internet:
-offline maps, an emergency-knowledge library, Meshtastic messaging and a live
-map of the mesh, plus a dashboard for the Pi itself. Everything is reached on
+offline maps, an emergency-knowledge library, shared files, a notice board
+and a supplies list, plus a dashboard for the Pi itself. Everything is reached on
 one port, in one UI, and runs fully offline once set up (no CDN, no runtime
 downloads).
 
@@ -26,8 +26,7 @@ and off on the dashboard.
 | [Info](apps/info/README.md) (core) | `/info` | `/api/info` | | This project's documentation ([`docs/`](docs/README.md)), rendered from the Markdown files, with chapters and search. |
 | [Settings](apps/settings/README.md) (core) | `/settings` | `/api/settings` | | Every setting of the Pi, read only: the `.env` values with their meaning and default, the data folders with their drive, free space and size. |
 | [Diagnostics](apps/diagnostics/README.md) (core) | `/diagnostics` | `/api/diagnostics` | | Troubleshooting: checks every part of outpost (modules running and answering, data folders mounted, writable and not full, the USB drive, power, temperature, memory, clock) and says what to do about each problem. |
-| [Maps](apps/maps/README.md) | `/maps` | `/api/maps` | `8081` | Self-hosted vector maps: download a region once, then pan, zoom and search with no internet connection. With Mesh installed, the Meshtastic nodes are a layer that can be switched on and off. |
-| [Mesh](apps/mesh/README.md) | `/mesh` | `/api/mesh` | `8084` | Messaging over a USB Meshtastic LoRa node: channel and direct messages, node list, history kept on the Pi. |
+| [Maps](apps/maps/README.md) | `/maps` | `/api/maps` | `8081` | Self-hosted vector maps: download a region once, then pan, zoom and search with no internet connection. |
 | [Network](apps/network/README.md) | `/network` | `/api/network` | `8085` | Who is on the Pi's Wi-Fi hotspot: MAC address, vendor (offline IEEE registry), IP, hostname, signal, traffic; block and unblock devices, switch the hotspot on and off (through the host helper [`host/network-guard`](host/network-guard)). |
 | [Files](apps/files/README.md) (core) | `/files` | `/api/files` | | A shared folder for everyone on the Pi's network: upload, download, folders, rename; uploads and downloads stream through `/api/files/raw/`. |
 | [Board](apps/board/README.md) (core) | `/board` | `/api/board` | | Notice board: notices, needs, offers and check-ins, without accounts; needs and offers can be marked done. |
@@ -58,10 +57,11 @@ Then open `http://<pi>:8080/`.
 That installs git if needed, clones outpost to `~/outpost` and runs
 `install.sh`, which asks only:
 
-1. which modules (Maps, Mesh, Library, Network; Files, Board and Supplies
+1. which modules (Maps, Library, Network; Files, Board and Supplies
    are always there),
 2. where to keep the data (one folder, e.g. on an SSD),
-3. what a module can't run without (Mesh: which USB device is the radio).
+3. a module's own questions, if it has any (Network: whether to install its
+   host helper).
 
 It installs Podman if needed, downloads the ready-made images of this
 version (built by CI for arm64 and amd64; built locally only when there are
@@ -95,7 +95,7 @@ in). Differences from a Pi:
   the Mac into the machine on every start.
 - Data directories must be under a path the machine shares (`/Users` by
   default).
-- USB devices can't reach the VM: Mesh needs a node on the network (tcp).
+- USB devices can't reach the VM.
 - Nothing starts at login: after a restart run `./start.sh` (it starts the
   Podman machine).
 
@@ -120,7 +120,6 @@ The data stays where it was.
 ./manage.sh logs [module]       # follow logs (default: core)
 ./manage.sh autostart off       # don't start at boot (on|off|status)
 ./manage.sh knowledge list      # module commands, see ./manage.sh help
-./manage.sh mesh set-region EU_868
 ```
 
 `update.sh` shows the new commits and which modules they touch, asks, then
@@ -157,8 +156,6 @@ documents every variable. The main ones:
 | `MAPS_DATA_DIR` | `./data/maps` | Map regions (GBs) and POIs. Point at the SSD. |
 | `MAPS_ASSETS_DIR` | `./data/maps-assets` | Map fonts and sprites (~100 MB). |
 | `KNOWLEDGE_CONTENT_DIR` | `./data/knowledge` | ZIM files chosen on the Library screen (MB to hundreds of GB). Point at the SSD. |
-| `MESH_DATA_DIR` | `./data/mesh` | Message history. |
-| `MESH_CONNECTION` / `MESH_DEVICE` / `MESH_HOST` | | How Mesh reaches the node (set by `install.sh`). |
 | `NETWORK_DATA_DIR` | `./data/network` | Hotspot block list and devices seen (a few KB). |
 | `NETWORK_IFACE` / `NETWORK_LEASES_PATH` | | Hotspot interface (empty: auto) and its DHCP leases folder. |
 | `FILES_DATA_DIR` | `./data/files` | The shared files (grows with every upload). Point at the SSD. |

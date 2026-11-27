@@ -82,9 +82,9 @@ The package provides plain CSS classes and a small ES module
   checkbox, tabs.
 - **Status**: badges, LEDs, status word, banners (info, ok, caution,
   critical), toast, empty state, progress.
-- **Data**: cards, readouts, key/value lists, lists and rows, tables, chat.
+- **Data**: cards, readouts, key/value lists, lists and rows, tables.
 - **Maps**: map stage and side panel or bottom sheet, map controls, markers
-  for places, nodes and the own position, popups.
+  for places and the own position, popups.
 - **Icons**: a 24 px stroke sprite (`icons.svg`) with fixed status shapes
   (info circle, check, caution triangle, critical octagon, offline arc).
 

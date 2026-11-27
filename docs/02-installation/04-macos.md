@@ -22,10 +22,9 @@ else.
 | Topic | On macOS |
 |---|---|
 | Compose backend | Always `podman-compose`, with `compose.macos.yml` added on top of `compose.yml`. `podman compose` could hand over to Docker Compose, which resolves bind mounts on the Mac instead of in the machine. |
-| Device groups | `compose.macos.yml` removes `group_add: keep-groups` from core and Mesh: the remote Podman API rejects it, and the Pi devices it is for do not exist on a Mac. |
+| Device groups | `compose.macos.yml` removes `group_add: keep-groups` from core: the remote Podman API rejects it, and the Pi devices it is for do not exist on a Mac. |
 | Network | The containers' host network is the Podman machine's. `start.sh` forwards `PORT` from the Mac into the machine on every start. |
 | Data directories | Must be under a path the machine shares: `/Users`, `/private`, `/var/folders` (or `/tmp`). `install.sh` warns otherwise, because the containers would see an empty directory. |
-| Mesh | USB devices cannot reach the machine. Mesh needs a Meshtastic node on the network (`MESH_CONNECTION=tcp`, by hostname or IP); `install.sh` does not offer USB. |
 | System screen | No Pi hardware: no voltage or throttling readings. |
 | Autostart | Nothing starts at login. After a restart of the Mac, run `podman machine start` and `./start.sh`. |
 | `podman.socket` | Not enabled on the Mac; the socket lives in the Podman machine, which is where core runs. |

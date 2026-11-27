@@ -16,7 +16,7 @@ if command -v podman >/dev/null 2>&1; then
   while IFS= read -r image; do
     IMAGES+=("$image")
   done < <(podman images --format '{{.Repository}}:{{.Tag}}' 2>/dev/null \
-    | grep -E '/outpost-(core|maps|knowledge|mesh|network|files|board|supplies|mesh-map):' || true)
+    | grep -E '/outpost-(core|maps|knowledge|network|files|board|supplies):' || true)
 fi
 IMAGES+=(ghcr.io/kiwix/kiwix-serve:3.8.2)
 # Persistent data directories as VAR=default (same vars as .env).
@@ -25,7 +25,6 @@ DATA_DIR_VARS=(
   MAPS_DATA_DIR=./data/maps
   MAPS_ASSETS_DIR=./data/maps-assets
   KNOWLEDGE_CONTENT_DIR=./data/knowledge
-  MESH_DATA_DIR=./data/mesh
   NETWORK_DATA_DIR=./data/network
   FILES_DATA_DIR=./data/files
 )

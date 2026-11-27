@@ -113,9 +113,6 @@ install_choose_modules() {
     f="$ROOT_DIR/apps/$m/module.json"
     if is_installed "$m" || [[ "$merged" == *" $m "* ]]; then state=on; else state=off; fi
     desc="$(manifest_field "$f" description)"
-    if is_macos && [[ "$m" == mesh ]]; then
-      desc="Node over the network only on macOS. $desc"
-    fi
     items+=("$m|$(module_label "$m")|$desc|$state")
   done
   ui_note "Always included: home, Files, Board, Supplies, System, Logs, Info, Settings, Diagnostics."

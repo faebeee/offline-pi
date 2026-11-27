@@ -6,8 +6,7 @@
 # On macOS Podman runs in a VM ("podman machine"). Bind mounts work for paths
 # the machine shares (by default /Users, /private, /var/folders), the
 # containers' host network is the VM's, so start.sh forwards PORT from the Mac
-# into the VM (macos_expose_port), and USB devices can't be passed through
-# (mesh then needs a node reachable over the network).
+# into the VM (macos_expose_port), and USB devices can't be passed through.
 
 OS_NAME="$(uname -s)"
 

@@ -2,8 +2,8 @@
 
 A feature goes from an endpoint in core to a screen in the web app in three
 steps. This page walks through them with a small example: a summary of the
-mesh, "how many nodes were heard in the last hour", shown on the Mesh
-screen.
+saved places, "how many places were added in the last week", shown on the
+Maps screen.
 
 The example is made up for this page; the files and names it touches are
 real. The background is in [Core API](03-core-api.md) and
@@ -25,12 +25,12 @@ Response types are classes in the domain's `*.dto.ts`, so the swagger plugin
 sees them. Doc comments become the descriptions in the API docs.
 
 ```ts
-// apps/core/src/domains/mesh/domain/mesh.dto.ts
-export class MeshSummary {
-  /** every node the radio has heard of */
-  nodes!: number;
-  /** nodes heard in the last hour */
-  heardLastHour!: number;
+// apps/core/src/domains/maps/domain/maps.dto.ts
+export class MapsSummary {
+  /** every saved place */
+  places!: number;
+  /** places added in the last week */
+  addedLastWeek!: number;
 }
 ```
 
@@ -43,40 +43,40 @@ Counting is logic, so it goes in `application/`, built on the existing
 client in `infrastructure/`:
 
 ```ts
-// apps/core/src/domains/mesh/application/mesh-summary.service.ts
+// apps/core/src/domains/maps/application/maps-summary.service.ts
 @Injectable()
-export class MeshSummaryService {
-  constructor(private readonly mesh: MeshClient) {}
+export class MapsSummaryService {
+  constructor(private readonly maps: MapsClient) {}
 
-  async summary(): Promise<MeshSummary> {
-    const nodes = await this.mesh.nodes();
-    const since = Date.now() / 1000 - 3600;
+  async summary(): Promise<MapsSummary> {
+    const { pois } = await this.maps.pois();
+    const since = Date.now() - 7 * 24 * 3600 * 1000;
     return {
-      nodes: nodes.length,
-      heardLastHour: nodes.filter((n) => (n.lastHeard ?? 0) >= since).length,
+      places: pois.length,
+      addedLastWeek: pois.filter((p) => Date.parse(p.createdAt) >= since).length,
     };
   }
 }
 ```
 
-Add the service to `providers` in `mesh.module.ts`. When the mesh container
-is not running, `MeshClient` throws the `503`, and the web app shows it.
+Add the service to `providers` in `maps.module.ts`. When the maps container
+is not running, `MapsClient` throws the `503`, and the web app shows it.
 
 ## 3. The route
 
 ```ts
-// apps/core/src/domains/mesh/api/mesh.controller.ts
-/** Node counts for the Mesh screen. */
+// apps/core/src/domains/maps/api/maps.controller.ts
+/** Saved place counts for the Maps screen. */
 @Get('summary')
-summary(): Promise<MeshSummary> {
+summary(): Promise<MapsSummary> {
   return this.summaries.summary();
 }
 ```
 
 Inject the service in the controller's constructor
-(`private readonly summaries: MeshSummaryService`). The method name decides
-the generated names: `MeshController.summary`
-becomes the operation `meshSummary` and the hook `useMeshSummary()`.
+(`private readonly summaries: MapsSummaryService`). The method name decides
+the generated names: `MapsController.summary`
+becomes the operation `mapsSummary` and the hook `useMapsSummary()`.
 
 ## 4. Generate the client
 
@@ -86,7 +86,7 @@ npm run api:gen
 
 This builds core, writes `packages/api-client/openapi.json` (no containers
 needed) and regenerates `packages/api-client/src/generated/`. Check that
-`useMeshSummary` and the model `MeshSummary` appeared, and commit the
+`useMapsSummary` and the model `MapsSummary` appeared, and commit the
 generated files with the change.
 
 ## 5. The screen
@@ -94,16 +94,16 @@ generated files with the change.
 Use the hook in the feature folder:
 
 ```tsx
-// apps/web/src/features/mesh/Summary.tsx
-import { useMeshSummary } from "@outpost/api-client";
+// apps/web/src/features/maps/Summary.tsx
+import { useMapsSummary } from "@outpost/api-client";
 
 export function Summary() {
-  const { data } = useMeshSummary();
+  const { data } = useMapsSummary();
   if (!data) return null;
   return (
     <div className="readout">
-      <span className="label">Heard last hour</span>
-      <span className="readout-value">{data.heardLastHour} / {data.nodes}</span>
+      <span className="label">Added last week</span>
+      <span className="readout-value">{data.addedLastWeek} / {data.places}</span>
     </div>
   );
 }

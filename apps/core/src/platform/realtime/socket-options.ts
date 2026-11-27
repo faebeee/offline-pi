@@ -2,7 +2,7 @@ import type { GatewayMetadata } from '@nestjs/websockets';
 
 /**
  * Options for every domain's Socket.IO gateway. They share one server on
- * core's port, one namespace per domain (/system, /maps, /mesh, ...); the
+ * core's port, one namespace per domain (/system, /maps, /logs, ...); the
  * event payloads are typed in @outpost/api-client (events.ts).
  *
  * destroyUpgrade: false - other upgrades (passthrough WebSockets under

@@ -14,15 +14,13 @@ new in `.env.example`.
 
 | Kind | Variables | How to change them |
 |---|---|---|
-| Asked by `install.sh` | `MODULES`, `OUTPOST_DATA_DIR` (and from it every `*_DIR`), `MESH_CONNECTION`, `MESH_DEVICE`, `MESH_HOST`, `NETWORK_LEASES_PATH` | Re-run `./install.sh` and answer differently |
-| Asked by `install.sh --advanced` | `PORT`, `BIND_ADDRESS`, `CONTROL_PIN`, `MESH_SEND_PIN`, each `*_DIR` on its own | Re-run `./install.sh --advanced` |
+| Asked by `install.sh` | `MODULES`, `OUTPOST_DATA_DIR` (and from it every `*_DIR`), `NETWORK_LEASES_PATH` | Re-run `./install.sh` and answer differently |
+| Asked by `install.sh --advanced` | `PORT`, `BIND_ADDRESS`, `CONTROL_PIN`, each `*_DIR` on its own | Re-run `./install.sh --advanced` |
 | Detected by `install.sh` | `PODMAN_GRAPH_ROOT`, `PODMAN_SOCKET`, `VCIO_DEVICE` | Leave as is; detected again on every run |
 | Edited by hand | everything else (`SAMPLE_INTERVAL_MS`, `CORE_LOG_LEVEL`, the ports, `KNOWLEDGE_AUTO_SYNC`, ...) | Edit `.env`, then `./start.sh` |
 
-Without `--advanced`, `PORT`, `BIND_ADDRESS`, `CONTROL_PIN` and
-`MESH_SEND_PIN` keep their current values (the defaults on a first run:
-`8080`, every device, no PINs). The mesh connection is asked while mesh is
-not configured yet.
+Without `--advanced`, `PORT`, `BIND_ADDRESS` and `CONTROL_PIN` keep their
+current values (the defaults on a first run: `8080`, every device, no PIN).
 
 ## Applying a change
 
@@ -51,7 +49,7 @@ not configured yet.
 | `PORT` | `8080` | The one port the network sees: the web app, the API and every module under its path. Host networking, so this is the port on the Pi itself. |
 | `BIND_ADDRESS` | `0.0.0.0` | `0.0.0.0` for access from the LAN or hotspot, `127.0.0.1` for this machine only. |
 | `MODULES_BIND_ADDRESS` | `127.0.0.1` | Address the modules listen on. Keep `127.0.0.1`: modules are reached through core and must not be exposed on their own. |
-| `MODULES` | `maps,knowledge` | Installed modules, comma separated. Available: `maps`, `knowledge`, `mesh`, `network`. Only these get an image and a container; Files, Board and Supplies are part of core. |
+| `MODULES` | `maps,knowledge` | Installed modules, comma separated. Available: `maps`, `knowledge`, `network`. Only these get an image and a container; Files, Board and Supplies are part of core. |
 | `CORE_DATA_DIR` | `./data/core` | Core's data: 24 h metric history and power events (`history.json`), `modules.json` (the modules switched off), Board posts (`board.json`) and the Supplies list with its household settings (`supplies.json`). Small. |
 | `SAMPLE_INTERVAL_MS` | `2000` | How often the Pi is sampled and pushed to open dashboards, in milliseconds (minimum 500). |
 | `CORE_LOG_LEVEL` | `log` | Least severe level core logs: `verbose`, `debug`, `log`, `warn`, `error`, `fatal`. The Logs screen shows core's lines from this level up. |
@@ -80,18 +78,6 @@ not configured yet.
 | `KNOWLEDGE_PORT` | `8082` | Internal port. |
 | `KNOWLEDGE_CONTENT_DIR` | `./data/knowledge` | ZIM files of the books chosen on the Library screen, from a few MB to hundreds of GB. Nothing is downloaded until you choose. Point it at the SSD. |
 | `KNOWLEDGE_AUTO_SYNC` | `true` | `true`: resume downloads of the selected books when the container starts (after a restart or a power cut). `false`: only from the Library screen or `./manage.sh knowledge sync`. |
-
-## Mesh
-
-| Variable | Default | Meaning |
-|---|---|---|
-| `MESH_PORT` | `8084` | Internal port. |
-| `MESH_DATA_DIR` | `./data/mesh` | Message history (SQLite, small). |
-| `MESH_CONNECTION` | empty | `serial` (USB) or `tcp`. Empty: not configured yet, and the web app won't start mesh until `./install.sh` has configured it. |
-| `MESH_DEVICE` | `/dev/null` | For `serial`: the stable `/dev/serial/by-id/` path of the node, chosen by `install.sh`. |
-| `MESH_HOST` | empty | For `tcp`: hostname or IP address of the node. |
-| `MESH_SEND_PIN` | empty | PIN for sending messages from the web app. Empty: no PIN. |
-| `MESH_SEND_RATE_LIMIT` | `5/min` | How many messages the web app may send. |
 
 ## Network
 

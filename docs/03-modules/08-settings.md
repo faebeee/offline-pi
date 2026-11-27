@@ -24,9 +24,9 @@ One row per data directory (`CORE_DATA_DIR`, `MAPS_DATA_DIR`,
 
 ## All settings
 
-Below the folders, the settings grouped like `.env.example`: Core, Maps,
-Library, Mesh, and Other for variables that are in `.env` but not
-documented. Each shows its value and the comment from `.env.example`.
+Below the folders, the settings grouped like `.env.example`: Setup, Core,
+Maps, Library, Network, Files, and Other for variables that are in `.env`
+but not documented. Each shows its value and the comment from `.env.example`.
 
 - `CHANGED` marks a value that differs from the default; the default is
   shown below it.

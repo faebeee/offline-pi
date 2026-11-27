@@ -101,8 +101,6 @@ under **Unreleased**.
 - The status strip at the top of every screen shows the Pi's vitals:
   CPU temperature, input voltage, CPU and memory usage and the system
   disk, in amber or red when they need attention.
-- Maps: REQUEST POSITIONS in the NODES tab asks every Meshtastic node for
-  its current position right away.
 - `host/usb-storage`: mounts a USB stick or SSD automatically at every
   boot and whenever it is plugged in, so maps and library data can live on
   it. Run `sudo host/usb-storage/install-usb-storage.sh`, then
@@ -112,8 +110,8 @@ under **Unreleased**.
 
 - The installer asks much less. A first install asks which modules, one
   folder for all data (for example on the SSD) and what a module can't do
-  without (the Mesh radio). Port, access, control PIN, the Mesh send PIN
-  and a folder per module are asked only with `./install.sh --advanced`.
+  without. Port, access, control PIN and a folder per module are asked
+  only with `./install.sh --advanced`.
   Re-running it with a new data folder moves all data there.
 - `./update.sh` now downloads the new images instead of rebuilding them
   and keeps every installer answer. `--clean` builds them locally from
@@ -128,7 +126,7 @@ under **Unreleased**.
   installs, since other containers may use it; disable it with
   `systemctl --user disable podman-restart.service` if nothing else needs
   it.
-- The menu is split in two: your apps (Maps, Mesh, Library) at the top,
+- The menu is split in two: your apps (Maps, Library, ...) at the top,
   the screens of outpost itself (System, Logs, Info, Settings,
   Diagnostics) at the bottom. On a phone the bottom bar shows a line
   between the two groups.
@@ -137,17 +135,11 @@ under **Unreleased**.
 - The status strip is now exactly the same on every screen: the link to
   the Pi (`CORE · LIVE`), its vitals and the UTC time. What used to be
   screen-specific moved onto the screen: GNSS accuracy into the Maps
-  context line, the node count and battery into the Mesh context line,
-  error and warning counts into the Logs context line; the radio link,
+  context line, error and warning counts into the Logs context line; the
   region count, download and sync progress were already shown there.
-- Mesh map is now part of Maps: the Meshtastic nodes are a layer of the
-  offline map that you switch on and off with the nodes button in the map
-  controls (remembered per browser), with a NODES tab in the panel. Mesh's
-  SHOW ON MAP opens Maps on that node. Keep Maps (and Mesh) installed to
-  see nodes; `./update.sh` or `./start.sh` removes the old mesh-map
-  container and image by itself, `./install.sh` drops it from `MODULES`.
-- Module numbers in the headers follow the new list: Maps 01, Mesh 02,
-  Library 03, System 04, Logs 05, Info 06.
+- Module numbers in the headers follow the new list: Maps 01, Library 02,
+  Network 03, Files 04, Board 05, Supplies 06, System 07, Logs 08, Info
+  09, Settings 10, Diagnostics 11.
 
 ### Fixed
 
@@ -161,27 +153,21 @@ under **Unreleased**.
 - Maps: downloading a large region no longer fails with `stream error:
   ... PROTOCOL_ERROR`. The download now uses HTTP/1.1 and starts over by
   itself (up to 3 tries) when the connection to the map server drops.
-- Maps showed no Meshtastic nodes because the radio rarely hears their
-  position broadcasts. Mesh now asks recently heard nodes without a known
-  position for it, so they appear on the map within a few minutes.
 - `./update.sh` and `./start.sh --pull` failed with podman-compose
   (`argument --pull: invalid choice: 'core'`).
 - `./update.sh` and `./start.sh --pull` failed with podman-compose 1.3
   (Raspberry Pi OS) with `argument --pull: ignored explicit argument
   'always'`. The build now uses the pull option the installed compose
   understands.
-- Mesh: unplugging and replugging the radio stopped working after the
-  first connection, since Podman mapped the USB device to a fixed
-  major:minor at container creation and a replug usually gets a new
-  `/dev/ttyACM*`/`/dev/ttyUSB*` node. The container now bind-mounts `/dev`
-  read-only instead, so it always sees the current device behind the
-  stable `/dev/serial/by-id/` path.
-
 
 ### Removed
 
-- The `mesh-map` module (container, `/mesh-map` screen,
-  `/api/mesh-map/overview`) and the `MESH_MAP_PORT` setting.
+- Mesh: the Meshtastic messaging module, its screen and the nodes layer
+  of Maps are gone, together with the old Mesh map module and the `MESH_*`
+  settings. On an existing install, remove the old container and images
+  with `podman rm -f outpost-mesh; podman rmi $(podman images -q '*outpost-mesh*')`;
+  your old message history stays in `MESH_DATA_DIR` (`data/mesh` by
+  default) until you delete it yourself.
 
 ### Changed
 

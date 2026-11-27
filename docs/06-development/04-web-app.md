@@ -12,14 +12,14 @@ TanStack Query.
 ```text
 apps/web/src/
   main.tsx              # QueryClient, router, theme before first paint
-  routes/               # one file per screen (/, /system, /maps, /mesh, ...)
+  routes/               # one file per screen (/, /system, /maps, /library, ...)
   features/<domain>/    # components, hooks and CSS of one domain
   app/                  # Screen (frame), strip, Nav, realtime, maplibre, Boot
   ui/outpost.tsx        # React wrappers for the Outpost package
 ```
 
 - **Routes**: TanStack Router file routes. `library.catalog.tsx` is
-  `/library/catalog`, `mesh.index.tsx` is `/mesh/`. The Vite plugin
+  `/library/catalog`, `library.index.tsx` is `/library/`. The Vite plugin
   regenerates `src/routeTree.gen.ts` (or run `npx tsr generate`).
 - **Features**: everything specific to one domain lives in
   `src/features/<domain>/`. A route file stays short: it puts the feature's
@@ -79,7 +79,7 @@ source's state, counts, download or sync progress) goes in its context line
 Data only comes through `@outpost/api-client`:
 
 - **REST**: the generated hooks, for example `useMapsRegions()` or
-  `useMeshSend()`. No hand-written `fetch` to `/api`.
+  `useLibraryStartSync()`. No hand-written `fetch` to `/api`.
 - **Live updates**: `useSocketEvent("/<domain>", "<event>", handler)` from
   `src/app/realtime.ts`. Write what arrives into the Query cache with the
   generated `get...QueryKey()`, so every component sees it.
@@ -90,8 +90,8 @@ Data only comes through `@outpost/api-client`:
 
 ```tsx
 const qc = useQueryClient();
-useSocketEvent("/mesh", "nodes", (nodes) => {
-  qc.setQueryData(getMeshNodesQueryKey(), nodes);
+useSocketEvent("/maps", "job", (job) => {
+  qc.setQueryData(getMapsJobQueryKey(job.id), job);
 });
 ```
 

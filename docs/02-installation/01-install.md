@@ -5,8 +5,6 @@
 - A Raspberry Pi (64-bit Raspberry Pi OS) or another Linux machine, with
   internet access during the installation. See
   [Hardware](../01-overview/02-hardware.md).
-- For Mesh: a Meshtastic node, plugged in by USB with a data cable (or
-  reachable on the network).
 - Optional: an SSD for maps, books and shared files.
 
 Everything else (git, Podman, a compose backend) the installer offers to
@@ -41,16 +39,15 @@ cd ~/outpost
 
 On a first install there are only a few questions:
 
-1. **Which modules?** A checkbox list: Maps, Mesh, Library, Network.
+1. **Which modules?** A checkbox list: Maps, Library, Network.
    Files, Board and Supplies are always included, like System, Logs, Info,
    Settings and Diagnostics.
 2. **Where should outpost keep its data?** One folder for everything,
    `~/outpost/data` by default. Maps and books can take hundreds of GB: if
    you have an SSD, answer with a folder on it, for example
    `/mnt/ssd/outpost`. See [Storage and SSD](02-storage.md).
-3. **Module questions**, only for the modules that need them: for Mesh,
-   how the node is connected (USB or network) and which USB device it is;
-   for Network, whether to install its small host helper.
+3. **Module questions**, only for the modules that need them: for Network,
+   whether to install its small host helper.
 
 Everything else uses defaults: port `8080`, every device on the network
 may open outpost, and no control PIN. `./install.sh --advanced` asks for
@@ -79,7 +76,7 @@ the Pi instead. That takes 10 to 30 minutes the first time.
 
 | Option | Effect |
 |---|---|
-| `--advanced` | Also asks for the port, who may open outpost (every device, or only this machine), the control PIN, the Mesh send PIN and a separate folder for each kind of data. Shows a summary and asks before installing. |
+| `--advanced` | Also asks for the port, who may open outpost (every device, or only this machine), the control PIN and a separate folder for each kind of data. Shows a summary and asks before installing. |
 | `--yes` | Asks nothing: keeps the current answers (the defaults on a first run). |
 | `--build` | Builds the images on this machine instead of downloading them. |
 | `--no-cache` | Builds them from scratch (implies `--build`). |
@@ -122,8 +119,6 @@ The home page lists every installed module. Next steps:
 - **Maps**: download a region. See [Maps](../03-modules/02-maps.md).
 - **Library**: choose books, start with the emergency set. See
   [Library](../03-modules/03-library.md).
-- **Mesh**: check that the radio is connected. See
-  [Mesh](../03-modules/04-mesh.md).
 
 ## Re-running install.sh
 
@@ -133,8 +128,6 @@ command. Use it to:
 - add or remove modules,
 - move the data to another disk: answer the data question with the new
   folder and the existing data is moved there,
-- pick another Meshtastic device, or configure Mesh after plugging in the
-  node,
 - change the port, access or control PIN (`./install.sh --advanced`).
 
 Settings that `install.sh` does not ask about can be edited in `.env`

@@ -20,9 +20,9 @@ apps/core/src/domains/<name>/
 | Folder | Put here | Example |
 |---|---|---|
 | `api/` | Controllers only: routes, parameters, headers | `maps.controller.ts` |
-| `application/` | Logic: combining calls, watching jobs, keeping state | `job-watcher.service.ts`, `mesh-feed.service.ts` |
-| `infrastructure/` | The container client, mappers from the container's shapes | `mesh.client.ts`, `mesh.mappers.ts` |
-| `domain/` | DTO classes: what the API accepts and returns | `mesh.dto.ts` |
+| `application/` | Logic: combining calls, watching jobs, keeping state | `job-watcher.service.ts`, `catalog.service.ts` |
+| `infrastructure/` | The container client, mappers from the container's shapes | `network.client.ts`, `network.mappers.ts` |
+| `domain/` | DTO classes: what the API accepts and returns | `network.dto.ts` |
 
 Controllers may call the infrastructure client directly for 1:1 calls.
 Anything with logic goes in `application/`.
@@ -74,7 +74,7 @@ reach the request, not break core's start.
 - Request DTOs need `class-validator` decorators. The global
   `ValidationPipe` runs with `whitelist`, so undecorated fields are dropped.
 - Map the container's shapes to the domain model in `infrastructure/`, for
-  example mesh's snake_case to camelCase.
+  example network's snake_case to camelCase.
 - Doc comments (`/** ... */`) on controller methods and DTO fields become the
   descriptions in Swagger and in the generated client.
 
@@ -85,7 +85,7 @@ The operation id of a route is `<controller without "Controller"><Method>`:
 | Controller method | Operation id | Generated hook |
 |---|---|---|
 | `MapsController.regions` | `mapsRegions` | `useMapsRegions()` |
-| `MeshController.send` | `meshSend` | `useMeshSend()` |
+| `LibraryController.startSync` | `libraryStartSync` | `useLibraryStartSync()` |
 
 So name controller methods for the client: short verbs or nouns that read
 well after the domain name.
@@ -115,8 +115,8 @@ export class MapsEvents {
 ## Using another domain
 
 A feature may combine domains: import the other domain's Nest module and
-inject its exported client or service (for example `MeshModule` exports
-`MeshClient`).
+inject its exported client or service (for example `MapsModule` exports
+`MapsClient`).
 Never call another module's container from the browser.
 
 ## Generating the client

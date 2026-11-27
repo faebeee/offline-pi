@@ -1,6 +1,6 @@
 # OUTPOST Design System
 
-Frontend guide for the Outpost suite: offline-first apps for disasters, emergencies and off-grid use (offline maps, Kiwix library, Meshtastic mesh, and future modules).
+Frontend guide for the Outpost suite: offline-first apps for disasters, emergencies and off-grid use (offline maps, Kiwix library, shared files, notice board, supplies, and future modules).
 
 **Audience:** coding agents and developers building any Outpost app UI. Follow this file exactly. If something is not covered here, extend it in the same spirit and note the addition at the end of this file.
 
@@ -240,7 +240,7 @@ Rules:
 | Critical / SOS | octagon with "!" or "x" | `--crit` |
 | Offline | wifi arc with slash | `--fg2` |
 
-Core set: map, library (open book), mesh (antenna with arcs), hub (2x2 squares), locate (crosshair circle), waypoint (pin), layers, search, send, download, plus, minus, back chevron, sun, moon.
+Core set: map, library (open book), hub (2x2 squares), locate (crosshair circle), waypoint (pin), layers, search, send, download, plus, minus, back chevron, sun, moon.
 
 ---
 
@@ -251,10 +251,10 @@ Every app screen has this structure, top to bottom:
 ```
 ┌ Status strip      32 px   --bg, mono 11 px: link to core · host vitals · UTC
 ├ Header            ~64 px  --s1: back (44), label + H1, actions (44)
-├ [Context bar]     40 px   optional --s2: radio/channel/sync info
+├ [Context bar]     40 px   optional --s2: zoom/coordinates/sync info
 ├ [Pinned alert]            optional critical banner (e.g. active SOS)
 ├ Content           flex 1, scrolls, .grid-bg, 16 px padding, 16 px gap
-├ [Composer/Action]         optional sticky action area
+├ [Action]                  optional sticky action area
 └ Bottom nav        64 px   --s1, 4 to 5 module links
 ```
 
@@ -325,7 +325,7 @@ Use corner brackets on the readout that is currently most important.
 ### Progress and storage
 
 - Progress: segmented bar (e.g. 32 cells, 2 px gaps), lit `--info`. Title left, `62% · 1.4 / 2.3 GB` right in mono.
-- Storage: one stacked bar with a fixed color per module (maps `--acc`, library `--info`, mesh `--ok`, free `--s3`) plus a mono legend.
+- Storage: one stacked bar with a fixed color per module (maps `--acc`, library `--info`, free `--s3`) plus a mono legend.
 
 ### Banners
 
@@ -364,20 +364,13 @@ Row min 60 px (72 px with avatar/monogram), 1 px bottom line, structure: LED or 
 
 `<nav aria-label="Modules">`, 64 px, equal columns, icon 22 px + mono 11 px label. Active item: `--acc-ink` color, 2 px amber line on top (`box-shadow: inset 0 2px 0 var(--acc)`), `aria-current="page"`. Two groups: Home and the apps (optional modules) first, then the system screens (System, Logs, Info, Settings, Diagnostics); the first system item (`.nav-split`) has a 1 px `--line` before it, and on the left rail it is pushed to the bottom.
 
-### Chat (mesh)
-
-- Incoming: left, max 80% width, `--s1` bg, `1px --line`. Meta line mono 10 px: sender (bold `--fg`) + hops + time.
-- Outgoing: right, `--acc-soft` bg, `1px --acc`. Delivery state bottom right: `SENT` → `ACK` (check, `--ok`) → `FAILED` (octagon, `--crit`, with retry).
-- Composer: 48 px input on `--s2` with a byte counter (`0/200 B`, mono), 48 px amber send button. Block sending past the payload limit and say why.
-- Date dividers: label centered between 1 px lines (`TODAY · 14:00Z`).
-
 ### Map
 
 - Map background `--map`; contour lines `--line2` (index contours 1.75 px); grid `--line`; water `--info`; roads `--fg3`.
 - Own position: amber heading arrow + accuracy circle (`--acc-soft` fill, `--acc` stroke). Only the user's position and active route are amber.
 - Waypoints: diamond (route target, amber stroke) or square (saved place, info stroke) with mono uppercase label and a halo (`paint-order: stroke`, stroke `--map`).
-- Alerts (SOS nodes): crit octagon with dashed ring.
-- Controls: right column of 44 px icon buttons (panel, zoom group, compass, layer switches such as mesh nodes), a 52 px amber locate button above the bottom sheet, scale bar bottom left.
+- Alerts (SOS): crit octagon with dashed ring.
+- Controls: right column of 44 px icon buttons (panel, zoom group, compass), a 52 px amber locate button above the bottom sheet, scale bar bottom left.
 - Show a cache badge (`TILES CACHED · <REGION>`) so users know what works offline.
 - Night map style must be dark; never show a bright map in `.t-dark`.
 
@@ -398,7 +391,7 @@ Row min 60 px (72 px with avatar/monogram), 1 px bottom line, structure: LED or 
 
 - Semantic HTML: real `<button>`, `<a href>`, `<input>` + `<label>`, `<nav>`, `<main>`, `<header>`. Never click handlers on `<div>`.
 - Visible focus everywhere: `outline: 2px solid var(--acc); outline-offset: 2px` on `:focus-visible`.
-- Live regions for incoming messages and alerts (`aria-live="polite"`; critical SOS uses `role="alert"`).
+- Live regions for incoming updates and alerts (`aria-live="polite"`; critical SOS uses `role="alert"`).
 - Support 200% text zoom without horizontal scrolling on phones.
 - Usable with gloves: no gestures without a button alternative, no tiny close icons.
 - Test both themes for contrast after any token change.
@@ -442,7 +435,7 @@ Row min 60 px (72 px with avatar/monogram), 1 px bottom line, structure: LED or 
 
 ## 12. Reference
 
-The visual reference (foundations, components, Hub, Maps, Library and Mesh screens) lives in the Outpost design canvas. When the canvas and this file disagree, this file wins; update both together.
+The visual reference (foundations, components, Hub, Maps and Library screens) lives in the Outpost design canvas. When the canvas and this file disagree, this file wins; update both together.
 
 ## Changelog
 
@@ -500,3 +493,4 @@ The visual reference (foundations, components, Hub, Maps, Library and Mesh scree
   - **Icons** `folder` (a folder with a tab, Files), `board` (a notice board on legs with text lines and a pin, Board) and `crate` (a box in three-quarter view, Supplies), in the 24 px set's style.
   - No new components: the three screens build on cards, `.list` rows with `.row-actions`, `.kv`, badges, banners, `.dialog` and `.progress`. Board posts and supply items state their kind or warning in words with a badge (NEED, OFFER, EXPIRED, LOW), never by colour alone.
   - **Library**: an "In an emergency" index on the library home, topic rows grouped like the catalog (Act now, Injuries and exposure, Illness, Water, food and hygiene), each naming the article it opens.
+- 1.5 (2026-11): Mesh removed: the Mesh module, its screen and chat component (.chat), the Meshtastic nodes layer of Maps with its node markers (.mk-node) and the icons mesh and nodes and the mesh illustration are gone. **Module numbers**: Maps 01, Library 02, Network 03, Files 04, Board 05, Supplies 06, System 07, Logs 08, Info 09, Settings 10, Diagnostics 11.

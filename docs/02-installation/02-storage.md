@@ -13,7 +13,6 @@ an SSD mounted at `/mnt/ssd`.
 | `MAPS_DATA_DIR` | `./data/maps` | Map regions (`regions/*.pmtiles`, `regions.json`), unfinished downloads (`downloads/`), your points of interest (`offline-maps.db`), the region catalog | many GB possible |
 | `MAPS_ASSETS_DIR` | `./data/maps-assets` | Map fonts and sprites | about 100 MB |
 | `KNOWLEDGE_CONTENT_DIR` | `./data/knowledge` | Library books (ZIM files in `zim/`), partial downloads, your book selection (`selection.txt`) | MB to hundreds of GB |
-| `MESH_DATA_DIR` | `./data/mesh` | Message history and node list (`mesh.db`) | small |
 | `NETWORK_DATA_DIR` | `./data/network` | Hotspot block list and the devices seen | a few KB |
 | `FILES_DATA_DIR` | `./data/files` | The shared files, as plain files and folders | grows with every upload |
 
@@ -25,7 +24,7 @@ large regions or many books, or to share many files.
 
 All data lives in one folder, `OUTPOST_DATA_DIR` (`./data` in the project
 folder by default), with one subfolder per directory above: `core`,
-`files`, `maps`, `maps-assets`, `knowledge`, `mesh`, `network`.
+`files`, `maps`, `maps-assets`, `knowledge`, `network`.
 
 Do not edit the `*_DIR` lines in `.env` by hand. Re-run `./install.sh`
 instead. It asks "Where should outpost keep its data?" with the current

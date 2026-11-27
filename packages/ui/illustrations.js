@@ -67,7 +67,7 @@ const HERO = svg(
   <path class="f" d="M234 192H262"/>
   <circle class="af blink" cx="248" cy="88" r="2.5"/>
   ${arcs(248, 88, [10, 18, 26])}
-  <!-- mesh nodes on the ruins, linked to the mast -->
+  <!-- relay points on the ruins, linked to the mast -->
   <path class="i march" d="M248 88L74 92M248 88L410 92M410 92L560 76"/>
   <rect class="i node" x="70.5" y="88.5" width="7" height="7" transform="rotate(45 74 92)"/>
   <rect class="i node" x="406.5" y="88.5" width="7" height="7" transform="rotate(45 410 92)"/>
@@ -138,24 +138,6 @@ const LIBRARY = svg(
     <path class="i g" d="M166 34L176 22L186 34L176 50Z"/>
     <path class="i flicker" d="M176 22V50M166 34H186"/>
   </g>
-  `,
-);
-
-const MESH = svg(
-  "0 0 200 120",
-  `
-  <path class="l" d="M0 104C40 98 70 108 110 102S170 96 200 100"/>
-  <path class="f g" d="M78 108V44H112V108Z"/>
-  <path class="f" d="M84 50H106V68H84Z"/>
-  <path class="o" d="M88 56H98M88 61H102"/>
-  <path class="f" d="M86 76H104M86 82H104M86 88H104M86 94H104"/>
-  <path class="f" d="M104 44V16"/>
-  <circle class="af blink" cx="104" cy="14" r="2.2"/>
-  ${arcs(104, 14, [9, 16, 23], "o")}
-  <path class="i march" d="M40 60L104 14L168 52"/>
-  <rect class="i" x="36.5" y="56.5" width="7" height="7" transform="rotate(45 40 60)"/>
-  <rect class="i" x="164.5" y="48.5" width="7" height="7" transform="rotate(45 168 52)"/>
-  <path class="l" d="M40 66V100M168 58V98M32 100H48M160 98H176"/>
   `,
 );
 
@@ -242,7 +224,6 @@ const SCENES = {
   maps: MAPS,
   library: LIBRARY,
   knowledge: LIBRARY,
-  mesh: MESH,
   system: SYSTEM,
   logs: LOGS,
   info: INFO,

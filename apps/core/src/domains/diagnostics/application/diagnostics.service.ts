@@ -229,10 +229,7 @@ export class DiagnosticsService {
   private async moduleChecks(): Promise<DiagCheck[]> {
     const list = this.modules.list().filter((m) => m.optional);
     const results = await Promise.all(list.map((m) => this.moduleCheck(m.id)));
-    const out = results.filter((c): c is DiagCheck => c !== null);
-    const radio = await this.meshDevice();
-    if (radio) out.push(radio);
-    return out;
+    return results.filter((c): c is DiagCheck => c !== null);
   }
 
   private async moduleCheck(id: string): Promise<DiagCheck | null> {
@@ -315,46 +312,6 @@ export class DiagnosticsService {
       details: [...details, c?.memoryBytes != null && `Memory ${fmtBytes(c.memoryBytes)}`],
       fix: status === 'fail' ? `See the Logs screen (${m.container}); restart it on the System screen.` : null,
     });
-  }
-
-  /** Mesh's USB radio: it must exist on the Pi (at its stable /dev/serial/by-id/ path). */
-  private async meshDevice(): Promise<DiagCheck | null> {
-    if (!this.modules.isInstalled('mesh')) return null;
-    const conn = process.env.MESH_CONNECTION || 'serial';
-    if (conn !== 'serial') {
-      const host = process.env.MESH_HOST;
-      return check(
-        'modules',
-        'mesh:radio',
-        'Mesh radio',
-        host ? 'ok' : 'fail',
-        host ? `Network node at ${host}` : 'MESH_HOST is empty',
-        {
-          module: 'mesh',
-          fix: host ? null : 'Run ./install.sh to set the node address.',
-        },
-      );
-    }
-    const device = process.env.MESH_DEVICE ?? '';
-    if (!device || device === '/dev/null') {
-      return check('modules', 'mesh:radio', 'Mesh radio', 'fail', 'No radio chosen (MESH_DEVICE is empty)', {
-        module: 'mesh',
-        fix: 'Plug in the radio and run ./install.sh to pick it.',
-      });
-    }
-    const found = await exists(onHost(device));
-    return check(
-      'modules',
-      'mesh:radio',
-      'Mesh radio',
-      found ? 'ok' : 'fail',
-      found ? 'USB radio connected' : 'USB radio not found',
-      {
-        module: 'mesh',
-        details: [device],
-        fix: found ? null : 'Plug the radio in (try another cable or port). A different radio needs ./install.sh.',
-      },
-    );
   }
 
   // -------------------------------------------------------------- storage --

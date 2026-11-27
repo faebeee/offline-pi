@@ -63,18 +63,6 @@ when `CONTROL_PIN` is set (see [Control headers](#control-headers)).
 | `DELETE` | `maps/pois/:id` | Delete a saved place |
 | `GET` | `maps/styles/:name?theme=` | MapLibre style for one region, or `_all` for every region; sources point at `/svc/maps/` |
 
-## mesh
-
-| Method | Path | What it does |
-|---|---|---|
-| `GET` | `mesh/status` | Radio state, own node, channels and the send settings |
-| `GET` | `mesh/conversations` | Conversations with traffic, newest first |
-| `GET` | `mesh/messages?conv=&before=&limit=` | Messages of one conversation, newest last; page back with `before` (a message id) |
-| `GET` | `mesh/nodes` | Every node the radio has heard of |
-| `POST` | `mesh/messages` | Send a text to a channel or a node; `401` wrong PIN, `429` rate limit, `503` radio down |
-
-Sending needs the header `X-Send-PIN` when `MESH_SEND_PIN` is set.
-
 ## library
 
 | Method | Path | What it does |
@@ -164,10 +152,7 @@ same DTOs as in the OpenAPI document.
 |---|---|---|
 | `/system` | `init` on connect (history, the last 15 minutes, the latest snapshot), then `snapshot` per sample | |
 | `/maps` | `job` on every change of a watched job, until it is done, failed or cancelled | `watchJob` / `unwatchJob` with a job id |
-| `/mesh` | `link` (core's connection to the mesh container), `status`, `message` (new or changed), `node`, `nodes` | |
 | `/logs` | `entries` (new lines of a followed source, in batches), `followError` (the stream failed or ended) | `follow` / `unfollow` with a source (`core` or a module id) |
-
-The mesh nodes layer of Maps has no namespace of its own; it uses `/mesh`.
 
 ## Errors
 

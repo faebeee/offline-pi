@@ -9,13 +9,13 @@ modules.
 
 ```text
 browser ──> core :8080
-            ├─ /                 apps/web (SPA; /maps, /mesh, ... are its routes)
+            ├─ /                 apps/web (SPA; /maps, /library, ... are its routes)
             ├─ /api/<domain>/*   core's API, one Nest domain module per feature
             ├─ /api/docs         Swagger UI (/api/openapi.json)
             ├─ /socket.io        live updates, one namespace per domain
             ├─ /ui/              @outpost/ui
             └─ /svc/<module>/*   passthrough to a module's raw files
-core ──HTTP/WS──> maps :8081 · knowledge :8082 · mesh :8084
+core ──HTTP/WS──> maps :8081 · knowledge :8082 · network :8085
 core ──libpod REST──> the user's podman.socket (start/stop)
 ```
 
@@ -35,7 +35,7 @@ Core (`apps/core`, NestJS) has two parts:
 | Part | Folder | What it holds |
 |---|---|---|
 | Platform | `src/platform/` | The shared kernel, no feature logic: module registry, `ModulesService` and `PodmanService` (start/stop), `RuntimeService` (container state), `UpstreamService` (calling a container), passthrough, OpenAPI, Socket.IO options, error filter, logging, serving the web app |
-| Domains | `src/domains/<name>/` | One folder per feature: `modules`, `system`, `logs`, `info`, `maps`, `mesh`, `library`. Each has its routes under `/api/<name>/` |
+| Domains | `src/domains/<name>/` | One folder per feature: `modules`, `system`, `logs`, `info`, `maps`, `library`, `network`, `files`, `board`, `supplies`, `settings`, `diagnostics`. Each has its routes under `/api/<name>/` |
 
 `src/app.module.ts` imports the platform and every domain module. How a
 domain is laid out is in [Core API](03-core-api.md).
@@ -90,7 +90,7 @@ Some things a module serves are not JSON: map tiles, fonts, sprites,
 ## Live updates
 
 One Socket.IO server on core's port, one namespace per domain (`/system`,
-`/maps`, `/mesh`, `/logs`). A domain bridges its container's live feed (SSE
+`/maps`, `/logs`). A domain bridges its container's live feed (SSE
 or WebSocket) onto its namespace, so the browser never connects to a
 container. The events are typed in `packages/api-client/src/events.ts`.
 
@@ -99,7 +99,7 @@ container. The events are typed in `packages/api-client/src/events.ts`.
 The web app (`apps/web`, React with TanStack Router and Query) is built into
 core's image and served at `/` (`src/platform/web/web.ts`). Every page load
 that asks for HTML and is not under `/api`, `/svc`, `/socket.io` or `/ui`
-gets its `index.html`, so client-side routes such as `/mesh/nodes` survive a
+gets its `index.html`, so client-side routes such as `/library/catalog` survive a
 reload. See [Web app](04-web-app.md).
 
 ## Host access

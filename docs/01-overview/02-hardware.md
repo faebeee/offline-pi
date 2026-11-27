@@ -23,7 +23,6 @@ the data goes:
 | Data | Size | Where |
 |---|---|---|
 | Dashboard history, module state | under 1 MB | SD card is fine |
-| Mesh message history | small | SD card is fine |
 | Map fonts and sprites | about 100 MB | SD card is fine |
 | Map regions | from MB to many GB | SSD recommended |
 | Library books | from MB to hundreds of GB | SSD recommended |
@@ -50,8 +49,6 @@ To avoid this:
   to 1.6 A.
 - Or give the SSD its own power: a powered USB hub, or an SSD enclosure
   with its own power supply.
-- The same applies to a Meshtastic node on USB when the supply is already
-  at its limit: plug it into a powered hub.
 
 The **System** screen shows whether power is a problem. Its health banner
 reports under-voltage or throttling, now or since boot. The Power card
@@ -63,26 +60,6 @@ under-voltage or throttling started and ended. See
 If the voltage and throttle readings are missing, your user is probably not
 allowed to open the Pi's firmware device. `install.sh` prints the fix (add
 your user to the device's group, usually `video`).
-
-## Meshtastic node
-
-The Mesh module needs a Meshtastic LoRa node. The usual setup is a node
-plugged into the Pi by USB:
-
-- Any Meshtastic node with USB serial works (for example RAK WisBlock 4631,
-  Heltec V3, LilyGO T-Beam, Seeed XIAO nRF52840). nRF52 boards draw the
-  least power.
-- Use a **data cable**. A charge-only cable powers the node, but the Pi
-  sees no serial device.
-- Use the frequency band and region of your country (in Switzerland and
-  the EU: 868 MHz hardware, region `EU_868`) and always connect the
-  antenna before the node gets power.
-- Flash current Meshtastic firmware before plugging the node into the Pi.
-- The node must be plugged in when `./start.sh` runs: Podman attaches the
-  device when it creates the container.
-
-A node on the network (Wi-Fi or Ethernet, by hostname or IP) works as well.
-`install.sh` asks which one you use.
 
 ## Wi-Fi and hotspot
 
@@ -96,4 +73,3 @@ See [Network and hotspot](../02-installation/03-network-and-hotspot.md).
 
 - [Storage and SSD](../02-installation/02-storage.md)
 - [Troubleshooting](../04-operations/05-troubleshooting.md)
-- [Mesh](../03-modules/04-mesh.md)

@@ -16,7 +16,7 @@ RUN pip install -r requirements.txt
 COPY apps/network/app/ app/
 
 # Runs as the container's root, which under rootless Podman is the host user
-# (unprivileged), so it writes DATA_DIR as that user (same as mesh). It can
+# (unprivileged), so it writes DATA_DIR as that user (same as core). It can
 # read the station list (nl80211 allows that without privileges) but can't
 # change the firewall: blocking is enforced by the host helper
 # (host/network-guard), which watches DATA_DIR/blocked.macs.

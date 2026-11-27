@@ -7,7 +7,7 @@ serves:
 
 - `/`: the **web app** ([`apps/web`](../web/README.md)), every screen of
   every module: home (tiles and on/off switches), `/system` (the System
-  module, below), `/logs` (the Logs module, [`apps/logs`](../logs/README.md)), `/maps`, `/mesh`, ... (client-side routes; page loads get
+  module, below), `/logs` (the Logs module, [`apps/logs`](../logs/README.md)), `/maps`, `/library`, ... (client-side routes; page loads get
   its `index.html`);
 - `/api/<domain>/`: the API (table below), Swagger UI at `/api/docs`, the
   document at `/api/openapi.json`;
@@ -120,7 +120,6 @@ core, or `packages/api-client/openapi.json`). By domain:
 | system | `GET /api/system/status` (healthcheck: 200 while samples are fresh), `snapshot`, `history` | `/system`: `init` on connect, then `snapshot` per sample |
 | logs | `GET /api/logs/sources`, `GET /api/logs/:source?tail=` (`core` or a module id) | `/logs`: send `follow` / `unfollow` with a source, get `entries` (batches), `followError` |
 | maps | `GET /api/maps/status`, `regions`, `places?q=`, `jobs`, `jobs/:id`, `pois`, `styles/:name?theme=`; `POST setup`, `downloads`, `downloads/:id/confirm`, `pois`; `PATCH pois/:id`; `DELETE regions/:name`, `jobs/:id`, `pois/:id` | `/maps`: send `watchJob` / `unwatchJob`, get `job` |
-| mesh | `GET /api/mesh/status`, `conversations`, `messages?conv=`, `nodes`; `POST messages` (`X-Send-PIN`) | `/mesh`: `link`, `status`, `message`, `node`, `nodes` |
 | library | `GET /api/library/books`, `search?q=&lang=|bookId=`, `sync` (background download status, read from `KNOWLEDGE_CONTENT_DIR/.cache/sync.json` through the host mount) | |
 
 A module that is not running answers `503` with `Retry-After`, one that is
@@ -155,8 +154,8 @@ Code layout (domain-driven; how to add a domain: root `AGENTS.md`):
     its container (errors mapped to 404/503/upstream status), SSE reader.
   - `passthrough/passthrough.ts`: `/svc/<module>/`.
   - `openapi/`, `realtime/`, `http/` (error filter), `web/` (serves `apps/web`).
-- `src/domains/<name>/` (`modules`, `system`, `maps`, `mesh`,
-  `library`): `api/` controllers, `application/` use cases,
+- `src/domains/<name>/` (`modules`, `system`, `maps`, `library`,
+  `network`, ...): `api/` controllers, `application/` use cases,
   `infrastructure/` container clients and mappers, `domain/` DTO classes
   (the contract), `<name>.events.ts` Socket.IO namespace.
   - `system/application/`: `collector.service.ts` reads `/proc`, `/sys` and

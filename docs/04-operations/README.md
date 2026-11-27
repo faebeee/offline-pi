@@ -3,8 +3,7 @@
 Once outpost is installed, most of the day-to-day work happens in the web
 app: switching modules on and off, downloading maps and books, reading the
 logs. A few things need a terminal on the Pi: restarting after a change,
-updating to a new version, configuring the Meshtastic node, backing up and
-uninstalling.
+updating to a new version, backing up and uninstalling.
 
 All commands on these pages run in the project folder (the Git clone), as
 your normal user.
