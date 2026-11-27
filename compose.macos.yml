@@ -4,6 +4,13 @@
 # through the remote API, which rejects `--group-add keep-groups`. The groups
 # are only needed for Raspberry Pi devices (the firmware mailbox),
 # which don't exist on a Mac anyway.
+#
+# The Mac reaches core through gvproxy's port forward (macos_expose_port in
+# lib/platform.sh), which connects to the VM's own address, not its loopback.
+# So core listens on every interface inside the VM; BIND_ADDRESS decides on
+# the Mac side whether the forward is for this Mac only (127.0.0.1) or the LAN.
 services:
   core:
     group_add: !reset []
+    environment:
+      HOST: 0.0.0.0
