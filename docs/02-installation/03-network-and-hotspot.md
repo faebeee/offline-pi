@@ -135,6 +135,47 @@ sudo ./uninstall-hotspot-fallback.sh --purge   # also deletes it (it holds your 
 It stops and disables the service, removes the script and the unit file,
 and deletes the two connection profiles.
 
+## A name for the hotspot
+
+Instead of typing `http://10.42.0.1:8080`, devices on the hotspot can open
+outpost at:
+
+```
+http://basecamp.local:8080
+```
+
+`./install.sh` offers this with the Network module (it asks for your sudo
+password); `./start.sh` then also prints a `Hotspot:` line with the
+address. To set it up yourself, or to pick another name:
+
+```sh
+sudo host/hotspot-name/install-hotspot-name.sh                 # basecamp.local
+sudo host/hotspot-name/install-hotspot-name.sh --name camp-2   # camp-2.local
+./manage.sh network hotspot-name camp-2                        # the same
+```
+
+While the hotspot runs, the Pi announces the name in the two ways devices
+look up `.local` names: over mDNS (Avahi; iPhone, iPad, Mac, Windows 10
+and newer, Android 12 and newer, Linux) and through the hotspot's own DNS
+server (for devices that ask their DNS server instead). It follows the
+hotspot: switched on at boot, by `./manage.sh network hotspot on`, or by
+hand. Keep the port (`:8080`, or your `PORT`) in the address.
+
+Good to know:
+
+- Set up while the hotspot runs, the name works over mDNS at once and
+  through DNS from the hotspot's next start.
+- If the Pi's host name already is `basecamp`, nothing has to be announced
+  over mDNS; only the DNS entry is added.
+- If a device can't find the name, the address still works:
+  `http://10.42.0.1:8080`.
+- While the hotspot runs and the Pi is also on a LAN (Ethernet), devices on
+  the LAN should keep using the `LAN:` address.
+
+Remove it with `sudo host/hotspot-name/uninstall-hotspot-name.sh`
+(`./uninstall.sh` reminds you). Details: `host/hotspot-name/README.md` in
+the repository.
+
 ## Who is on the hotspot
 
 The [Network](../03-modules/10-network.md) module lists the devices on the

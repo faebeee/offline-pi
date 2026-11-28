@@ -1,0 +1,6 @@
+#!/bin/sh
+# NetworkManager dispatcher hook (installed by install-hotspot-name.sh):
+# announces the hotspot name when the hotspot comes up, stops when it goes
+# down. The work is done by /usr/local/bin/outpost-hotspot-name.sh.
+[ -x /usr/local/bin/outpost-hotspot-name.sh ] || exit 0
+exec /usr/local/bin/outpost-hotspot-name.sh "$@"

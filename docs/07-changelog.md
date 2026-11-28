@@ -13,6 +13,14 @@ under **Unreleased**.
 
 ### Added
 
+- Devices on the Pi's Wi-Fi hotspot open outpost at
+  `http://basecamp.local:8080` instead of the IP address. `./install.sh`
+  offers it with the Network module (sudo); set it up or change the name
+  with `./manage.sh network hotspot-name [NAME]` or
+  `sudo host/hotspot-name/install-hotspot-name.sh --name NAME`, remove it
+  with `sudo host/hotspot-name/uninstall-hotspot-name.sh`. `./start.sh`
+  prints the address as `Hotspot:`.
+
 - Accounts and login: outpost is only open to logged-in accounts. On the
   first visit after installing (or after this update) the web app asks you
   to create the admin account, with a setup code that `./install.sh` and

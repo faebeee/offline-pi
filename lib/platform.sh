@@ -52,6 +52,13 @@ free_space() {
   df -Ph "$1" 2>/dev/null | awk 'NR == 2 { print $4 }'
 }
 
+# hotspot_name - the name devices on the hotspot open outpost by
+# (host/hotspot-name: <name>.local), empty when it is not set up.
+hotspot_name() {
+  [[ -r /etc/outpost-hotspot-name.env ]] || return 0
+  sed -n 's/^NAME=//p' /etc/outpost-hotspot-name.env | head -n 1
+}
+
 # lan_ip - this host's address on the local network (empty if none).
 lan_ip() {
   local ip=""

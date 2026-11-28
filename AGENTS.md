@@ -58,6 +58,7 @@ packages/api-client/     # @outpost/api-client: generated from core's OpenAPI
 packages/maps-shared/    # @outpost/maps-shared: maps container contract
 host/hotspot-pi/         # host-level utility, no container (see below)
 host/network-guard/      # host-level: enforces the network module's block list (root)
+host/hotspot-name/       # host-level: <name>.local on the hotspot (avahi + dnsmasq, root)
 host/usb-storage/        # host-level: automount a USB drive (fstab + udev)
 docs/                    # the documentation (Markdown chapters), shown by Info
 data/                    # gitignored default home of every *_DIR

@@ -160,6 +160,9 @@ echo "  Local:   http://localhost:${PORT}"
 if [[ -n "$LAN_IP" && "${BIND_ADDRESS:-0.0.0.0}" != "127.0.0.1" ]]; then
   echo "  LAN:     http://${LAN_IP}:${PORT}"
 fi
+if [[ "${BIND_ADDRESS:-0.0.0.0}" != "127.0.0.1" ]] && name="$(hotspot_name)" && [[ -n "$name" ]]; then
+  echo "  Hotspot: http://${name}.local:${PORT}"
+fi
 echo "  Modules: ${MODS[*]:-none} (start and stop them on the dashboard)"
 # first run: the admin account needs the one-time setup code
 if code="$(setup_code)" && [[ -n "$code" ]]; then

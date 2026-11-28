@@ -28,6 +28,7 @@ network_configure() {
   fi
 
   network_ensure_guard "$new"
+  network_ensure_hotspot_name
   network_ask_hotspot "$new"
 }
 
@@ -63,6 +64,50 @@ network_ensure_guard() {
     log_warn "Network: the helper was not installed; blocking stays without effect."
   fi
   log_warn "Install it later: sudo $ROOT_DIR/host/network-guard/install-network-guard.sh"
+}
+
+# The hotspot name (host/hotspot-name, root): devices on the hotspot open
+# outpost at http://<name>.local:<PORT>. Offered like the guard: install,
+# or update it to this version; the name is asked only with --advanced.
+# The installed name: hotspot_name (lib/platform.sh).
+valid_hotspot_name() {
+  if [[ ! "$1" =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$ ]]; then
+    echo "Use letters a-z, digits and '-' (no '.local'), at most 63 characters."
+    return 1
+  fi
+}
+
+network_ensure_hotspot_name() {
+  local name port current=false
+  has_cmd nmcli || return 0
+  port="$(get_env PORT)"; port="${port:-8080}"
+  name="$(hotspot_name)"
+  if [[ -n "$name" ]]; then
+    cmp -s "$ROOT_DIR/host/hotspot-name/outpost-hotspot-name.sh" /usr/local/bin/outpost-hotspot-name.sh && current=true
+    [[ "$current" == true && "${INSTALL_ADVANCED:-}" != true ]] && return 0
+    [[ "$current" == true ]] || ui_note "Network: the hotspot name ($name.local) on the host is from an older version of outpost."
+  else
+    ui_note "Network: devices on the hotspot can open outpost by name (http://basecamp.local:$port) with a small helper on the host (root, avahi)."
+  fi
+  # unattended (--yes, e.g. update.sh): no sudo password prompt
+  if [[ "${UI_ASSUME_YES:-}" == true ]]; then
+    log_warn "Install it later: sudo $ROOT_DIR/host/hotspot-name/install-hotspot-name.sh"
+    return 0
+  fi
+  name="${name:-basecamp}"
+  if [[ "${INSTALL_ADVANCED:-}" == true ]]; then
+    ui_input "Network: the hotspot name (opened as <name>.local)" "$name" valid_hotspot_name
+    name="$UI_REPLY"
+    # nothing changed and up to date: no sudo
+    [[ "$current" == true && "$name" == "$(hotspot_name)" ]] && return 0
+  fi
+  if ui_confirm "Network: set up $name.local now (asks for your sudo password)?" y; then
+    if sudo "$ROOT_DIR/host/hotspot-name/install-hotspot-name.sh" --name "$name"; then
+      return 0
+    fi
+    log_warn "Network: the hotspot name was not set up."
+  fi
+  log_warn "Set it up later: sudo $ROOT_DIR/host/hotspot-name/install-hotspot-name.sh"
 }
 
 # The hotspot is switched here and with ./manage.sh network hotspot on|off,
@@ -202,6 +247,7 @@ network_usage() {
   network unblock MAC         let it back in
   network hotspot on|off      switch the Wi-Fi hotspot (through the helper; not in the web app)
   network install-guard       (re)install the blocking helper (sudo)
+  network hotspot-name [NAME] open outpost at http://NAME.local on the hotspot (sudo; default basecamp)
 USAGE
 }
 
@@ -219,6 +265,12 @@ network_manage() {
     install-guard)
       load_env
       sudo "$ROOT_DIR/host/network-guard/install-network-guard.sh" --data-dir "${NETWORK_DATA_DIR:-./data/network}"
+      ;;
+    hotspot-name)
+      if [[ -n "${2:-}" ]] && ! valid_hotspot_name "$2" >&2; then
+        exit 1
+      fi
+      sudo "$ROOT_DIR/host/hotspot-name/install-hotspot-name.sh" ${2:+--name "$2"}
       ;;
     *) return 2 ;;
   esac

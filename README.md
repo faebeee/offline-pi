@@ -41,6 +41,8 @@ files (`/svc/<module>/`: map tiles, kiwix articles).
 
 [`host/hotspot-pi`](host/hotspot-pi) is a host-level extra (no container):
 join a known Wi-Fi at boot or open a hotspot so phones can reach the Pi.
+[`host/hotspot-name`](host/hotspot-name/README.md) lets devices on that
+hotspot open outpost at `http://basecamp.local:8080`.
 [`host/usb-storage`](host/usb-storage) mounts a USB stick or SSD at every
 boot and whenever it is plugged in, for the maps and library data.
 

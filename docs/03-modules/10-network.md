@@ -131,6 +131,10 @@ the Pi. Without `host/hotspot-pi` there is no hotspot to switch on.
 ./manage.sh network block aa:bb:cc:dd:ee:ff "unknown laptop"
 ./manage.sh network unblock aa:bb:cc:dd:ee:ff
 ./manage.sh network hotspot off
+./manage.sh network hotspot-name          # open outpost at basecamp.local on the hotspot (sudo)
 ```
+
+`hotspot-name` sets up the name devices on the hotspot open outpost by;
+see [A name for the hotspot](../02-installation/03-network-and-hotspot.md#a-name-for-the-hotspot).
 
 The settings are listed in [Settings](../05-reference/01-settings.md).

@@ -1,0 +1,16 @@
+[Unit]
+Description=outpost: announce the hotspot name over mDNS
+Documentation=file:///usr/local/bin/outpost-hotspot-name.sh
+Requires=avahi-daemon.service
+After=avahi-daemon.service
+
+# Not enabled: the NetworkManager dispatcher hook (90-outpost-hotspot-name)
+# starts it when the hotspot comes up and stops it when it goes down, and
+# writes the name and address to /run/outpost-hotspot-name.env.
+[Service]
+Type=simple
+EnvironmentFile=/run/outpost-hotspot-name.env
+# -R: no reverse (PTR) record, which would collide with the host's own
+ExecStart=/usr/bin/avahi-publish -a -R ${HOTSPOT_FQDN} ${HOTSPOT_IP}
+Restart=on-failure
+RestartSec=5

@@ -101,6 +101,7 @@ helper (sudo). Moving the data folder re-points it.
 ./manage.sh network unblock MAC
 ./manage.sh network hotspot on|off    # switch the hotspot (through the helper)
 ./manage.sh network install-guard     # (re)install the host helper (sudo)
+./manage.sh network hotspot-name [N]  # http://N.local on the hotspot (host/hotspot-name, sudo)
 ```
 
 Host helper by hand:

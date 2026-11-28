@@ -47,6 +47,9 @@ app_uninstall_hook() {
 if [[ -f /etc/systemd/system/outpost-network-guard.path ]]; then
   EXTRA_STEPS+=("leaves the Network guard installed (remove it with: sudo host/network-guard/uninstall-network-guard.sh)")
 fi
+if [[ -f /etc/outpost-hotspot-name.env ]]; then
+  EXTRA_STEPS+=("leaves the hotspot name installed (remove it with: sudo host/hotspot-name/uninstall-hotspot-name.sh)")
+fi
 
 # ------------------------------------------------------------------------
 # Everything below is generic; only the config block above is specific.
