@@ -164,6 +164,9 @@ if [[ "${BIND_ADDRESS:-0.0.0.0}" != "127.0.0.1" ]] && name="$(hotspot_name)" && 
   echo "  Hotspot: http://${name}.local:${PORT}"
 fi
 echo "  Modules: ${MODS[*]:-none} (start and stop them on the dashboard)"
+if latest="$(update_available)" && [[ -n "$latest" ]]; then
+  log_info "Update available: outpost $latest (install it with ./update.sh)"
+fi
 # first run: the admin account needs the one-time setup code
 if code="$(setup_code)" && [[ -n "$code" ]]; then
   echo

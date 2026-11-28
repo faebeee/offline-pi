@@ -5,7 +5,8 @@
 #   :sha-<7 chars>   every commit; install/start/update pull the one that
 #                    matches the checkout (lib/images.sh)
 #   :main            the newest commit on main
-#   :<version>, :latest   release tags v<version>
+#   :<version>, :latest   release tags v<version>, then the GitHub Release
+#                    (job "release", text from docs/07-changelog.md)
 #
 # Built with Podman/Buildah (AGENTS.md: no Docker), each architecture on a
 # native runner (no emulation), then joined into one multi-arch manifest.
@@ -84,3 +85,39 @@ jobs:
           for tag in "${tags[@]}"; do
             podman manifest push --all "$image:$sha" "docker://$image:$tag"
           done
+
+  # A release tag v<version>: once its images are published (above), the
+  # GitHub Release, whose text is the version's changelog section. Pis find
+  # it through core's update check (/releases/latest) and ./update.sh
+  # installs the tag.
+  release:
+    needs: manifest
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tag matches package.json
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          version="$(node -p "require('./package.json').version")"
+          if [[ "$tag" != "$version" ]]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match version $version in package.json."
+            exit 1
+          fi
+      - name: Release notes
+        run: scripts/release-notes.sh "$GITHUB_REF_NAME" > "$RUNNER_TEMP/notes.md"
+      - name: Create or update the GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          flags=()
+          # 0.3.0-rc.1: a pre-release, skipped by /releases/latest
+          if [[ "$version" == *-* ]]; then flags+=(--prerelease); fi
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release edit "$GITHUB_REF_NAME" --title "outpost $version" --notes-file "$RUNNER_TEMP/notes.md" "${flags[@]}"
+          else
+            gh release create "$GITHUB_REF_NAME" --verify-tag --title "outpost $version" --notes-file "$RUNNER_TEMP/notes.md" "${flags[@]}"
+          fi

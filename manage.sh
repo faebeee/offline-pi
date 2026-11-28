@@ -122,6 +122,12 @@ cmd_status() {
       printf '%-12s %-10s %s\n' "$m" no -
     fi
   done
+  local latest
+  latest="$(update_available)"
+  if [[ -n "$latest" ]]; then
+    echo
+    log_info "Update available: outpost $latest (install it with ./update.sh)"
+  fi
 }
 
 case "${1:-}" in

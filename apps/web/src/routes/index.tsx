@@ -4,6 +4,7 @@ import { useMe } from "../app/auth";
 import { describe } from "../features/modules/describe";
 import { ModuleSwitches } from "../features/modules/ModuleSwitches";
 import { useModules } from "../features/modules/useModules";
+import { UpdateBanner } from "../features/system/update";
 import { Badge, Icon, Illustration } from "../ui/outpost";
 
 export const Route = createFileRoute("/")({ component: Home });
@@ -18,6 +19,7 @@ function Home() {
   const running = optional.filter((m) => m.state === "running").length;
   return (
     <Screen module="home" title="outpost">
+      {isAdmin && <UpdateBanner />}
       <section className="hero" aria-labelledby="hero-title">
         <Illustration name="hero" />
         <div className="hero-text">

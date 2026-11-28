@@ -21,7 +21,7 @@ get.sh                   # one-line install: installs git, clones, runs install.
 install.sh               # choose modules + data folder, get images, autostart, start.sh
 start.sh                 # get images, (re)create containers; core starts modules
 stop.sh                  # stop core, then every module (nothing removed)
-update.sh                # git pull a new version, then its install.sh --yes
+update.sh                # move to the newest release tag, then its install.sh --yes
 manage.sh                # status, start/stop, logs, users, module commands
 uninstall.sh             # remove containers/images; data only on confirmation
 lib/common.sh            # log helpers, compose wrapper, .env helpers
@@ -369,7 +369,8 @@ then sources `lib/common.sh` (and what else it needs).
 
 - **`get.sh`**: `curl -fsSL .../get.sh | bash` (arguments go to
   install.sh). Refuses root, installs git (apt/dnf/brew), clones to
-  `~/outpost` (`OUTPOST_HOME`) or reuses that clone, `exec`s `install.sh`
+  `~/outpost` (`OUTPOST_HOME`) or reuses that clone (a new clone is reset
+  to the newest release tag, releases only), `exec`s `install.sh`
   with `/dev/tty` as stdin. All in `main()`, so a cut-off download runs
   nothing.
 - **`install.sh`** `[--advanced] [--yes] [--build] [--no-cache] [--plain]
@@ -417,10 +418,14 @@ then sources `lib/common.sh` (and what else it needs).
   it can't start a module meanwhile), with plain `podman stop`: nothing is
   removed and `modules.json` is untouched, so `./start.sh` restores the
   same state. Needs no `.env`; on macOS a stopped machine means stopped.
-- **`update.sh`** `[--check] [--yes] [--clean] [--rebuild]`: installs a new
-  version. Requires `.env` and a git clone on a branch with an upstream and
-  no local changes to tracked files; fetches, shows the incoming commits and
-  touched modules, asks (default yes), `git merge --ff-only`, then re-runs
+- **`update.sh`** `[--check] [--yes] [--clean] [--rebuild]`: installs the
+  newest **release**, never the head of `main`. Requires `.env` and a git
+  clone on a branch with an upstream and no local changes to tracked files;
+  fetches with tags, takes the highest `v<version>` tag without a
+  pre-release suffix (`latest_release` in `lib/update.sh`), shows the
+  incoming commits and touched modules, asks (default yes),
+  `git merge --ff-only <tag commit>` (a checkout already past the newest
+  release is left alone), then re-runs
   the **new** `update.sh` (`--apply <old commit>`) so a changed update
   procedure applies to the same run. That half lists settings new in
   `.env.example` and `exec`s the new `install.sh --yes` (`--no-cache` with
@@ -446,7 +451,7 @@ then sources `lib/common.sh` (and what else it needs).
 - Only `install.sh` writes `.env` (`set_env`); `start.sh`/`manage.sh` read
   it. Core writes to `CORE_DATA_DIR` (`modules.json`, `history.json`,
   `board.json`, `supplies.json`, `users.json`, `sessions.json`,
-  `cli.token`) and the Files folder (`FILES_DATA_DIR`).
+  `cli.token`, `update.json`) and the Files folder (`FILES_DATA_DIR`).
 - Every compose call goes through `compose` in `lib/common.sh`, which adds
   `-p outpost -f compose.yml --env-file .env` and prefers `podman compose`
   over `podman-compose`. On macOS it always uses `podman-compose` (`podman
@@ -617,6 +622,13 @@ from the root README). Details: `docs/06-development/10-releases.md`.
   `### Fixed` / `### Removed`, in the same change as the code. Write for
   the person running outpost (what changed, what they must do); no commit
   hashes. Pure refactorings and docs-only edits need no line.
+- **A tag push makes the release:** `.github/workflows/images.yml`
+  publishes the tag's images, then (job `release`) the GitHub Release with
+  the version's changelog section (`scripts/release-notes.sh`). Core's
+  update check (`UpdateService`, system domain, `/releases/latest` once a
+  day while online, `CORE_UPDATE_CHECK`) shows admins a banner, and
+  `update.sh` installs only release tags. A changelog line starting with
+  `Action needed:` turns the banner into a caution.
 - **Never make a release on your own.** No version bump, no dated
   changelog section, no tag, unless the maintainer explicitly asks for a
   new version. Collecting lines under `## Unreleased` is not a release.

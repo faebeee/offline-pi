@@ -1,8 +1,13 @@
-import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
+import { Controller, Get, Headers, HttpCode, Post, ServiceUnavailableException } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { CollectorService } from '../application/collector.service';
 import { HistoryService } from '../application/history.service';
+import { UpdateService } from '../application/update.service';
 import { History, Liveness, Snapshot, Vitals } from '../domain/snapshot.dto';
+import { UpdateStatus } from '../domain/update.dto';
+import { CurrentUser } from '../../../platform/auth/current-user.decorator';
+import type { SessionUser } from '../../../platform/auth/auth.service';
+import { assertControl } from '../../../platform/http/control-guard';
 
 /**
  * The Pi itself: health, power, storage, network, containers. Live updates:
@@ -15,6 +20,7 @@ export class SystemController {
   constructor(
     private readonly collector: CollectorService,
     private readonly historyService: HistoryService,
+    private readonly updates: UpdateService,
   ) {}
 
   /** Cheap liveness check (container healthcheck): 503 when sampling stalled. */
@@ -58,5 +64,22 @@ export class SystemController {
   @Get('history')
   history(): History {
     return { minutes: this.historyService.minutes, events: this.historyService.events };
+  }
+
+  /** Whether a newer release of outpost exists (the last check's answer; live: socket event "update"). */
+  @Get('update')
+  update(): UpdateStatus {
+    return this.updates.status();
+  }
+
+  /** Ask GitHub now instead of waiting for the daily check (admins, at most once a minute). */
+  @Post('update/check')
+  @HttpCode(200)
+  async checkUpdate(
+    @Headers('x-pi-monitor') piMonitor: string | undefined,
+    @CurrentUser() user: SessionUser | undefined,
+  ): Promise<UpdateStatus> {
+    assertControl(piMonitor, user);
+    return this.updates.checkNow();
   }
 }

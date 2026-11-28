@@ -56,6 +56,9 @@ Without `--advanced`, `PORT` and `BIND_ADDRESS` keep their current values
 | `CORE_LOG_LEVEL` | `log` | Least severe level core logs: `verbose`, `debug`, `log`, `warn`, `error`, `fatal`. The Logs screen shows core's lines from this level up. |
 | `CORE_INTERNET_CHECK_URLS` | `https://build.protomaps.com/,https://download.kiwix.org/` | Servers asked whether the Pi gets out to the internet, for `NET` in the status strip: a HEAD request to the first that answers. These are servers outpost downloads from anyway. Empty: no check, no `NET` item. |
 | `CORE_INTERNET_CHECK_INTERVAL_MS` | `60000` | How often that check runs, in milliseconds (minimum 10000). |
+| `CORE_UPDATE_CHECK` | `true` | Ask GitHub whether a newer release of outpost exists and show admins a banner. Only while the internet check says online; the request says nothing about this Pi. `false`: no request at all. |
+| `CORE_UPDATE_CHECK_HOURS` | `24` | How often the update check runs, in hours (minimum 1). |
+| `CORE_UPDATE_CHECK_URL` | empty | Another GitHub `/releases/latest` URL, for a fork or a mirror. Empty: the outpost repository. |
 | `PODMAN_GRAPH_ROOT` | empty | Podman's storage root on the host; its `db.sql` lists the containers. Empty: core searches the default locations. Detected. |
 | `PODMAN_SOCKET` | empty | Host path of the Podman API socket, used to start and stop modules. Detected. |
 | `VCIO_DEVICE` | `/dev/null` | Firmware mailbox for `vcgencmd` (voltages, throttling). `/dev/null` when the host is not a Raspberry Pi. Detected. |

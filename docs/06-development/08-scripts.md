@@ -13,7 +13,7 @@ for the user is in [Everyday commands](../04-operations/01-everyday-commands.md)
 | `install.sh` | Choose modules and the data folder, write `.env`, get images, autostart, then `exec start.sh` |
 | `start.sh` | Get the images, recreate the containers; core starts the modules (`--boot`: only start core) |
 | `stop.sh` | Stop core, then every module (nothing removed, switches kept) |
-| `update.sh` | Pull a new version, then its `install.sh --yes` |
+| `update.sh` | Move to the newest release tag, then its `install.sh --yes` |
 | `manage.sh` | Status, start/stop, logs, module commands |
 | `uninstall.sh` | Remove containers and images; data only after confirmation |
 | `lib/common.sh` | Log helpers, the `compose` wrapper, `.env` helpers, Podman checks |

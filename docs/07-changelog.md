@@ -13,6 +13,13 @@ under **Unreleased**.
 
 ### Added
 
+- Update banner: once a day, while the Pi is online, outpost asks GitHub
+  whether a newer release exists and shows admins a banner on Home with
+  what's new and the command to run (`./update.sh`). The System screen
+  has a Version card with **Check now**, and `./start.sh` and
+  `./manage.sh status` mention a new release too. Turn the check off with
+  `CORE_UPDATE_CHECK=false` in `.env`.
+
 - Devices on the Pi's Wi-Fi hotspot open outpost at
   `http://basecamp.local:8080` instead of the IP address. `./install.sh`
   offers it with the Network module (sudo); set it up or change the name
@@ -130,6 +137,11 @@ under **Unreleased**.
 
 ### Changed
 
+- `./update.sh` installs releases only: the newest version tag (for
+  example `v0.2.0`), no longer the newest commit on `main`. If your
+  checkout is already newer than the newest release, it stays as it is
+  until a newer release comes out. New installs with `get.sh` start on the
+  newest release too.
 - The passthrough to the modules (`/svc/...`: map tiles, Library pages) is
   read only: changes go through the API, where your login and role are
   checked.

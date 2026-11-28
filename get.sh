@@ -3,8 +3,9 @@
 #
 #   curl -fsSL https://raw.githubusercontent.com/faebeee/offline-pi/main/get.sh | bash
 #
-# Installs git if it is missing, clones outpost to ~/outpost (OUTPOST_HOME)
-# and runs ./install.sh there; arguments are passed on, e.g.
+# Installs git if it is missing, clones outpost to ~/outpost (OUTPOST_HOME),
+# moves the clone to the newest release (tag v<version>; main while there is
+# none) and runs ./install.sh there; arguments are passed on, e.g.
 #   curl -fsSL .../get.sh | bash -s -- --advanced
 # Run again to re-run the installer of an existing clone.
 set -euo pipefail
@@ -41,6 +42,15 @@ main() {
   else
     echo "Downloading outpost to $home..."
     git clone --quiet "$repo" "$home"
+    # releases only (as ./update.sh): main stays the branch, at the newest
+    # release's commit; the tags come with the clone
+    local tags release
+    tags="$(git -C "$home" tag -l 'v[0-9]*' --sort=-v:refname)"
+    release="$(awk '!/-/ { print; exit }' <<<"$tags")"
+    if [[ -n "$release" ]]; then
+      echo "Using the newest release, $release."
+      git -C "$home" reset --quiet --hard "$release^{commit}"
+    fi
   fi
 
   cd "$home"

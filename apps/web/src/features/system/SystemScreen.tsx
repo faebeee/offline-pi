@@ -20,6 +20,7 @@ import {
 } from "./format";
 import { LineChart, type Range, type Series } from "./LineChart";
 import { PowerEventsCard } from "./PowerEvents";
+import { UpdateCard } from "./update";
 import { Bar, Kv, Notice, Readout, SignalBars, SmBadge } from "./parts";
 import { useSystemLive, type LinkState } from "./useSystemLive";
 import "./system.css";
@@ -560,6 +561,7 @@ function Dashboard({
           />
         </article>
 
+        <UpdateCard />
         <PowerEventsCard events={events} />
       </div>
     </>

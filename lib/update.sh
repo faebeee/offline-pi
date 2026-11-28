@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# lib/update.sh - helpers for update.sh: the git checkout's state against its
-# upstream, and settings a new version added to .env.example.
+# lib/update.sh - helpers for update.sh: the git checkout's state against
+# the newest release (tag v<version>; update.sh installs releases only), and
+# settings a new version added to .env.example.
 
 # require_git_checkout - the checkout must be a git clone on a branch with an
 # upstream and without local changes to tracked files (they would block or be
@@ -31,17 +32,28 @@ require_git_checkout() {
   fi
 }
 
-# fetch_upstream - download the new version's commits (not applied yet) and
-# set BEHIND / AHEAD (commits on the upstream we don't have, and ours it
-# doesn't have).
+# latest_release - the newest release tag (v<version>, highest version
+# first, pre-releases such as v0.3.0-rc.1 skipped); empty when none exists.
+latest_release() {
+  local tags
+  tags="$(git -C "$ROOT_DIR" tag -l 'v[0-9]*' --sort=-v:refname)"
+  awk '!/-/ { print; exit }' <<<"$tags"
+}
+
+# fetch_upstream - download the new commits and tags (not applied yet) and
+# set TARGET (the newest release tag, empty without one) and BEHIND / AHEAD
+# (commits of the release we don't have, and ours it doesn't have).
 fetch_upstream() {
-  log_info "Checking $UPSTREAM for a new version..."
-  if ! git -C "$ROOT_DIR" fetch --quiet; then
+  log_info "Checking for a new release..."
+  if ! git -C "$ROOT_DIR" fetch --quiet --tags; then
     log_error "Could not reach the git remote (no internet?)."
     return 1
   fi
-  BEHIND="$(git -C "$ROOT_DIR" rev-list --count "HEAD..$UPSTREAM")"
-  AHEAD="$(git -C "$ROOT_DIR" rev-list --count "$UPSTREAM..HEAD")"
+  TARGET="$(latest_release)"
+  BEHIND=0 AHEAD=0
+  [[ -n "$TARGET" ]] || return 0
+  BEHIND="$(git -C "$ROOT_DIR" rev-list --count "HEAD..$TARGET")"
+  AHEAD="$(git -C "$ROOT_DIR" rev-list --count "$TARGET..HEAD")"
 }
 
 # app_version [REF] - the app's version at a commit (root package.json),
@@ -63,15 +75,18 @@ version() {
   fi
 }
 
-# show_incoming - the commits the update brings, and the modules it touches.
+# show_incoming - the commits the update to TARGET brings, and the modules it
+# touches.
 show_incoming() {
+  local log
   echo
   echo "  Installed: $(version HEAD)"
-  echo "  Available: $(version "$UPSTREAM"), $BEHIND new commit(s):"
-  git -C "$ROOT_DIR" log --format='    %h %s' "HEAD..$UPSTREAM" | head -n 15
+  echo "  Available: $(version "$TARGET"), $BEHIND new commit(s):"
+  log="$(git -C "$ROOT_DIR" log --format='    %h %s' "HEAD..$TARGET")"
+  printf '%s\n' "$log" | sed -n '1,15p'
   (( BEHIND > 15 )) && echo "    ..."
   local touched
-  touched="$(git -C "$ROOT_DIR" diff --name-only "HEAD" "$UPSTREAM" \
+  touched="$(git -C "$ROOT_DIR" diff --name-only "HEAD" "$TARGET" \
     | awk -F/ '$1 == "apps" || $1 == "packages" { print $2; next } { print "scripts/config" }' \
     | sort -u | paste -sd ' ' -)"
   [[ -n "$touched" ]] && echo "  Changes in: $touched"

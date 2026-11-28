@@ -6,16 +6,20 @@
  * OpenAPI spec version: 1
  */
 import {
+  useMutation,
   useQuery
 } from '@tanstack/react-query';
 import type {
   DataTag,
   DefinedInitialDataOptions,
   DefinedUseQueryResult,
+  MutationFunction,
   QueryClient,
   QueryFunction,
   QueryKey,
   UndefinedInitialDataOptions,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
@@ -24,6 +28,7 @@ import type {
   History,
   Liveness,
   Snapshot,
+  UpdateStatus,
   Vitals
 } from '../model';
 
@@ -450,3 +455,174 @@ export function useSystemHistory<TData = Awaited<ReturnType<typeof systemHistory
 
 
 
+export const getSystemUpdateUrl = () => {
+
+
+
+
+  return `/api/system/update`
+}
+
+/**
+ * @summary Whether a newer release of outpost exists (the last check's answer; live: socket event "update").
+ */
+export const systemUpdate = async ( options?: Parameters<typeof apiFetch>[1]): Promise<UpdateStatus> => {
+
+  return apiFetch<UpdateStatus>(getSystemUpdateUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getSystemUpdateQueryKey = () => {
+    return [
+    `/api/system/update`
+    ] as const;
+    }
+
+
+export const getSystemUpdateQueryOptions = <TData = Awaited<ReturnType<typeof systemUpdate>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof systemUpdate>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSystemUpdateQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof systemUpdate>>> = ({ signal }) => systemUpdate({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof systemUpdate>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SystemUpdateQueryResult = NonNullable<Awaited<ReturnType<typeof systemUpdate>>>
+export type SystemUpdateQueryError = ErrorType<unknown>
+
+
+/** @summary Whether a newer release of outpost exists (the last check's answer; live: socket event "update"). */
+export function useSystemUpdate<TData = Awaited<ReturnType<typeof systemUpdate>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof systemUpdate>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof systemUpdate>>,
+          TError,
+          Awaited<ReturnType<typeof systemUpdate>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Whether a newer release of outpost exists (the last check's answer; live: socket event "update"). */
+export function useSystemUpdate<TData = Awaited<ReturnType<typeof systemUpdate>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof systemUpdate>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof systemUpdate>>,
+          TError,
+          Awaited<ReturnType<typeof systemUpdate>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Whether a newer release of outpost exists (the last check's answer; live: socket event "update"). */
+export function useSystemUpdate<TData = Awaited<ReturnType<typeof systemUpdate>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof systemUpdate>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary Whether a newer release of outpost exists (the last check's answer; live: socket event "update"). */
+export function useSystemUpdate<TData = Awaited<ReturnType<typeof systemUpdate>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof systemUpdate>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getSystemUpdateQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getSystemCheckUpdateUrl = () => {
+
+
+
+
+  return `/api/system/update/check`
+}
+
+/**
+ * @summary Ask GitHub now instead of waiting for the daily check (admins, at most once a minute).
+ */
+export const systemCheckUpdate = async ( options?: Parameters<typeof apiFetch>[1]): Promise<UpdateStatus> => {
+
+  return apiFetch<UpdateStatus>(getSystemCheckUpdateUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getSystemCheckUpdateMutationKey = () => ['systemCheckUpdate'] as const;
+
+export const getSystemCheckUpdateMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof systemCheckUpdate>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof systemCheckUpdate>>, TError,void, TContext> => {
+
+const mutationKey = getSystemCheckUpdateMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof systemCheckUpdate>>, void> = () => {
+
+
+          return  systemCheckUpdate(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SystemCheckUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof systemCheckUpdate>>>
+
+    export type SystemCheckUpdateMutationError = ErrorType<unknown>
+
+
+    /** @summary Ask GitHub now instead of waiting for the daily check (admins, at most once a minute). */
+export const useSystemCheckUpdate = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof systemCheckUpdate>>, TError,void, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof systemCheckUpdate>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getSystemCheckUpdateMutationOptions(options), queryClient);
+    }

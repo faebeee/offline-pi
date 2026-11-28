@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-# update.sh - install a new version of outpost: pull it from git, then run
+# update.sh - install the newest release of outpost: move the checkout to
+# its tag (v<version>, releases only, never the head of main), then run
 # the new version's ./install.sh --yes, which keeps every answer, downloads
 # the new images and recreates every container. Data and settings (.env)
 # are kept; settings a new version adds are listed with their defaults.
 #
 #   ./update.sh [--check] [--yes] [--clean] [--rebuild]
-#     --check     only show whether a new version is available
+#     --check     only show whether a new release is available
 #     --yes       don't ask before updating
 #     --clean     build every image here, from scratch (slow on a Pi)
 #     --rebuild   reinstall even when already up to date
@@ -66,14 +67,24 @@ fi
 require_git_checkout
 fetch_upstream
 
+if [[ -z "$TARGET" ]]; then
+  log_ok "No release of outpost is published yet; nothing to update ($(version HEAD))."
+  exit 0
+fi
+
 if (( AHEAD > 0 && BEHIND > 0 )); then
-  log_error "This checkout and $UPSTREAM have both changed ($AHEAD local, $BEHIND new commits)."
-  echo "  Merge or rebase them by hand ('git pull --rebase'), then run ./start.sh." >&2
+  log_error "This checkout and the release $TARGET have both changed ($AHEAD local, $BEHIND new commits)."
+  echo "  Merge or rebase them by hand ('git rebase $TARGET'), then run ./start.sh." >&2
   exit 1
 fi
 
 if (( BEHIND == 0 )); then
-  log_ok "outpost is up to date: $(version HEAD)."
+  if (( AHEAD > 0 )); then
+    # installed from main (or with local commits) after the newest release
+    log_ok "outpost is newer than the newest release $TARGET: $(version HEAD). The next release will update it."
+  else
+    log_ok "outpost is up to date: $(version HEAD)."
+  fi
   [[ "$check" == true ]] && exit 0
   if [[ "$rebuild" != true ]]; then
     if [[ "$yes" == true ]]; then exit 0; fi
@@ -98,8 +109,9 @@ if [[ "$yes" != true ]]; then
 fi
 
 old="$(git rev-parse HEAD)"
-if ! git merge --ff-only --quiet "$UPSTREAM"; then
-  log_error "Could not apply the update (git merge --ff-only $UPSTREAM failed); nothing changed."
+# the tag's commit (merging an annotated tag itself could make a merge commit)
+if ! git merge --ff-only --quiet "$(git rev-parse "$TARGET^{commit}")"; then
+  log_error "Could not apply the update (git merge --ff-only $TARGET failed); nothing changed."
   exit 1
 fi
 

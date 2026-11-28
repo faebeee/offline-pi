@@ -53,8 +53,30 @@ change.
 5. Tag the commit: `git tag -a v<version> -m "outpost <version>"`, then
    push the branch and the tag (`git push --follow-tags`).
 
-Pushing the tag also publishes the images as `<version>` and `latest`
+Pushing the tag publishes the images as `<version>` and `latest`
 (`.github/workflows/images.yml`); every commit on `main` already has its
-`sha-<commit>` images, which is what a Pi downloads. `./update.sh` on a Pi
-then shows the new version number, and the Info module shows the new
-changelog after the update.
+`sha-<commit>` images, which is what a Pi downloads. Once the images are
+published, the same workflow (job `release`) creates the **GitHub
+Release**: it checks that the tag matches `version` in `package.json`
+(otherwise the job fails) and uses the version's changelog section as the
+release text (`scripts/release-notes.sh <version>` prints it; try it
+before tagging). A version with a `-` (`0.3.0-rc.1`) becomes a
+pre-release.
+
+What a release reaches:
+
+- **The update banner.** Core asks GitHub for the newest release once a
+  day and shows admins a banner with its notes. A line in the section
+  that starts with `Action needed:` (for example
+  `- Action needed: move ... before updating`) turns it into a caution
+  banner; use it for releases that need the person running outpost to do
+  something.
+- **`./update.sh`** installs releases only: the newest `v<version>` tag
+  without a pre-release suffix. `get.sh` starts new installs on it too.
+  Commits on `main` after the newest release reach nobody until the next
+  release.
+
+To fix a release's text afterwards, correct the changelog and run
+`gh release edit v<version> --notes-file <(scripts/release-notes.sh <version>)`
+(or re-run the workflow's `release` job, which updates an existing
+release).

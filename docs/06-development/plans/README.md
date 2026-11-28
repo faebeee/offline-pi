@@ -1,4 +1,4 @@
-# Implementation plans: portal, radio, sync
+# Implementation plans: portal, radio, sync, update check
 
 > **Note (2026-11):** these plans predate the single-app layout. outpost
 > is now one app (a Turborepo monorepo): modules live in `apps/<name>/` with
@@ -8,7 +8,8 @@
 > internal loopback port, and "a tile in the portal" as the home page tile
 > core draws from the manifest.
 >
-> The sync plan ([sync.md](sync.md)) is newer and written for the
+> The sync plan ([sync.md](sync.md)) and the update check
+> ([update-check.md](update-check.md)) are newer and written for the
 > single-app layout.
 
 Plans for two new apps, split into sessions that can each be done (and
@@ -20,6 +21,7 @@ these plans only spell out what is specific to each app.
 | [portal.md](portal.md) | `apps/portal` | `8083` (+ port 80 redirect) | none |
 | [radio.md](radio.md) | `apps/radio` | `8085` | RTL-SDR dongle + antenna |
 | [sync.md](sync.md) | core domain `sync` (`apps/sync/module.json`) | none (core, `PORT`) | none |
+| [update-check.md](update-check.md) | core domain `system`, `update.sh`, CI | none (core, `PORT`) | none |
 
 ## Recommended order
 
@@ -30,8 +32,9 @@ these plans only spell out what is specific to each app.
 Only radio's last session (adding a tile to the portal) depends on the
 portal existing.
 
-**Sync** (S0a to S4) is independent of both; its own order is in
-[sync.md](sync.md).
+**Sync** (S0a to S4) and the **update check** (U1 to U5) are independent
+of both and of each other; their own order is in [sync.md](sync.md) and
+[update-check.md](update-check.md).
 
 ## How to use these plans in a session
 

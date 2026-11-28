@@ -71,6 +71,7 @@ into it.
 | Apps and containers | Every container on the Pi: module, state, health, path or ports, uptime, CPU, memory and image |
 | Connections | Open ports and active network connections |
 | System | Hostname, model, OS, kernel, architecture, uptime, processes and the time of the last reading |
+| Version | The installed version, the newest release, when the update check last reached GitHub and its last error. CHECK NOW asks at once; WHAT'S NEW shows the release notes. See [Updating](../04-operations/02-updating.md#the-update-banner) |
 | Power events | When under-voltage, throttling, frequency capping or the soft temperature limit started and ended: the latest 5, newest first. ALL opens a window with every recorded event (up to 200) |
 
 Values the Pi cannot measure show `--` or `n/a`. Voltage and throttle

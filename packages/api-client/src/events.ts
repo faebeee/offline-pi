@@ -7,12 +7,14 @@
  * the payload classes, run `npm run api:gen`, then add them here.
  */
 import { io, type Socket } from "socket.io-client";
-import type { Job, LogBatch, LogFollowError, Snapshot, SystemInit } from "./generated/model";
+import type { Job, LogBatch, LogFollowError, Snapshot, SystemInit, UpdateStatus } from "./generated/model";
 
 export interface ServerEvents {
   "/system": {
     init: (data: SystemInit) => void;
     snapshot: (data: Snapshot) => void;
+    /** the update check has a new result (or started / finished a check) */
+    update: (data: UpdateStatus) => void;
   };
   "/maps": {
     /** a watched job changed (until it is done, failed or cancelled) */

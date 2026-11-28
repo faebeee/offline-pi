@@ -37,5 +37,5 @@ short version for coding agents. When the two disagree, fix one of them.
 - [Releases](10-releases.md): the version number, keeping the changelog
   and making a release.
 - [Plans](plans/README.md): implementation plans. Sync between two
-  instances (planned); portal and radio, written before outpost became one
+  instances and the update check (planned); portal and radio, written before outpost became one
   app, kept for reference.

@@ -116,8 +116,8 @@ The data stays where it was.
 ## Day to day
 
 ```sh
-./update.sh                     # install a new version: git pull, new images, recreate
-./update.sh --check             # only show whether a new version is available
+./update.sh                     # install the newest release: new images, recreate
+./update.sh --check             # only show whether a new release is available
 ./start.sh                      # restart everything (after editing .env)
 ./stop.sh                       # stop everything (./start.sh brings it back)
 ./manage.sh status              # every module: installed, running
@@ -130,8 +130,9 @@ The data stays where it was.
 ./manage.sh knowledge list      # module commands, see ./manage.sh help
 ```
 
-`update.sh` shows the new commits and which modules they touch, asks, then
-fast-forwards the checkout and runs the new `install.sh --yes` (every answer
+`update.sh` installs releases only (the newest `v<version>` tag, never the
+head of `main`). It shows the new commits and which modules they touch,
+asks, then fast-forwards the checkout to the release and runs the new `install.sh --yes` (every answer
 kept, the new images downloaded, every container recreated). Data and
 `.env` are kept; settings a new version adds are listed with the defaults
 they get. It refuses when tracked files have local changes, and prints the
@@ -159,6 +160,7 @@ documents every variable. The main ones:
 | `MODULES` | `maps,knowledge` | Installed modules (set by `install.sh`). |
 | `CORE_LOG_LEVEL` | `log` | Least severe level core logs and the Logs screen shows for core (`debug` for more detail). |
 | `CORE_INTERNET_CHECK_URLS` | Protomaps, Kiwix | Servers asked about once a minute for the `NET` item in the status strip. Empty: no check. |
+| `CORE_UPDATE_CHECK` | `true` | Ask GitHub once a day (while online) whether a newer release exists, and show admins a banner. `false`: no request. |
 | `CORE_DATA_DIR` | `./data/core` | Dashboard history, power events, module on/off state, Board posts, Supplies list, the accounts (`users.json`: back it up) and logins. |
 | `MAPS_DATA_DIR` | `./data/maps` | Map regions (GBs) and POIs. Point at the SSD. |
 | `MAPS_ASSETS_DIR` | `./data/maps-assets` | Map fonts and sprites (~100 MB). |

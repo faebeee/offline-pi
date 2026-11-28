@@ -464,6 +464,50 @@
         ]
       }
     },
+    "/api/system/update": {
+      "get": {
+        "operationId": "systemUpdate",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateStatus"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Whether a newer release of outpost exists (the last check's answer; live: socket event \"update\").",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/system/update/check": {
+      "post": {
+        "operationId": "systemCheckUpdate",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateStatus"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Ask GitHub now instead of waiting for the daily check (admins, at most once a minute).",
+        "tags": [
+          "system"
+        ]
+      }
+    },
     "/api/maps/status": {
       "get": {
         "operationId": "mapsStatus",
@@ -3548,6 +3592,81 @@
         "required": [
           "minutes",
           "events"
+        ]
+      },
+      "UpdateStatus": {
+        "type": "object",
+        "properties": {
+          "installed": {
+            "type": "string",
+            "nullable": true,
+            "description": "the installed version (root package.json), e.g. \"0.1.0\"; null if unknown"
+          },
+          "latest": {
+            "type": "string",
+            "nullable": true,
+            "description": "the newest release, e.g. \"0.2.0\"; null before the first successful check or without releases"
+          },
+          "available": {
+            "type": "boolean",
+            "description": "a release newer than the installed version exists"
+          },
+          "releasedAt": {
+            "type": "number",
+            "nullable": true,
+            "description": "when that release was published (ms since epoch)"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "description": "its notes (Markdown): the version's changelog section"
+          },
+          "url": {
+            "type": "string",
+            "nullable": true,
+            "description": "its page on GitHub"
+          },
+          "actionNeeded": {
+            "type": "boolean",
+            "description": "the notes ask the person running outpost to do something (a line starting with \"Action needed:\")"
+          },
+          "checkedAt": {
+            "type": "number",
+            "nullable": true,
+            "description": "the last check that reached GitHub (ms since epoch)"
+          },
+          "attemptedAt": {
+            "type": "number",
+            "nullable": true,
+            "description": "the last attempt, successful or not (ms since epoch)"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true,
+            "description": "why the last attempt failed; null when it worked"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "false when CORE_UPDATE_CHECK=false"
+          },
+          "checking": {
+            "type": "boolean",
+            "description": "a check is running now"
+          }
+        },
+        "required": [
+          "installed",
+          "latest",
+          "available",
+          "releasedAt",
+          "notes",
+          "url",
+          "actionNeeded",
+          "checkedAt",
+          "attemptedAt",
+          "error",
+          "enabled",
+          "checking"
         ]
       },
       "PmtilesStatus": {

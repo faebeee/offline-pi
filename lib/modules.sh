@@ -190,6 +190,38 @@ setup_code() {
   cat "$dir/setup.code" 2>/dev/null
 }
 
+# version_newer A B - A (x.y.z) is a higher version than B; a pre-release
+# suffix ("-rc.1") is ignored.
+version_newer() {
+  local a="${1%%-*}" b="${2%%-*}" i x y
+  local IFS=.
+  # shellcheck disable=SC2206
+  local -a pa=($a) pb=($b)
+  for i in 0 1 2; do
+    x="${pa[$i]:-0}"; y="${pb[$i]:-0}"
+    [[ "$x" =~ ^[0-9]+$ && "$y" =~ ^[0-9]+$ ]] || return 1
+    (( 10#$x > 10#$y )) && return 0
+    (( 10#$x < 10#$y )) && return 1
+  done
+  return 1
+}
+
+# update_available - the newest release core's update check found
+# (CORE_DATA_DIR/update.json, no network), when it is newer than this
+# checkout's version; empty otherwise.
+update_available() {
+  local dir latest installed
+  dir="$(get_env CORE_DATA_DIR)"; dir="${dir:-./data/core}"
+  [[ "$dir" == /* ]] || dir="$ROOT_DIR/${dir#./}"
+  [[ -r "$dir/update.json" ]] || return 0
+  latest="$(sed -n 's/.*"latest":"\([^"]*\)".*/\1/p' "$dir/update.json" | head -n 1)"
+  installed="$(sed -n 's/^  "version": *"\([^"]*\)".*/\1/p' "$ROOT_DIR/package.json" | head -n 1)"
+  [[ -n "$latest" && -n "$installed" ]] || return 0
+  if version_newer "$latest" "$installed"; then
+    printf '%s\n' "$latest"
+  fi
+}
+
 # module_stop / module_start SERVICE - through core, so the dashboard knows
 # (and doesn't start it again at the next boot); falls back to compose.
 module_stop() {

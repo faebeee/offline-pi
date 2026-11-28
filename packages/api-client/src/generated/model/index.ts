@@ -169,6 +169,7 @@ export * from './updatePoiRequest';
 export * from './updatePostRequest';
 export * from './updatePostRequestKind';
 export * from './updateSettingsRequest';
+export * from './updateStatus';
 export * from './updateUserRequest';
 export * from './updateUserRequestRole';
 export * from './vitals';

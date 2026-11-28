@@ -5,13 +5,16 @@ import { registerEventModels } from '../../platform/openapi/openapi';
 import { socketOptions } from '../../platform/realtime/socket-options';
 import { CollectorService } from './application/collector.service';
 import { HistoryService } from './application/history.service';
+import { UpdateService } from './application/update.service';
 import { Snapshot, SystemInit } from './domain/snapshot.dto';
+import { UpdateStatus } from './domain/update.dto';
 
-registerEventModels(SystemInit, Snapshot);
+registerEventModels(SystemInit, Snapshot, UpdateStatus);
 
 /**
  * Socket.IO namespace /system. New clients get `init` (SystemInit: latest
- * snapshot, history, power events); then every sample is sent as `snapshot`.
+ * snapshot, history, power events); then every sample is sent as `snapshot`,
+ * and every new update check result as `update` (UpdateStatus).
  */
 @WebSocketGateway(socketOptions('/system'))
 export class SystemEvents implements OnGatewayInit, OnGatewayConnection {
@@ -23,11 +26,15 @@ export class SystemEvents implements OnGatewayInit, OnGatewayConnection {
   constructor(
     private readonly collector: CollectorService,
     private readonly history: HistoryService,
+    private readonly updates: UpdateService,
   ) {}
 
   afterInit() {
     this.collector.snapshots$.subscribe((snap) => {
       if (this.nsp.sockets.size > 0) this.nsp.emit('snapshot', snap);
+    });
+    this.updates.updates$.subscribe((status) => {
+      if (this.nsp.sockets.size > 0) this.nsp.emit('update', status);
     });
   }
 
