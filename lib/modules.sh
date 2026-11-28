@@ -10,6 +10,8 @@
 #                       device checks (the data folders are set before it,
 #                       by lib/storage.sh)
 #   <name>_post_build   install.sh, once the images are there: one-off setup
+#   <name>_post_start   install.sh, last, after start.sh: what may cut the
+#                       connection (network: switching the hotspot)
 #   <name>_manage ARGS  ./manage.sh <service> ARGS
 #   <name>_usage        lines for ./manage.sh's help
 #

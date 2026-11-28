@@ -7,8 +7,11 @@ Who is on the Pi's Wi-Fi hotspot. Open `http://<pi>:8080/network` to:
   long it has been connected, traffic and link speed,
 - see devices that were on the hotspot in the last 30 days,
 - block a device (with an optional note) and unblock it again,
-- forget a device that is gone,
-- switch the hotspot on and off.
+- forget a device that is gone.
+
+The hotspot is switched on the Pi only (`./install.sh` asks,
+`./manage.sh network hotspot on|off`), never from the web app: core has no
+endpoint for it, and the passthrough is read only.
 
 The device you are using is marked YOU; blocking it asks first.
 
@@ -49,7 +52,8 @@ host (root):  outpost-network-guard.path ── watches DATA_DIR/blocked.macs
   writes `enforcer.json`. The screen reads that file to show whether a
   block is applied (BLOCKED) or not yet (BLOCK PENDING).
 - A blocked device may rejoin the Wi-Fi by itself, but it gets no traffic.
-- **Hotspot switch**: switching NetworkManager connections needs root too.
+- **Hotspot switch** (not in the web app): switching NetworkManager
+  connections needs root too.
   The container writes `on` or `off` to `hotspot.request`; a second path
   unit runs `outpost-network-hotspot.sh`, which accepts nothing else. On
   starts the hotspot with `hotspot-fallback.sh --hotspot` from
@@ -57,8 +61,15 @@ host (root):  outpost-network-guard.path ── watches DATA_DIR/blocked.macs
   profile from `/etc/hotspot-fallback.env` if needed), or brings up an
   existing profile when that is not installed. Off takes the profile
   down; NetworkManager then joins the preferred Wi-Fi by itself if it is
-  in range. The result goes to `hotspot.json` (the screen shows SWITCHING
-  until it is there). Another profile name: `HOTSPOT_CONNECTION=<name>` in
+  in range. The request may name the interface, `on wlan1` (install.sh
+  asks for it): the helper accepts only a Wi-Fi device NetworkManager
+  knows, starts the hotspot there (`hotspot-fallback.sh --hotspot --iface`,
+  moving it from another interface) and saves it as `WIFI_IFACE` in
+  `/etc/hotspot-fallback.env` for the next boot. The result goes to
+  `hotspot.json`. Only `install.sh` (which
+  writes `hotspot.request` itself, at the very end) and
+  `./manage.sh network hotspot` (the container's `POST /api/hotspot`,
+  through `podman exec`) ask for a switch. Another profile name: `HOTSPOT_CONNECTION=<name>` in
   `/etc/outpost-network-guard.env`. A request is never applied at boot;
   `hotspot-fallback.service` decides there.
 - Without the helper the list still works, but blocks have no effect; the

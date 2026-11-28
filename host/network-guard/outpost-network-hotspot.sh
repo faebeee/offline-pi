@@ -18,8 +18,11 @@
 #
 # and reports back in <NETWORK_DATA_DIR>/hotspot.json.
 #
-# The request file is written by an unprivileged user: only "on" and "off"
-# are accepted. It is not applied at boot (hotspot-fallback.service decides
+# The request file is written by an unprivileged user: only "on", "on IFACE"
+# and "off" are accepted, IFACE being a Wi-Fi device NetworkManager knows
+# (install.sh lets the user pick it). "on IFACE" starts the hotspot on that
+# interface (moving it there if it runs on another one) and makes it the
+# boot default (WIFI_IFACE in /etc/hotspot-fallback.env). It is not applied at boot (hotspot-fallback.service decides
 # there); only a change of the file triggers this script.
 #
 # Config: /etc/outpost-network-guard.env (DATA_DIR=..., optional
@@ -85,10 +88,13 @@ fail() {
     exit 1
 }
 
-REQUEST=""
+REQUEST="" IFACE=""
 if [[ -f "$REQUEST_FILE" && ! -L "$REQUEST_FILE" ]]; then
-    REQUEST="$(head -c 16 "$REQUEST_FILE" | tr -d '[:space:]')"
+    # "on", "off" or "on IFACE"; anything longer is invalid
+    read -r REQUEST IFACE _rest < <(head -c 40 "$REQUEST_FILE" | tr -s '[:space:]' ' '; echo) || true
+    [[ -z "${_rest:-}" ]] || REQUEST="invalid"
 fi
+FALLBACK_ENV="/etc/hotspot-fallback.env"
 
 if $REPORT_ONLY || [[ -z "$REQUEST" ]]; then
     report "" ""
@@ -97,10 +103,18 @@ fi
 
 case "$REQUEST" in
     on | off) ;;
-    *) fail "" "Ignored an invalid request (expected on or off)." ;;
+    *) fail "" "Ignored an invalid request (expected on, on IFACE or off)." ;;
 esac
+[[ "$REQUEST" == off ]] && IFACE=""
 
 command -v nmcli >/dev/null 2>&1 || fail "$REQUEST" "nmcli not found: the hotspot switch needs NetworkManager"
+
+# IFACE comes from an unprivileged file: a plain name of a Wi-Fi device only
+if [[ -n "$IFACE" ]]; then
+    [[ "$IFACE" =~ ^[A-Za-z0-9._-]{1,15}$ ]] || fail on "Ignored an invalid interface name."
+    wifi_devices="$(nmcli -t -f DEVICE,TYPE device status 2>/dev/null | awk -F: '$2=="wifi" {print $1}')"
+    grep -Fxq -- "$IFACE" <<< "$wifi_devices" || fail on "'$IFACE' is not a Wi-Fi interface of this Pi (see: nmcli device status)."
+fi
 
 # captured first: `nmcli | grep -q` fails at random under pipefail
 names="$(nmcli -t -f NAME connection show 2>/dev/null || true)"
@@ -108,17 +122,40 @@ active="$(nmcli -t -f NAME connection show --active 2>/dev/null || true)"
 has_profile=false; grep -Fxq -- "$CON" <<< "$names" && has_profile=true
 is_active=false; grep -Fxq -- "$CON" <<< "$active" && is_active=true
 
+# the device the hotspot runs on now (empty when off)
+active_dev="$(nmcli -t -f NAME,DEVICE connection show --active 2>/dev/null | awk -F: -v c="$CON" '$1==c {print $2; exit}')"
+
+# save_boot_iface IFACE - WIFI_IFACE in hotspot-fallback's config (root only, 600)
+save_boot_iface() {
+    [[ -f "$FALLBACK_ENV" && ! -L "$FALLBACK_ENV" ]] || return 0
+    local tmp
+    tmp="$(mktemp "$FALLBACK_ENV.XXXXXX")"
+    awk -v v="$1" '
+        /^[[:space:]]*WIFI_IFACE=/ { print "WIFI_IFACE=" v; done=1; next }
+        { print }
+        END { if (!done) print "WIFI_IFACE=" v }
+    ' "$FALLBACK_ENV" > "$tmp"
+    chmod 600 "$tmp"
+    mv -f "$tmp" "$FALLBACK_ENV"
+    log "Boot default: WIFI_IFACE=$1 in $FALLBACK_ENV."
+}
+
 if [[ "$REQUEST" == on ]]; then
+    if $is_active && [[ -n "$IFACE" && -n "$active_dev" && "$active_dev" != "$IFACE" ]]; then
+        log "Moving hotspot '$CON' from $active_dev to $IFACE."
+        nmcli connection down "$CON" >/dev/null 2>&1 || true
+        is_active=false
+    fi
     if $is_active; then
-        log "Hotspot '$CON' is already on."
+        log "Hotspot '$CON' is already on${active_dev:+ ($active_dev)}."
     elif [[ -x "$FALLBACK_BIN" ]]; then
-        log "Starting the hotspot (hotspot-fallback.sh --hotspot)."
-        if ! err="$("$FALLBACK_BIN" --hotspot </dev/null 2>&1)"; then
+        log "Starting the hotspot (hotspot-fallback.sh --hotspot${IFACE:+ --iface $IFACE})."
+        if ! err="$("$FALLBACK_BIN" --hotspot ${IFACE:+--iface "$IFACE"} </dev/null 2>&1)"; then
             fail on "Could not start the hotspot: $(printf '%s' "$err" | tail -n 1)"
         fi
     elif $has_profile; then
-        log "Starting hotspot profile '$CON'."
-        if ! err="$(nmcli connection up "$CON" 2>&1)"; then
+        log "Starting hotspot profile '$CON'${IFACE:+ on $IFACE}."
+        if ! err="$(nmcli connection up "$CON" ${IFACE:+ifname "$IFACE"} 2>&1)"; then
             fail on "Could not start the hotspot: $(printf '%s' "$err" | tail -n 1)"
         fi
     else
@@ -135,5 +172,6 @@ else
     fi
 fi
 
+[[ -n "$IFACE" ]] && save_boot_iface "$IFACE"
 report "$REQUEST" ""
-log "Hotspot switched $REQUEST."
+log "Hotspot switched $REQUEST${IFACE:+ on $IFACE}."

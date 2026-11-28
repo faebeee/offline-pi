@@ -140,6 +140,7 @@ module has none.
 |---|---|
 | `<name>_configure` | `install.sh`, every run while installed, after the data folders are set |
 | `<name>_post_build` | `install.sh`, once the images are there |
+| `<name>_post_start` | `install.sh`, last, after `start.sh`: what may cut the connection (Network: switching the hotspot) |
 | `<name>_manage` / `<name>_usage` | `./manage.sh <name> <cmd>`; return 2 for an unknown command |
 
 A configure hook does not ask for data directories: `storage_configure`

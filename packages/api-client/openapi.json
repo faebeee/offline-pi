@@ -1021,48 +1021,6 @@
         ]
       }
     },
-    "/api/network/hotspot": {
-      "post": {
-        "operationId": "networkHotspot",
-        "parameters": [
-          {
-            "name": "X-Pi-Monitor",
-            "in": "header",
-            "description": "must be \"1\" (CSRF guard)",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/HotspotRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HotspotState"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Switch the Pi's Wi-Fi hotspot on or off. The host helper does it within\na few seconds (`pending` until then); every device on the hotspot loses\nits connection when it goes off.",
-        "tags": [
-          "network"
-        ]
-      }
-    },
     "/api/network/clients": {
       "get": {
         "operationId": "networkClients",
@@ -4236,13 +4194,13 @@
             "description": "the host helper is installed (it has reported at least once)"
           },
           "requested": {
+            "type": "string",
             "nullable": true,
             "description": "the last switch asked for",
             "enum": [
               "on",
               "off"
-            ],
-            "type": "string"
+            ]
           },
           "requestedAt": {
             "type": "number",
@@ -4337,18 +4295,6 @@
           "leasesReadable",
           "enforcer",
           "hotspot"
-        ]
-      },
-      "HotspotRequest": {
-        "type": "object",
-        "properties": {
-          "on": {
-            "type": "boolean",
-            "description": "true: start the hotspot, false: stop it"
-          }
-        },
-        "required": [
-          "on"
         ]
       },
       "StationInfo": {

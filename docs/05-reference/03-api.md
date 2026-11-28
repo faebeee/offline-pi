@@ -231,7 +231,7 @@ user's Podman, and some actions delete shared data, so core guards them:
 | Guard | Required | Why |
 |---|---|---|
 | `X-Pi-Monitor: 1` | On every call that changes something (`POST`, `PUT`, `PATCH`, `DELETE`), including `auth/setup`, `auth/login` and `auth/password` | Another web page can't send it with a plain form post (CSRF guard). Missing: `400`. |
-| An admin's session | On control actions: module start/stop, blocking, unblocking and forgetting devices and the hotspot switch, deleting shared files, board posts and supplies, pinning posts, and every `users` route | A user's session: `403` `Only an admin can do this.` |
+| An admin's session | On control actions: module start/stop, blocking, unblocking and forgetting devices, deleting shared files, board posts and supplies, pinning posts, and every `users` route | A user's session: `403` `Only an admin can do this.` |
 
 From the Pi, log in with a cookie jar and send the cookie along:
 

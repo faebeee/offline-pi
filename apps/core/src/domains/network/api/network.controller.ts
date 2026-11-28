@@ -3,7 +3,7 @@ import { ApiHeader, ApiParam, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../../../platform/auth/current-user.decorator';
 import type { SessionUser } from '../../../platform/auth/auth.service';
 import { assertControl } from '../../../platform/http/control-guard';
-import { BlockRequest, HotspotClient, HotspotRequest, HotspotState, NetworkStatus } from '../domain/network.dto';
+import { BlockRequest, HotspotClient, NetworkStatus } from '../domain/network.dto';
 import { NetworkClient } from '../infrastructure/network.client';
 
 /** "::ffff:10.42.0.5" -> "10.42.0.5" */
@@ -13,7 +13,9 @@ const plainIp = (ip: string | undefined) => ip?.replace(/^::ffff:/, '');
  * Domain "network": the devices on the Pi's Wi-Fi hotspot (the network
  * container reads them) and blocking them. Blocks are control actions like
  * module start/stop: X-Pi-Monitor header and an admin. The host helper
- * host/network-guard enforces them in the firewall and switches the hotspot.
+ * host/network-guard enforces them in the firewall. Switching the hotspot
+ * itself is not in the API on purpose: only ./install.sh and
+ * ./manage.sh network hotspot on|off (on the Pi) do it.
  */
 @ApiTags('network')
 @Controller('api/network')
@@ -24,23 +26,6 @@ export class NetworkController {
   @Get('status')
   status(): Promise<NetworkStatus> {
     return this.network.status();
-  }
-
-  /**
-   * Switch the Pi's Wi-Fi hotspot on or off. The host helper does it within
-   * a few seconds (`pending` until then); every device on the hotspot loses
-   * its connection when it goes off.
-   */
-  @Post('hotspot')
-  @HttpCode(200)
-  @ApiHeader({ name: 'X-Pi-Monitor', required: true, description: 'must be "1" (CSRF guard)' })
-  hotspot(
-    @Body() body: HotspotRequest,
-    @Headers('x-pi-monitor') piMonitor: string | undefined,
-    @CurrentUser() user: SessionUser | undefined,
-  ): Promise<HotspotState> {
-    assertControl(piMonitor, user);
-    return this.network.switchHotspot(body.on);
   }
 
   /** Every device connected now, blocked, or seen in the last 30 days; connected first. */

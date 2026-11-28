@@ -149,3 +149,15 @@ def test_api_hotspot_switch(tmp_path: Path, monkeypatch):
     h = c.get("/api/status").json()["hotspot"]
     assert not h["pending"] and h["error"] == "nope"
     assert c.post("/api/hotspot", json={"on": "maybe"}).status_code == 422
+
+
+def test_hotspot_request_with_interface(tmp_path):
+    from app.store import Store
+
+    store = Store(tmp_path)
+    (tmp_path / "hotspot.request").write_text("on wlan1\n")
+    assert store.hotspot_request()[0] == "on"
+    (tmp_path / "hotspot.request").write_text("off\n")
+    assert store.hotspot_request()[0] == "off"
+    (tmp_path / "hotspot.request").write_text("maybe wlan1\n")
+    assert store.hotspot_request()[0] is None

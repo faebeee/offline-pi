@@ -63,9 +63,12 @@ under **Unreleased**.
   Blocking is enforced by a small host helper (`host/network-guard`,
   root, nftables). Re-run `./install.sh`, choose Network and let it
   install the helper.
-- Network: a switch turns the Wi-Fi hotspot on and off from the web app
-  (also `./manage.sh network hotspot on|off`). It needs the hotspot
-  fallback (`host/hotspot-pi`) and the current blocking helper: run
+- Network: `./install.sh` asks whether the Wi-Fi hotspot should be on or
+  off (default: leave it) and on which Wi-Fi interface (also used at boot
+  and watched by the Network screen), and `./manage.sh network hotspot on|off`
+  switches it any time. It is on purpose not in the web app, so nobody can
+  cut everyone off from a browser. It needs the hotspot fallback
+  (`host/hotspot-pi`) and the current blocking helper: run
   `./manage.sh network install-guard` once on the Pi.
 - Three new themes in the theme picker (the sun/moon button in the
   header): Night vision (red only, keeps your eyes used to the dark, the
@@ -122,7 +125,7 @@ under **Unreleased**.
 - The passthrough to the modules (`/svc/...`: map tiles, Library pages) is
   read only: changes go through the API, where your login and role are
   checked.
-- Starting and stopping modules, blocking devices, the hotspot switch,
+- Starting and stopping modules, blocking devices,
   deleting shared files, Board posts and supplies, and pinning posts are
   for admins now, instead of asking for a control PIN.
 - The installer asks much less. A first install asks which modules, one

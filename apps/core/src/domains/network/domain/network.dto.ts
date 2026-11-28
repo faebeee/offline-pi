@@ -1,7 +1,7 @@
 // The network domain's contract: the devices on the Pi's Wi-Fi hotspot and
 // the block list. The network container (Python) speaks snake_case;
 // infrastructure/network.mappers.ts maps it onto these classes.
-import { IsBoolean, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsOptional, IsString, MaxLength } from 'class-validator';
 
 /** The host helper (host/network-guard) that turns the block list into a firewall rule. */
 export class BlockEnforcer {
@@ -16,8 +16,9 @@ export class BlockEnforcer {
 }
 
 /**
- * The hotspot switch. The host helper (host/network-guard,
- * outpost-network-hotspot) switches the hotspot when asked.
+ * The hotspot's state, read only here: it is switched on the Pi
+ * (./install.sh, ./manage.sh network hotspot on|off), through the host
+ * helper (host/network-guard, outpost-network-hotspot).
  */
 export class HotspotState {
   /** the hotspot runs now (the interface is in access-point mode) */
@@ -101,12 +102,6 @@ export class HotspotClient {
   you!: boolean;
   /** only while connected */
   station!: StationInfo | null;
-}
-
-export class HotspotRequest {
-  /** true: start the hotspot, false: stop it */
-  @IsBoolean()
-  on!: boolean;
 }
 
 export class BlockRequest {

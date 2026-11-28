@@ -5,7 +5,7 @@ Terms used across these docs and in the project, in alphabetical order.
 | Term | Meaning |
 |---|---|
 | **Account** | A user name and password that can log in to outpost, with a role: admin or user. Kept in `CORE_DATA_DIR/users.json`, managed on the Users screen. |
-| **Admin** | The role of an account that may also do the control actions: start and stop modules, block devices and switch the hotspot, delete shared files, Board posts and supplies, pin posts, and manage accounts. The first account is always an admin. |
+| **Admin** | The role of an account that may also do the control actions: start and stop modules, block devices, delete shared files, Board posts and supplies, pin posts, and manage accounts. The first account is always an admin. |
 | **api-client** | `@outpost/api-client` (`packages/api-client`): the web app's typed client, generated from core's OpenAPI document with `npm run api:gen`. |
 | **Compose project** | The set of containers defined in `compose.yml`, always named `outpost`. Run through Podman Compose (`podman compose` or `podman-compose`). |
 | **Core** | The part of outpost that always runs (`apps/core`, NestJS). The only service the network reaches: it serves the web app, the API, live updates and the passthrough, and starts and stops the modules. |

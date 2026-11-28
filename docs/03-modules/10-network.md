@@ -1,7 +1,9 @@
 # Network
 
-Network shows who is on the Pi's Wi-Fi hotspot, lets you block a device
-and switches the hotspot on and off. Open it with Network in the module nav (`/network`).
+Network shows who is on the Pi's Wi-Fi hotspot and lets you block a
+device. Open it with Network in the module nav (`/network`). Switching the
+hotspot itself is not in the web app: that is done on the Pi (see
+[Switching the hotspot on and off](#switching-the-hotspot-on-and-off)).
 
 The hotspot is the Wi-Fi network the Pi opens when its preferred Wi-Fi is
 not in range (see
@@ -73,42 +75,50 @@ it. If the screen says `Blocking is not enforced`, install it on the Pi:
 
 ## Switching the hotspot on and off
 
-The **Wi-Fi hotspot** switch at the top shows whether the hotspot runs and
-turns it on or off (admins only).
-Switching takes a few seconds (the badge says SWITCHING ON or SWITCHING
-OFF meanwhile).
+The screen shows whether the hotspot runs, but it can't switch it: on
+purpose, nobody can turn the hotspot off from a browser and cut everyone
+off. It is switched on the Pi:
+
+- `./install.sh` asks `Network: Wi-Fi hotspot`: **Leave it as it is** (the
+  default, also with `--yes` and during `./update.sh`), **On** or **Off**.
+  For **On** it then asks `the hotspot's Wi-Fi interface`, listing each
+  Wi-Fi interface of the Pi with its state (`hotspot`, `connected to
+  <network>`, `not connected`); with only one, that one is used. The hotspot
+  starts on it (moving there if it runs on another interface), it becomes
+  the hotspot's interface at boot (`WIFI_IFACE` in
+  `/etc/hotspot-fallback.env`) and the one this screen watches
+  (`NETWORK_IFACE`). With **Leave it as it is** and the hotspot off, the
+  question only sets the interface this screen watches. The choice is
+  applied at the very end of the install, after outpost is up, since
+  switching drops every device on the hotspot, maybe also the SSH session
+  you are installing over.
+- `./manage.sh network hotspot on` or `off`, any time.
 
 - **Off**: every device on the hotspot loses its connection. The Pi joins
-  its preferred Wi-Fi if it is in range. If you are on the hotspot
-  yourself, the screen asks first: you need another way to reach the Pi
-  (a cable or the preferred Wi-Fi) to turn it back on.
+  its preferred Wi-Fi if it is in range. You need another way to reach the
+  Pi (a cable or the preferred Wi-Fi) to turn it back on.
 - **On**: the Pi opens the hotspot, even if its preferred Wi-Fi is in
-  range. If the Pi was connected to a Wi-Fi network, it leaves it, so the
-  screen asks first.
+  range. If the Pi was connected to a Wi-Fi network, it leaves it.
 
-The switch lasts until the next boot: at boot the hotspot fallback
-decides again (see
+Switching takes a few seconds and lasts until the next boot: at boot the
+hotspot fallback decides again (see
 [Network and hotspot](../02-installation/03-network-and-hotspot.md#wi-fi-hotspot-fallback)).
-It uses the same helper as blocking, and the hotspot from that page. If
-the switch says it needs the helper, install it (again, if it is from an
-older version):
+It needs the same helper as blocking, and the hotspot from that page. If
+the helper is missing (or from an older version), install it:
 
 ```bash
 ./manage.sh network install-guard
 ```
 
+If switching fails, see `journalctl -u outpost-network-hotspot.service` on
+the Pi. Without `host/hotspot-pi` there is no hotspot to switch on.
+
 ## Banners
 
-- `Could not switch the hotspot`, `Switching the hotspot failed`: the
-  message says why, and `journalctl -u outpost-network-hotspot.service`
-  on the Pi. Without `host/hotspot-pi` there is no hotspot to switch on.
-- `The hotspot helper does not answer`: a switch was asked for half a
-  minute ago and nothing happened. Re-install the helper.
 - `No hotspot found`: the Pi has no Wi-Fi interface in access-point mode
   (or none named `NETWORK_IFACE`). On a Mac there is never a hotspot.
 - `Hotspot is off`: the Pi is connected to another Wi-Fi as a client, so
-  nobody can join it. Devices seen before are still listed. With the
-  helper installed, these two show in the switch instead.
+  nobody can join it. Devices seen before are still listed.
 - `Blocking is not enforced`: the blocking helper is not installed.
 - `Blocking helper failed`: its last run failed; the message and
   `journalctl -u outpost-network-guard.service` say why.

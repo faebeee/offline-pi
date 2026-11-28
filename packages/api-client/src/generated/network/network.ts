@@ -27,8 +27,6 @@ import type {
 import type {
   BlockRequest,
   HotspotClient,
-  HotspotRequest,
-  HotspotState,
   NetworkStatus
 } from '../model';
 
@@ -155,98 +153,7 @@ export function useNetworkStatus<TData = Awaited<ReturnType<typeof networkStatus
 
 
 
-export const getNetworkHotspotUrl = () => {
-
-
-
-
-  return `/api/network/hotspot`
-}
-
-/**
- * @summary Switch the Pi's Wi-Fi hotspot on or off. The host helper does it within
-a few seconds (`pending` until then); every device on the hotspot loses
-its connection when it goes off.
- */
-export const networkHotspot = async (hotspotRequest: HotspotRequest, options?: Parameters<typeof apiFetch>[1]): Promise<HotspotState> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
-    if (!h) return {};
-    if (h instanceof Headers) return Object.fromEntries(h.entries());
-    if (Symbol.iterator in h) {
-      return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
-      );
-    }
-    const headers: Record<string, string | readonly string[]> = {};
-    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
-      if (value !== undefined) headers[name] = value;
-    }
-    return headers;
-  };
-return apiFetch<HotspotState>(getNetworkHotspotUrl(),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(hotspotRequest)
-  }
-);}
-
-
-
-
-
-export const getNetworkHotspotMutationKey = () => ['networkHotspot'] as const;
-
-export const getNetworkHotspotMutationOptions = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof networkHotspot>>, TError,NetworkHotspotMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof networkHotspot>>, TError,NetworkHotspotMutationVariables, TContext> => {
-
-const mutationKey = getNetworkHotspotMutationKey();
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof networkHotspot>>, NetworkHotspotMutationVariables> = (props) => {
-          const {data} = props ?? {};
-
-          return  networkHotspot(data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type NetworkHotspotMutationResult = NonNullable<Awaited<ReturnType<typeof networkHotspot>>>
-    export type NetworkHotspotMutationBody = HotspotRequest
-    export type NetworkHotspotMutationError = ErrorType<unknown>
-    export type NetworkHotspotMutationVariables = {data: HotspotRequest}
-
-    /**
- * @summary Switch the Pi's Wi-Fi hotspot on or off. The host helper does it within
-a few seconds (`pending` until then); every device on the hotspot loses
-its connection when it goes off.
- */
-export const useNetworkHotspot = <TError = ErrorType<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof networkHotspot>>, TError,NetworkHotspotMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof networkHotspot>>,
-        TError,
-        NetworkHotspotMutationVariables,
-        TContext
-      > => {
-      return useMutation(getNetworkHotspotMutationOptions(options), queryClient);
-    }
-    export const getNetworkClientsUrl = () => {
+export const getNetworkClientsUrl = () => {
 
 
 

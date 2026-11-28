@@ -327,6 +327,8 @@ domain's hooks and namespaces (e.g. a Maps layer drawn from another domain's
      helper), device checks. Not the data folders: `storage_configure` (`lib/storage.sh`)
      sets every `*_DIR` listed in `dirs`, before the hooks run. Ask
      anything optional only with `INSTALL_ADVANCED=true` (`--advanced`).
+   - `<name>_post_start`: install.sh, last of all, after start.sh: what
+     may cut the connection (Network switches the hotspot here).
    - `<name>_post_build`: install.sh, once the images are there (one-off
      setup). An image must build from the checkout alone: CI builds it.
    - `<name>_manage` / `<name>_usage`: `./manage.sh <name> <cmd>`; return 2

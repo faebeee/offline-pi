@@ -70,7 +70,6 @@ export * from './history';
 export * from './historyPoint';
 export * from './hostAddress';
 export * from './hotspotClient';
-export * from './hotspotRequest';
 export * from './hotspotState';
 export * from './hotspotStateRequested';
 export * from './infoEntry';

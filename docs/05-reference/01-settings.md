@@ -15,7 +15,7 @@ new in `.env.example`.
 
 | Kind | Variables | How to change them |
 |---|---|---|
-| Asked by `install.sh` | `MODULES`, `OUTPOST_DATA_DIR` (and from it every `*_DIR`), `NETWORK_LEASES_PATH` | Re-run `./install.sh` and answer differently |
+| Asked by `install.sh` | `MODULES`, `OUTPOST_DATA_DIR` (and from it every `*_DIR`), `NETWORK_LEASES_PATH`, `NETWORK_IFACE` | Re-run `./install.sh` and answer differently |
 | Asked by `install.sh --advanced` | `PORT`, `BIND_ADDRESS`, each `*_DIR` on its own | Re-run `./install.sh --advanced` |
 | Detected by `install.sh` | `PODMAN_GRAPH_ROOT`, `PODMAN_SOCKET`, `VCIO_DEVICE` | Leave as is; detected again on every run |
 | Edited by hand | everything else (`SAMPLE_INTERVAL_MS`, `CORE_LOG_LEVEL`, the ports, `KNOWLEDGE_AUTO_SYNC`, ...) | Edit `.env`, then `./start.sh` |
@@ -85,7 +85,7 @@ Without `--advanced`, `PORT` and `BIND_ADDRESS` keep their current values
 |---|---|---|
 | `NETWORK_PORT` | `8085` | Internal port. |
 | `NETWORK_DATA_DIR` | `./data/network` | Block list and the devices seen on the hotspot in the last 30 days (a few KB). The blocking helper watches `blocked.macs` in it. |
-| `NETWORK_IFACE` | empty | Hotspot interface, e.g. `wlan0`. Empty: the first Wi-Fi interface in access-point mode. |
+| `NETWORK_IFACE` | empty | Hotspot interface, e.g. `wlan0`, set by `./install.sh` when it asks about the hotspot. Empty: the first Wi-Fi interface in access-point mode. |
 | `NETWORK_LEASES_PATH` | `/var/lib/NetworkManager` | Folder with the hotspot's DHCP lease files (IP and hostname), mounted read-only. `install.sh` points it at `NETWORK_DATA_DIR` on hosts without NetworkManager. |
 
 ## Files

@@ -107,4 +107,12 @@ ensure_linger
 autostart_enable
 
 log_ok "Install complete."
-exec "$ROOT_DIR/start.sh"
+rc=0
+"$ROOT_DIR/start.sh" || rc=$?
+# last of all: what may cut the connection (e.g. switching the hotspot)
+if [[ $rc -eq 0 ]]; then
+  for m in ${MODS[@]+"${MODS[@]}"}; do
+    run_hook "$m" post_start || [[ $? -eq 127 ]] || log_warn "$(module_label "$m"): the last step reported an error."
+  done
+fi
+exit "$rc"

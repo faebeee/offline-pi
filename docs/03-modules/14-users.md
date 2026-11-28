@@ -68,8 +68,7 @@ Only admins can also do the control actions:
 
 - start and stop modules: the switches on [Home](01-home.md), START on the
   module gate, the containers card on [System](05-system.md),
-- block, unblock and forget devices and switch the hotspot on
-  [Network](10-network.md),
+- block, unblock and forget devices on [Network](10-network.md),
 - delete shared files and folders on [Files](11-files.md),
 - pin and delete posts on the [Board](12-board.md),
 - delete items on [Supplies](13-supplies.md),

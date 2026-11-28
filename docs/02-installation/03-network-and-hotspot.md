@@ -116,8 +116,10 @@ The script creates two NetworkManager connection profiles,
 `preferred-wifi` and `pi-hotspot`. It runs once per boot: if your Wi-Fi
 comes into range later, the Pi stays on the hotspot until the next boot or
 until you start the service again. The
-[Network module](../03-modules/10-network.md#switching-the-hotspot-on-and-off)
-has a switch to turn the hotspot on and off from the web app.
+`./install.sh` (with the Network module) asks whether the hotspot should be
+on or off, and on which Wi-Fi interface, and `./manage.sh network hotspot on|off` switches it any time; see
+[Switching the hotspot on and off](../03-modules/10-network.md#switching-the-hotspot-on-and-off).
+The web app shows whether it runs but can't switch it.
 
 If you connect to the Pi over SSH through Wi-Fi, keep in mind that the
 connection drops when the Pi switches to the hotspot.
@@ -137,8 +139,8 @@ and deletes the two connection profiles.
 
 The [Network](../03-modules/10-network.md) module lists the devices on the
 hotspot (MAC address, vendor, IP, signal) and blocks devices you don't
-want on it, and it switches the hotspot on and off. Both use a small host
-helper in `host/network-guard`,
+want on it. Blocking and switching the hotspot (from `./install.sh` or
+`./manage.sh`) use a small host helper in `host/network-guard`,
 which `./install.sh` offers to install with the module.
 
 ## See also

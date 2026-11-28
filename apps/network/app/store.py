@@ -8,7 +8,8 @@
   so a device stays inspectable after it left. Kept for HISTORY_DAYS.
 - enforcer.json: written by the host helper (as root) after it applied
   blocked.macs: when, which MACs, and an error if it failed. Read only here.
-- hotspot.request: "on" or "off", the hotspot switch; the host helper
+- hotspot.request: "on", "on IFACE" or "off", the hotspot switch
+  (written by install.sh or ./manage.sh network hotspot); the host helper
   (outpost-network-hotspot.path) applies it when the file changes.
 - hotspot.json: written by the host helper after it switched the hotspot
   (or once at install): when, what, and an error if it failed. Read only.
@@ -113,7 +114,9 @@ class Store:
         """The last request ("on"/"off") and when it was made (unix seconds)."""
         path = self.dir / "hotspot.request"
         try:
-            text = path.read_text().strip()
+            # "on", "off" or "on IFACE" (install.sh picks the interface)
+            words = path.read_text().split()
+            text = words[0] if words else ""
             return (text if text in ("on", "off") else None), int(path.stat().st_mtime)
         except OSError:
             return None, None
