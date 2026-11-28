@@ -1,0 +1,437 @@
+/* The landing page: layout only, on top of the Outpost package (tokens,
+   fonts, components from @outpost/ui/outpost.css; DESIGN.md). Tokens only,
+   so every Outpost theme works here too. */
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 72px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+}
+
+.skip {
+  position: absolute;
+  left: var(--space-4);
+  top: -100px;
+  z-index: 10;
+  padding: var(--space-2) var(--space-3);
+  background: var(--acc);
+  color: var(--on-acc);
+}
+
+.skip:focus {
+  top: var(--space-2);
+}
+
+/* ------------------------------------------------------------- header -- */
+
+.lp-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.lp-brand {
+  font-size: 22px;
+}
+
+.lp-nav {
+  display: flex;
+  gap: var(--space-4);
+  margin-left: auto;
+  margin-right: var(--space-4);
+}
+
+.lp-nav a {
+  display: inline-flex;
+  min-height: var(--target);
+  align-items: center;
+  color: var(--fg2);
+  font: 500 12px/1 var(--font-mono);
+  letter-spacing: 0.12em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.lp-nav a:hover,
+.lp-nav a:focus-visible {
+  color: var(--acc-ink);
+}
+
+@media (max-width: 640px) {
+  .lp-nav {
+    display: none;
+  }
+}
+
+/* --------------------------------------------------------------- page -- */
+
+.lp {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4) var(--space-8);
+}
+
+.lp p {
+  margin: 0;
+}
+
+/* flex and grid children may shrink below their content (long commands,
+   the diagram): they scroll or wrap inside instead of widening the page */
+.lp > *,
+.lp-section > *,
+.lp-hero > *,
+.lp-install > *,
+.lp-install-main > *,
+.lp-install-side > * {
+  min-width: 0;
+}
+
+.lp-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.lp-section-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
+}
+
+.lp-section-head .label {
+  color: var(--acc-ink);
+}
+
+.lp .h2 {
+  font-size: 26px;
+  line-height: 32px;
+  max-width: 28ch;
+}
+
+.lp .h3 {
+  margin: 0;
+  font: 600 17px/22px var(--font-display);
+}
+
+.lp-text {
+  max-width: 72ch;
+  color: var(--fg2);
+  font-size: 16px;
+  line-height: 25px;
+}
+
+.lp-group {
+  margin: var(--space-3) 0 0;
+}
+
+/* --------------------------------------------------------------- hero -- */
+
+.lp-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.lp-hero-art .il {
+  width: 100%;
+  height: auto;
+}
+
+.lp-hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.lp-kicker {
+  color: var(--acc-ink);
+}
+
+.lp-title {
+  margin: 0;
+  font: 700 clamp(30px, 4.6vw, 48px) / 1.08 var(--font-display);
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.lp-lead {
+  color: var(--fg2);
+  font-size: 18px;
+  line-height: 28px;
+}
+
+.lp-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.lp-facts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  color: var(--fg2);
+  font-size: 14px;
+  list-style: none;
+}
+
+.lp-facts .badge {
+  margin-right: var(--space-2);
+}
+
+@media (max-width: 820px) {
+  .lp-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .lp-hero-art {
+    order: 2;
+  }
+}
+
+/* -------------------------------------------------------------- cards -- */
+
+.lp-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: var(--space-3);
+}
+
+.lp-cards .card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  color: var(--fg2);
+  line-height: 22px;
+}
+
+.lp-card-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--fg);
+}
+
+.lp-card-head .i {
+  width: 22px;
+  height: 22px;
+  color: var(--acc-ink);
+}
+
+/* ------------------------------------------------------------ modules -- */
+
+.lp-modules {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lp-modules-sm {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+}
+
+.lp-modules .tile {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.lp-modules .tile .i {
+  width: 28px;
+  height: 28px;
+}
+
+.lp-modules .tile-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.lp-modules .tile-head .badge .i {
+  width: 12px;
+  height: 12px;
+}
+
+.lp-tile-text {
+  margin-top: var(--space-1);
+  color: var(--fg2);
+  font-size: 14px;
+  line-height: 21px;
+}
+
+/* -------------------------------------------------------- how it works -- */
+
+.lp-diagram {
+  overflow-x: auto;
+  margin: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--acc);
+  background: var(--s1);
+  color: var(--fg2);
+  font: 13px/20px var(--font-mono);
+}
+
+.lp-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding-left: var(--space-5);
+  color: var(--fg2);
+  line-height: 23px;
+}
+
+.lp-list b {
+  color: var(--fg);
+}
+
+/* ------------------------------------------------------------ install -- */
+
+.lp-install {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  align-items: start;
+  gap: var(--space-6);
+}
+
+.lp-install-main,
+.lp-install-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+@media (max-width: 900px) {
+  .lp-install {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lp pre {
+  margin: 0;
+  font: 13px/20px var(--font-mono);
+}
+
+.lp-cmd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+  border: 1px solid var(--acc);
+  background: var(--s2);
+}
+
+.lp-cmd pre {
+  flex: 1;
+  min-width: 0;
+  color: var(--fg);
+  font-size: 14px;
+  /* the whole one-liner visible, broken anywhere if it must */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.lp-cmds {
+  display: grid;
+  grid-template-columns: minmax(0, auto) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  font-size: 13px;
+}
+
+.lp-cmds pre {
+  overflow-x: auto;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--line);
+  background: var(--s2);
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  /* command and copy button on one row, what it does below */
+  .lp-cmds {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .lp-cmds span {
+    grid-column: 1 / -1;
+    margin-top: calc(-1 * var(--space-1));
+  }
+}
+
+.lp-cmds span {
+  color: var(--fg3);
+}
+
+.lp-copy {
+  flex: none;
+}
+
+.lp-steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding-left: var(--space-5);
+  color: var(--fg2);
+  line-height: 23px;
+}
+
+.lp-steps b {
+  color: var(--fg);
+}
+
+/* ------------------------------------------------------------- footer -- */
+
+.lp-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-4) var(--space-6);
+  border-top: 1px solid var(--line);
+}
+
+.lp-footer-links {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.lp-footer a {
+  color: var(--fg2);
+}
+
+/* long inline commands in prose wrap anywhere instead of widening the page */
+.lp-wrap .mono {
+  overflow-wrap: anywhere;
+}

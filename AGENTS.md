@@ -51,6 +51,7 @@ apps/supplies/           # the supplies list, served by core (domain supplies)
 apps/board/              # the notice board, served by core (domain board)
 apps/users/              # the accounts screen, served by core (domain users, admins only)
 apps/web/                # the web app: every screen of every module
+apps/landing/            # the project's landing page (static, not on the Pi)
 apps/maps/backend/       # a module's container code (API, data, jobs)
 packages/ui/             # @outpost/ui: Outpost design system (DESIGN.md)
 packages/api-client/     # @outpost/api-client: generated from core's OpenAPI

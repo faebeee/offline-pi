@@ -1,0 +1,17 @@
+{
+  "name": "@outpost/landing",
+  "private": true,
+  "description": "outpost's landing page: one static page about the project (what it is, the modules, how to install). Not part of the app on the Pi.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@outpost/ui": "*",
+    "typescript": "^5.9.2",
+    "vite": "^8.3.7"
+  }
+}

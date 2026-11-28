@@ -12,8 +12,10 @@ input voltage, the power supply's negotiated current and the RP1 chip
 temperature come from Pi 5 hardware. On a machine that is not a Pi, the
 voltage and throttling readings are missing altogether.
 
-The first build of the images takes a while on a Pi (10 to 30 minutes).
-Later builds reuse the cache and are much faster.
+Installing downloads ready-made images built for 64-bit Pis, so it takes a
+few minutes. Only when there are none for your version (local changes, a
+fork) are they built on the Pi, which takes 10 to 30 minutes the first
+time.
 
 ## SD card or SSD
 

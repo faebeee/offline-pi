@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en" class="t-dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark light" />
+    <title>outpost · an offline outpost on a Raspberry Pi</title>
+    <meta
+      name="description"
+      content="outpost turns a Raspberry Pi into an offline outpost: maps, an emergency library, shared files, a notice board and a supplies list for everyone on its Wi-Fi, with no internet needed."
+    />
+    <link rel="icon" href="data:," />
+    <script>
+      // the stored Outpost theme before the first paint (as in apps/web)
+      (function () {
+        var t = null;
+        try { t = localStorage.getItem("outpost.theme"); } catch (e) {}
+        var dark = /^(neon|netrun|toxic|red|term)$/.test(t || "");
+        var light = t === "paper";
+        var cls = t === "light" || light ? " t-light" : " t-dark";
+        if (dark || light) cls += " t-" + t;
+        document.documentElement.className = (document.documentElement.className.replace(/\bt-(dark|light|neon|netrun|toxic|red|term|paper)\b/g, "") + cls).trim();
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to the content</a>
+
+    <header class="header lp-header">
+      <div class="header-title">
+        <span class="label">Field terminal · v<span data-version>0.1</span></span>
+        <span class="h1 lp-brand">outpost</span>
+      </div>
+      <nav class="lp-nav" aria-label="Sections">
+        <a href="#purpose">Why</a>
+        <a href="#modules">Modules</a>
+        <a href="#install">Install</a>
+        <a href="#security">Security</a>
+      </nav>
+      <div class="header-actions">
+        <a class="btn btn-icon" href="https://github.com/faebeee/offline-pi" aria-label="Source code on GitHub" title="Source code on GitHub">
+          <i data-icon="external"></i>
+        </a>
+        <button data-theme-toggle></button>
+      </div>
+    </header>
+
+    <main id="main" class="lp grid-bg">
+      <!-- ------------------------------------------------------------ hero -->
+      <section class="lp-hero" aria-labelledby="hero-title">
+        <div class="lp-hero-art" data-il="hero"></div>
+        <div class="lp-hero-text">
+          <p class="label lp-kicker">Self-hosted · offline · Raspberry Pi</p>
+          <h1 class="lp-title" id="hero-title">When the network goes down, the outpost stays up.</h1>
+          <p class="lp-lead">
+            outpost turns a Raspberry Pi into a small offline base: maps, an emergency library, shared files, a notice
+            board and a supplies list, for everyone on its Wi-Fi. Set it up once while you have internet; after that it
+            needs none.
+          </p>
+          <div class="lp-cta">
+            <a class="btn btn-primary" href="#install"><i data-icon="download"></i>Install</a>
+            <a class="btn" href="#modules"><i data-icon="hub"></i>See the modules</a>
+          </div>
+          <ul class="lp-facts" aria-label="At a glance">
+            <li><span class="badge badge-sm badge-ok"><i data-icon="ok"></i>Offline</span> no cloud, no CDN, no accounts elsewhere</li>
+            <li><span class="badge badge-sm badge-info"><i data-icon="signal"></i>One address</span> every screen at <span class="mono">http://&lt;pi&gt;:8080</span></li>
+            <li><span class="badge badge-sm badge-acc"><i data-icon="power"></i>Starts at boot</span> back by itself after a power cut</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- --------------------------------------------------------- purpose -->
+      <section id="purpose" class="lp-section" aria-labelledby="purpose-title">
+        <div class="lp-section-head">
+          <span class="label">01 · Purpose</span>
+          <h2 class="h2" id="purpose-title">Useful information and a place to coordinate, without internet</h2>
+        </div>
+        <p class="lp-text">
+          A storm, a long power cut, a cabin or a boat without coverage: the phone network and the internet are gone,
+          but the people around you still need to find their way, look up first aid, share photos of the damage and
+          know who needs what. outpost keeps all of that on a Raspberry Pi. Phones and laptops join the Pi's own
+          Wi-Fi hotspot (or your home network) and open one web page. Nothing to install on them.
+        </p>
+        <div class="lp-cards">
+          <article class="card">
+            <div class="lp-card-head"><i data-icon="offline"></i><h3 class="h3">Works offline</h3></div>
+            <p>Maps, books and everything people share live on the Pi. Fonts, icons and the app itself too: no request
+              ever leaves it.</p>
+          </article>
+          <article class="card">
+            <div class="lp-card-head"><i data-icon="signal"></i><h3 class="h3">Its own Wi-Fi</h3></div>
+            <p>With the hotspot fallback, the Pi opens its own Wi-Fi when its usual one is out of range, so anyone
+              nearby can join. One port, one web app for every module.</p>
+          </article>
+          <article class="card">
+            <div class="lp-card-head"><i data-icon="users"></i><h3 class="h3">Yours</h3></div>
+            <p>Open source and self-hosted. Accounts for everyone who uses it; admins keep control of the box.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- --------------------------------------------------------- modules -->
+      <section id="modules" class="lp-section" aria-labelledby="modules-title">
+        <div class="lp-section-head">
+          <span class="label">02 · Modules</span>
+          <h2 class="h2" id="modules-title">What is on the box</h2>
+        </div>
+        <p class="lp-text">
+          Pick the modules you want when you install; Files, Board and Supplies are always there. Everything is one
+          web app: the modules are screens in the same menu.
+        </p>
+
+        <h3 class="label lp-group">For everyone</h3>
+        <ul class="lp-modules">
+          <li class="tile">
+            <div class="tile-art" data-il="maps"></div>
+            <div class="tile-head"><i data-icon="map"></i><span class="badge badge-sm">Module</span></div>
+            <div>
+              <div class="tile-name">Maps</div>
+              <p class="lp-tile-text">Download regions once, then pan, zoom and search places offline. Save your own
+                places: meeting points, water, shelter.</p>
+            </div>
+          </li>
+          <li class="tile">
+            <div class="tile-art" data-il="library"></div>
+            <div class="tile-head"><i data-icon="library"></i><span class="badge badge-sm">Module</span></div>
+            <div>
+              <div class="tile-name">Library</div>
+              <p class="lp-tile-text">Wikipedia, medical guides and survival manuals (Kiwix), with full-text search and an
+                "In an emergency" index: CPR, bleeding, hypothermia, water purification.</p>
+            </div>
+          </li>
+          <li class="tile">
+            <div class="tile-art" data-il="generic"></div>
+            <div class="tile-head"><i data-icon="folder"></i><span class="badge badge-sm badge-ok">Built in</span></div>
+            <div>
+              <div class="tile-name">Files</div>
+              <p class="lp-tile-text">A shared folder for everyone on the Wi-Fi: photos, scans of documents, manuals. Upload
+                with drag and drop, open and download anywhere.</p>
+            </div>
+          </li>
+          <li class="tile">
+            <div class="tile-art" data-il="generic"></div>
+            <div class="tile-head"><i data-icon="board"></i><span class="badge badge-sm badge-ok">Built in</span></div>
+            <div>
+              <div class="tile-name">Board</div>
+              <p class="lp-tile-text">A notice board: news for everyone, what people need, what they can offer, and
+                check-ins ("safe, at the school").</p>
+            </div>
+          </li>
+          <li class="tile">
+            <div class="tile-art" data-il="generic"></div>
+            <div class="tile-head"><i data-icon="crate"></i><span class="badge badge-sm badge-ok">Built in</span></div>
+            <div>
+              <div class="tile-name">Supplies</div>
+              <p class="lp-tile-text">Your emergency stock: what, how much, where and until when. Warns before things
+                expire and tells you how many days the water lasts.</p>
+            </div>
+          </li>
+          <li class="tile">
+            <div class="tile-art" data-il="generic"></div>
+            <div class="tile-head"><i data-icon="signal"></i><span class="badge badge-sm">Module</span></div>
+            <div>
+              <div class="tile-name">Network</div>
+              <p class="lp-tile-text">Who is on the Pi's hotspot: device, vendor, signal. Admins block devices that
+                misbehave.</p>
+            </div>
+          </li>
+        </ul>
+
+        <h3 class="label lp-group">For admins</h3>
+        <ul class="lp-modules lp-modules-sm">
+          <li class="tile">
+            <div class="tile-head"><i data-icon="system"></i></div>
+            <div><div class="tile-name">System</div><p class="lp-tile-text">Temperature, power, storage, network and the
+              modules, live.</p></div>
+          </li>
+          <li class="tile">
+            <div class="tile-head"><i data-icon="pulse"></i></div>
+            <div><div class="tile-name">Diagnostics</div><p class="lp-tile-text">What works and what doesn't, with a fix
+              for each problem.</p></div>
+          </li>
+          <li class="tile">
+            <div class="tile-head"><i data-icon="logs"></i></div>
+            <div><div class="tile-name">Logs</div><p class="lp-tile-text">Every module's log lines, live and
+              filterable.</p></div>
+          </li>
+          <li class="tile">
+            <div class="tile-head"><i data-icon="sliders"></i></div>
+            <div><div class="tile-name">Settings</div><p class="lp-tile-text">Every setting and data folder, with its
+              size.</p></div>
+          </li>
+          <li class="tile">
+            <div class="tile-head"><i data-icon="users"></i></div>
+            <div><div class="tile-name">Users</div><p class="lp-tile-text">The accounts, and who is an admin.</p></div>
+          </li>
+          <li class="tile">
+            <div class="tile-head"><i data-icon="manual"></i></div>
+            <div><div class="tile-name">Info</div><p class="lp-tile-text">The whole documentation, readable offline
+              (for everyone).</p></div>
+          </li>
+        </ul>
+      </section>
+
+      <!-- ---------------------------------------------------- how it works -->
+      <section id="how" class="lp-section" aria-labelledby="how-title">
+        <div class="lp-section-head">
+          <span class="label">03 · How it works</span>
+          <h2 class="h2" id="how-title">One app, a few containers, one port</h2>
+        </div>
+        <pre class="lp-diagram" aria-label="Architecture"><code>phone / laptop ──Wi-Fi──▶ Raspberry Pi :8080
+                           └─ core: the web app, the API, logins
+                                ├─ maps       offline map tiles and places
+                                ├─ library    Kiwix books
+                                └─ network    devices on the hotspot
+                           data: one folder, e.g. on an SSD</code></pre>
+        <ul class="lp-list">
+          <li><b>Podman, rootless.</b> Each module is a container; core starts and stops them. No Docker, no root.</li>
+          <li><b>Ready-made images.</b> Installing and updating download images built for 64-bit Pis and PCs, in
+            minutes instead of a long build on the Pi.</li>
+          <li><b>Your data in one folder.</b> Put it on an SSD for maps and books; re-run the installer to move it.</li>
+          <li><b>Starts at boot</b> and stops cleanly at shutdown, so a power cut doesn't leave it off.</li>
+        </ul>
+      </section>
+
+      <!-- --------------------------------------------------------- install -->
+      <section id="install" class="lp-section" aria-labelledby="install-title">
+        <div class="lp-section-head">
+          <span class="label">04 · Install</span>
+          <h2 class="h2" id="install-title">One command on the Pi</h2>
+        </div>
+
+        <div class="lp-install">
+          <div class="lp-install-main">
+            <p class="lp-text">On a Raspberry Pi with 64-bit Raspberry Pi OS (or any Linux machine), as your normal user,
+              with internet:</p>
+            <div class="lp-cmd">
+              <pre><code data-copy>curl -fsSL https://raw.githubusercontent.com/faebeee/offline-pi/main/get.sh | bash</code></pre>
+            </div>
+            <p class="help lp-wrap">Prefer to look first? <span class="mono">git clone https://github.com/faebeee/offline-pi.git ~/outpost
+              &amp;&amp; cd ~/outpost &amp;&amp; ./install.sh</span> does the same.</p>
+
+            <h3 class="h3">What it does</h3>
+            <ol class="lp-steps">
+              <li><b>Checks the system.</b> Installs git if it is missing, downloads outpost to
+                <span class="mono">~/outpost</span> and offers to install Podman and the compose tool.</li>
+              <li><b>Asks only what it must.</b> Which modules you want, where the data goes (one folder, for example
+                on an SSD) and, with Network, whether the Wi-Fi hotspot should be on and on which interface.</li>
+              <li><b>Downloads and starts.</b> The ready-made images for this version, then outpost itself, and makes it
+                start at every boot.</li>
+              <li><b>Prints a setup code.</b> Open <span class="mono">http://&lt;pi&gt;:8080</span>, enter the code and
+                create the admin account. Only someone with access to the Pi can, so nobody else on the network can
+                claim it first.</li>
+            </ol>
+            <p class="help">Want to choose the port, who may connect, or a folder per module? Run
+              <span class="mono">./install.sh --advanced</span>.</p>
+          </div>
+
+          <aside class="card lp-install-side" aria-labelledby="needs-title">
+            <h3 class="h3" id="needs-title">You need</h3>
+            <ul class="lp-list">
+              <li>A Raspberry Pi 5 (others work too) with the official power supply</li>
+              <li>An SSD for maps and books (recommended; give it enough power)</li>
+              <li>Internet during the install and to download maps and books</li>
+              <li>A little comfort with a terminal for the setup; day to day, it's all in the browser</li>
+            </ul>
+            <h3 class="h3">Day to day</h3>
+            <div class="lp-cmds">
+              <pre><code data-copy>./update.sh</code></pre><span>a new version</span>
+              <pre><code data-copy>./manage.sh status</code></pre><span>what runs</span>
+              <pre><code data-copy>./manage.sh users</code></pre><span>the accounts</span>
+              <pre><code data-copy>./uninstall.sh</code></pre><span>remove it, data only if you confirm</span>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- -------------------------------------------------------- security -->
+      <section id="security" class="lp-section" aria-labelledby="security-title">
+        <div class="lp-section-head">
+          <span class="label">05 · Security</span>
+          <h2 class="h2" id="security-title">Only for the people you let in</h2>
+        </div>
+        <div class="lp-cards">
+          <article class="card">
+            <div class="lp-card-head"><i data-icon="user"></i><h3 class="h3">Accounts</h3></div>
+            <p>Everything needs a login. Admins start and stop modules, block devices, delete shared data and manage the
+              accounts; users do everything else.</p>
+          </article>
+          <article class="card">
+            <div class="lp-card-head"><i data-icon="caution"></i><h3 class="h3">Mind the network</h3></div>
+            <p>outpost speaks plain HTTP on your local network. Put a password on the hotspot, and use it where you trust
+              who is around.</p>
+          </article>
+          <article class="card">
+            <div class="lp-card-head"><i data-icon="storage"></i><h3 class="h3">Your data stays</h3></div>
+            <p>Nothing is sent anywhere. Uninstalling keeps your data unless you confirm deleting it, folder by
+              folder.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="lp-footer">
+      <span class="label">outpost · an offline outpost on a Raspberry Pi</span>
+      <span class="lp-footer-links">
+        <a href="https://github.com/faebeee/offline-pi">Source</a>
+        <a href="https://github.com/faebeee/offline-pi/tree/main/docs">Documentation</a>
+        <a href="https://github.com/faebeee/offline-pi/blob/main/docs/07-changelog.md">Changelog</a>
+      </span>
+    </footer>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
