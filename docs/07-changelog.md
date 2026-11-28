@@ -11,6 +11,18 @@ under **Unreleased**.
 
 ## Unreleased
 
+Nothing yet.
+
+## 0.2.0 (2026-11-28)
+
+Accounts and login, new apps (Files, Board, Supplies, Network), new
+screens for Settings and Diagnostics, ready-made images and a one-line
+install, start at boot, `basecamp.local` on the hotspot, and an update
+banner for new releases.
+
+Action needed: after updating, open outpost in a browser and create the
+admin account with the setup code that `./start.sh` prints.
+
 ### Added
 
 - Update banner: once a day, while the Pi is online, outpost asks GitHub
@@ -180,6 +192,10 @@ under **Unreleased**.
 - Module numbers in the headers follow the new list: Maps 01, Library 02,
   Network 03, Files 04, Board 05, Supplies 06, System 07, Logs 08, Info
   09, Settings 10, Diagnostics 11.
+- Hotspot fallback: the hotspot is called `Basecamp-1` by default (new
+  installs, or an empty `HOTSPOT_SSID`). An existing
+  `/etc/hotspot-fallback.env` keeps its name; change `HOTSPOT_SSID` there
+  to switch.
 
 ### Fixed
 
@@ -215,13 +231,6 @@ under **Unreleased**.
   with `podman rm -f outpost-mesh; podman rmi $(podman images -q '*outpost-mesh*')`;
   your old message history stays in `MESH_DATA_DIR` (`data/mesh` by
   default) until you delete it yourself.
-
-### Changed
-
-- Hotspot fallback: the hotspot is called `Basecamp-1` by default (new
-  installs, or an empty `HOTSPOT_SSID`). An existing
-  `/etc/hotspot-fallback.env` keeps its name; change `HOTSPOT_SSID` there
-  to switch.
 
 ## 0.1.0 (2026-11-10)
 
