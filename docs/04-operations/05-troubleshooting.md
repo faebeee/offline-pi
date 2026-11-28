@@ -37,6 +37,56 @@ badge line shows the last error.
 **Fix:** read the module's log (`./manage.sh logs <module>`), then try
 START again or run `./start.sh`.
 
+## "Log in first." or the login screen keeps coming back
+
+**Cause:** your login ended: you logged out, it is older than 30 days,
+your password was changed or your account deleted, or the browser blocks
+cookies. Screens, map tiles and Library pages need a login.
+**Fix:** log in again. If the browser keeps forgetting the login, allow
+cookies for the Pi's address. See [Users and login](../03-modules/14-users.md).
+
+## "Create the admin account first."
+
+**Cause:** no account exists yet, so outpost waits for the first-run setup.
+**Fix:** open the web app and create the admin account with the setup
+code (see [Install](../02-installation/01-install.md#first-start)).
+
+## "Wrong setup code."
+
+**Cause:** the code typed on the `Create the admin account` screen is not
+the one core made for this outpost.
+**Fix:** show it on the Pi with `./manage.sh users setup-code` (or look at
+the end of `./start.sh`) and type it again. Case and the dash don't matter.
+After a few wrong tries the screen asks you to wait, like a wrong password.
+
+## Forgot the password
+
+**Cause:** nobody knows the password of an account, perhaps of the only
+admin.
+**Fix:** an admin can set a new password on the Users screen. If no admin
+can log in, use a terminal on the Pi:
+
+```sh
+./manage.sh users                       # find the user name
+./manage.sh users reset-password admin  # asks the new password twice
+```
+
+## "Too many wrong passwords. Try again in N seconds."
+
+**Cause:** 5 wrong passwords from your device. Each further try has to wait,
+from 30 seconds up to 15 minutes, doubling with every wrong try.
+**Fix:** wait the time the message says, then try once with the right
+password. Use `./manage.sh users reset-password <name>` if you don't know
+it.
+
+## "Only an admin can do this."
+
+**Cause:** starting and stopping modules, blocking devices, the hotspot
+switch, deleting files, posts and supplies, pinning posts and managing
+accounts are for admins only.
+**Fix:** ask an admin, or have an admin make your account an admin on the
+Users screen.
+
 ## Start and stop do not work: "Podman socket not reachable"
 
 **Cause:** core starts and stops modules through your user's

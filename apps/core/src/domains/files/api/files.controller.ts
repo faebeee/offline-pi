@@ -1,6 +1,8 @@
 import { BadRequestException, Body, Controller, Delete, Get, Headers, HttpCode, Post, Put, Query, Req, Res, UnsupportedMediaTypeException } from '@nestjs/common';
 import { ApiExcludeEndpoint, ApiHeader, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
+import { CurrentUser } from '../../../platform/auth/current-user.decorator';
+import type { SessionUser } from '../../../platform/auth/auth.service';
 import { assertControl, assertCsrf } from '../../../platform/http/control-guard';
 import { CreateFolderRequest, FileEntry, FilesStatus, FolderListing, MoveRequest } from '../domain/files.dto';
 import { inlineSafe, mimeOf, RAW_PREFIX, SharedFolder } from '../infrastructure/shared-folder';
@@ -20,7 +22,7 @@ function rawPath(req: Request): string {
  * core itself (FILES_DATA_DIR mounted at FILES_DIR). The JSON routes list,
  * make folders, rename and delete; the raw routes stream the bytes
  * (GET downloads with range requests, PUT uploads). Deleting is a control
- * action (CONTROL_PIN), like blocking a device.
+ * action (admin only), like blocking a device.
  */
 @ApiTags('files')
 @Controller('api/files')
@@ -70,13 +72,12 @@ export class FilesController {
   @HttpCode(204)
   @ApiQuery({ name: 'path', required: true })
   @ApiHeader({ name: 'X-Pi-Monitor', required: true, description: 'must be "1" (CSRF guard)' })
-  @ApiHeader({ name: 'X-Control-Pin', required: false, description: 'CONTROL_PIN, when set' })
   remove(
     @Query('path') path: string,
     @Headers('x-pi-monitor') piMonitor: string | undefined,
-    @Headers('x-control-pin') pin: string | undefined,
+    @CurrentUser() user: SessionUser | undefined,
   ): Promise<void> {
-    assertControl(piMonitor, pin);
+    assertControl(piMonitor, user);
     if (!path?.trim()) throw new BadRequestException('path is empty');
     return this.files.remove(path);
   }

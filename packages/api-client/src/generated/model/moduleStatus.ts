@@ -19,6 +19,8 @@ export interface ModuleStatus {
   optional: boolean;
   /** nav group: apps on top, system screens (System, Logs, ...) at the bottom */
   nav: ModuleStatusNav;
+  /** only shown to admins (e.g. Users) */
+  adminOnly: boolean;
   /** podman container name, outpost-<service> */
   container: string;
   installed: boolean;

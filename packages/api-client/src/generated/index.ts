@@ -1,3 +1,4 @@
+export * from './auth/auth';
 export * from './board/board';
 export * from './diagnostics/diagnostics';
 export * from './files/files';
@@ -10,3 +11,4 @@ export * from './network/network';
 export * from './settings/settings';
 export * from './supplies/supplies';
 export * from './system/system';
+export * from './users/users';

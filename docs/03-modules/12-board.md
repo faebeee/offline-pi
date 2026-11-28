@@ -42,18 +42,17 @@ Each card has buttons:
 |---|---|
 | MARK AS MET / TAKEN / OLD / OVER | The need was met, the offer taken, the check-in or notice is out of date. The post stays, crossed out, at the end. Press it again to bring it back. |
 | EDIT | Change the post. |
-| PIN / UNPIN | Keep the post at the top, for example the distribution times. Asks for the control PIN when one is set. |
-| Delete | Removes the post for good, after a question. Asks for the control PIN when one is set. |
+| PIN / UNPIN | Keep the post at the top, for example the distribution times. Admins only. |
+| Delete | Removes the post for good, after a question. Admins only. |
 
 Done posts are hidden until you press SHOW `<N>` DONE POSTS at the end of
 the list.
 
 ## Who can do what
 
-Everyone who can open outpost can post, edit and mark posts done; there are
-no accounts, so a name on a post is only what its author typed. Pinning and
-deleting ask for the control PIN when `CONTROL_PIN` is set (see
-[Home](01-home.md#the-control-pin)).
+Everyone with an account can post, edit and mark posts done. The name on a
+post is only what its author typed, not the account. Only admins can pin
+and delete posts (see [Users and login](14-users.md#admins-and-users)).
 
 ## Where the posts are
 

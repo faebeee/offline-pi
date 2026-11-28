@@ -2,9 +2,9 @@
 
 Diagnostics checks every part of outpost and tells you what does not work
 and what to do about it. Open it when a module does not come up, a
-download fails or something behaves oddly. It is module 09, served by
+download fails or something behaves oddly. It is module 11, served by
 core: it has no container of its own and is always on. Open it with
-Diagnostics in the module nav (`/diagnostics`).
+Diagnostics in the module nav (`/diagnostics`). Only admins can open it (see [Users and login](14-users.md#admins-and-users)).
 
 The checks run when you open the screen and again with RUN AGAIN; they take
 a few seconds. Nothing is changed or repaired from here: each problem says
@@ -33,7 +33,10 @@ keep or to send to whoever helps you.
 
 - `.env` is readable, and which modules are installed.
 - Core reaches Podman (`podman.socket`) and can read the container list.
-- Whether a control PIN protects starting and stopping modules.
+- Accounts: how many accounts and admins there are (`2 accounts, 1 admin`).
+  `No admin account yet` (a warning) means the first-run setup is still
+  open: open the web app and create the admin account right away (see
+  [Users and login](14-users.md#first-run-create-the-admin-account)).
 - The clock: the Pi has no clock battery, so without internet its time can
   be wrong after a power cut.
 

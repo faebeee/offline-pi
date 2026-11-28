@@ -48,7 +48,8 @@ unless its owner resets the private address.
 ## Blocking a device
 
 Open the device, optionally write a note (why it is blocked) and press
-BLOCK. If a control PIN is set (`CONTROL_PIN`), the browser asks for it.
+BLOCK. Blocking, unblocking and forgetting devices are for admins only
+(see [Users and login](14-users.md#admins-and-users)).
 Blocking your own device (marked YOU) asks first, because it cuts you off.
 
 A blocked device is disconnected and gets no traffic through the Pi: no
@@ -73,7 +74,7 @@ it. If the screen says `Blocking is not enforced`, install it on the Pi:
 ## Switching the hotspot on and off
 
 The **Wi-Fi hotspot** switch at the top shows whether the hotspot runs and
-turns it on or off. If a control PIN is set, the browser asks for it.
+turns it on or off (admins only).
 Switching takes a few seconds (the badge says SWITCHING ON or SWITCHING
 OFF meanwhile).
 

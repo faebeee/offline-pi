@@ -18,7 +18,7 @@ import { Dialog } from "../../app/Dialog";
 import { Screen } from "../../app/Screen";
 import { Badge, Banner, Icon, Illustration } from "../../ui/outpost";
 import { ModuleGate } from "../modules/ModuleGate";
-import { isRunning, useModule, withControlPin } from "../modules/useModules";
+import { isRunning, useModule } from "../modules/useModules";
 import "./board.css";
 
 const POLL_MS = 10_000;
@@ -187,11 +187,11 @@ function PostCard({ post: p, onEdit, onChanged }: { post: BoardPost; onEdit: () 
   const k = KINDS[p.kind];
   const update = useMutation({
     mutationFn: (body: UpdatePostRequest) =>
-      body.pinned !== undefined ? withControlPin("pin posts", () => boardUpdate(p.id, body)) : boardUpdate(p.id, body),
+      boardUpdate(p.id, body),
     onSettled: onChanged,
   });
   const remove = useMutation({
-    mutationFn: () => withControlPin("delete posts", () => boardRemove(p.id)),
+    mutationFn: () => boardRemove(p.id),
     onSuccess: () => toast("Post deleted."),
     onSettled: onChanged,
   });

@@ -20,7 +20,7 @@ import { Dialog } from "../../app/Dialog";
 import { Screen } from "../../app/Screen";
 import { Badge, Banner, Icon, Illustration, Progress } from "../../ui/outpost";
 import { ModuleGate } from "../modules/ModuleGate";
-import { isRunning, useModule, withControlPin } from "../modules/useModules";
+import { isRunning, useModule } from "../modules/useModules";
 import "./supplies.css";
 
 const POLL_MS = 30_000;
@@ -312,7 +312,7 @@ function ItemDialog({ editing, onClose, onSaved }: { editing: NonNullable<Editin
     },
   });
   const remove = useMutation({
-    mutationFn: () => withControlPin("delete supplies", () => suppliesRemove(i!.id)),
+    mutationFn: () => suppliesRemove(i!.id),
     onSuccess: () => {
       onSaved();
       onClose();

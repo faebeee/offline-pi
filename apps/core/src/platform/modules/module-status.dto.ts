@@ -10,6 +10,8 @@ export class ModuleStatus {
   optional!: boolean;
   /** nav group: apps on top, system screens (System, Logs, ...) at the bottom */
   nav!: 'apps' | 'system';
+  /** only shown to admins (e.g. Users) */
+  adminOnly!: boolean;
   /** podman container name, outpost-<service> */
   container!: string;
   installed!: boolean;
@@ -30,8 +32,6 @@ export class ModulesOverview {
   /** core can reach podman.socket and start/stop modules */
   control!: boolean;
   controlError!: string | null;
-  /** start/stop needs the X-Control-Pin header (CONTROL_PIN is set) */
-  pinRequired!: boolean;
   modules!: ModuleStatus[];
 }
 

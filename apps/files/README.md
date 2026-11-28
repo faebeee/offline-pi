@@ -35,8 +35,8 @@ browser ──> core /api/files/*            list, folders, move, delete (JSON)
   `Content-Security-Policy: sandbox` and `nosniff`, so an uploaded page
   can't run as part of outpost. Range requests work (video seeking,
   resumed downloads).
-- **Deleting** is a control action (`CONTROL_PIN`); listing, uploading,
-  folders and renaming are open to everyone on the network.
+- **Deleting** is a control action (admins only); listing, uploading,
+  folders and renaming are open to every logged-in account.
 - The status (size of the folder) is measured at most every 30 s.
 
 ## Settings

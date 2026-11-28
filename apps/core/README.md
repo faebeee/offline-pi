@@ -18,6 +18,10 @@ serves:
   (page loads are sent to its screen, which offers START);
 - `/ui/`: the shared Outpost package.
 
+Every `/api/` and `/svc/` request and every Socket.IO connection needs a
+login (see [Accounts](#accounts)); the web app's own files load without one
+so the login screen can show.
+
 Built with NestJS and Socket.IO; fully offline: no CDN, no external fonts or
 chart libraries.
 
@@ -36,11 +40,33 @@ on and configured (`requires` in its manifest), dependencies first, and stops
 the ones switched off. A crash in between is handled by Podman
 (`restart: on-failure`); a stop isn't undone.
 
-There is no login: anyone who can open the dashboard can switch modules.
-Set `CONTROL_PIN` to require a PIN, or `BIND_ADDRESS=127.0.0.1`. The socket
-gives full control over your Podman containers, so core only exposes start
-and stop of module containers, and requires an `X-Pi-Monitor: 1` header so
-other web pages can't trigger it.
+Only admins can switch modules (see [Accounts](#accounts)); set
+`BIND_ADDRESS=127.0.0.1` to keep outpost on the Pi. The socket gives full
+control over your Podman containers, so core only exposes start and stop of
+module containers, and requires an `X-Pi-Monitor: 1` header so other web
+pages can't trigger it.
+
+## Accounts
+
+Every user of outpost has an account with a role, `admin` or `user`
+(user guide: [docs/03-modules/14-users.md](../../docs/03-modules/14-users.md),
+the screen: [`apps/users`](../users/README.md)).
+
+- `src/platform/auth/`: `UsersStore` (`CORE_DATA_DIR/users.json`, scrypt
+  hashes in `password.ts`), `SessionsStore` (`sessions.json`, SHA-256 of
+  each session token), `AuthService.resolve()` (cookie or bearer token to
+  a `SessionUser`), `authMiddleware` (401 for `/api/` and `/svc/` without
+  a session, except the public list), `AuthIoAdapter` (the same for
+  Socket.IO), `@CurrentUser()`.
+- Sessions: the httpOnly, SameSite=Strict cookie `outpost_session`, 30
+  days, kept across restarts.
+- At start core writes a random local admin token to
+  `CORE_DATA_DIR/cli.token`; `core_api` in `lib/modules.sh` sends it as
+  `Authorization: Bearer`, so `./manage.sh` works without a login.
+- `users.json`, `sessions.json` and `cli.token` are mode 600.
+- Control actions call `assertControl(piMonitor, user)`
+  (`src/platform/http/control-guard.ts`): CSRF header plus an admin,
+  otherwise 403 `Only an admin can do this.`
 
 ## The System module
 
@@ -72,10 +98,9 @@ Set in the root `.env` (see the root README); the ones specific to core:
 | Variable | Default | Description |
 |---|---|---|
 | `PORT` / `BIND_ADDRESS` | `8080` / `0.0.0.0` | Where outpost is reachable. |
-| `CORE_DATA_DIR` | `./data/core` | `history.json` (24 h history + power events, < 1 MB) and `modules.json`. |
+| `CORE_DATA_DIR` | `./data/core` | `history.json` (24 h history + power events, < 1 MB), `modules.json`, the Board, Supplies and the accounts (`users.json`, `sessions.json`, `cli.token`). |
 | `SAMPLE_INTERVAL_MS` | `2000` | How often the Pi is sampled and pushed to dashboards (min 500). Containers and connections refresh every 5 s. |
 | `CORE_LOG_LEVEL` | `log` | Least severe level core logs: `verbose`, `debug`, `log`, `warn`, `error`, `fatal`. |
-| `CONTROL_PIN` | empty | PIN for starting/stopping modules (asked once per browser tab). |
 | `PODMAN_GRAPH_ROOT` | from `podman info` | Host path of Podman's storage, whose `db.sql` lists the containers. Empty = search the default locations. |
 | `PODMAN_SOCKET` | from `podman info` | Host path of your Podman API socket (module start/stop). |
 | `VCIO_DEVICE` | `/dev/vcio_gencmd` | Firmware mailbox for `vcgencmd` (`/dev/null` if not a Pi). |
@@ -116,7 +141,9 @@ core, or `packages/api-client/openapi.json`). By domain:
 
 | Domain | Endpoints | Live (Socket.IO namespace) |
 |---|---|---|
-| modules | `GET /api/modules`; `POST /api/modules/:id/start` / `stop` (header `X-Pi-Monitor: 1`; `X-Control-Pin` when `CONTROL_PIN` is set) | |
+| modules | `GET /api/modules`; `POST /api/modules/:id/start` / `stop` (header `X-Pi-Monitor: 1`; admins only) | |
+| auth | `GET /api/auth/state`; `POST /api/auth/setup`, `login`, `logout`, `password` | |
+| users | `GET /api/users`, `POST /api/users`, `PATCH /api/users/:id`, `DELETE /api/users/:id` (admins only) | |
 | system | `GET /api/system/status` (healthcheck: 200 while samples are fresh), `snapshot`, `history` | `/system`: `init` on connect, then `snapshot` per sample |
 | logs | `GET /api/logs/sources`, `GET /api/logs/:source?tail=` (`core` or a module id) | `/logs`: send `follow` / `unfollow` with a source, get `entries` (batches), `followError` |
 | maps | `GET /api/maps/status`, `regions`, `places?q=`, `jobs`, `jobs/:id`, `pois`, `styles/:name?theme=`; `POST setup`, `downloads`, `downloads/:id/confirm`, `pois`; `PATCH pois/:id`; `DELETE regions/:name`, `jobs/:id`, `pois/:id` | `/maps`: send `watchJob` / `unwatchJob`, get `job` |
@@ -153,7 +180,11 @@ Code layout (domain-driven; how to add a domain: root `AGENTS.md`):
   - `upstream/`: `UpstreamService` / `UpstreamClient`, how a domain calls
     its container (errors mapped to 404/503/upstream status), SSE reader.
   - `passthrough/passthrough.ts`: `/svc/<module>/`.
-  - `openapi/`, `realtime/`, `http/` (error filter), `web/` (serves `apps/web`).
+  - `auth/`: accounts, sessions, `authMiddleware`, `AuthIoAdapter`,
+    `@CurrentUser()` (see [Accounts](#accounts)).
+  - `storage/json-file.ts`: `JsonFile`, atomic JSON files (optional file
+    mode).
+  - `openapi/`, `realtime/`, `http/` (error filter, `control-guard.ts`), `web/` (serves `apps/web`).
 - `src/domains/<name>/` (`modules`, `system`, `maps`, `library`,
   `network`, ...): `api/` controllers, `application/` use cases,
   `infrastructure/` container clients and mappers, `domain/` DTO classes

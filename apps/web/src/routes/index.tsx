@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Screen } from "../app/Screen";
+import { useMe } from "../app/auth";
 import { describe } from "../features/modules/describe";
 import { ModuleSwitches } from "../features/modules/ModuleSwitches";
 import { useModules } from "../features/modules/useModules";
@@ -11,7 +12,8 @@ export const Route = createFileRoute("/")({ component: Home });
 function Home() {
   const { data, isError } = useModules();
 
-  const installed = (data?.modules ?? []).filter((m) => m.installed);
+  const { isAdmin } = useMe();
+  const installed = (data?.modules ?? []).filter((m) => m.installed && (isAdmin || !m.adminOnly));
   const optional = installed.filter((m) => m.optional);
   const running = optional.filter((m) => m.state === "running").length;
   return (

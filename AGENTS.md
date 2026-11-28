@@ -22,7 +22,7 @@ install.sh               # choose modules + data folder, get images, autostart, 
 start.sh                 # get images, (re)create containers; core starts modules
 stop.sh                  # stop core, then every module (nothing removed)
 update.sh                # git pull a new version, then its install.sh --yes
-manage.sh                # status, start/stop, logs, module commands
+manage.sh                # status, start/stop, logs, users, module commands
 uninstall.sh             # remove containers/images; data only on confirmation
 lib/common.sh            # log helpers, compose wrapper, .env helpers
 lib/ui.sh                # prompts: inputs, menus, checkboxes, spinner (ui_*)
@@ -49,6 +49,7 @@ apps/info/               # the docs screen, served by core (reads docs/)
 apps/files/              # the shared folder, served by core (domain files)
 apps/supplies/           # the supplies list, served by core (domain supplies)
 apps/board/              # the notice board, served by core (domain board)
+apps/users/              # the accounts screen, served by core (domain users, admins only)
 apps/web/                # the web app: every screen of every module
 apps/maps/backend/       # a module's container code (API, data, jobs)
 packages/ui/             # @outpost/ui: Outpost design system (DESIGN.md)
@@ -115,8 +116,14 @@ core ──HTTP/WS──> maps :8081 · knowledge :8082 · network :8085
   - `/svc/<module path>/`: a streaming passthrough to each installed module
     (`src/platform/passthrough/passthrough.ts`) for what is not JSON: map
     tiles, fonts, sprites, `.pmtiles` range requests, kiwix articles.
-    WebSockets, SSE and range requests included,
+    WebSockets, SSE and range requests included. **Read only** (GET/HEAD;
+    anything else is 405) and without the browser's cookie or token: the
+    containers trust whatever reaches them, so every change goes through
+    core's API, where login, role and CSRF header are checked,
   - `/ui/`: the shared Outpost package.
+
+  Everything under `/api/` and `/svc/` and every Socket.IO connection needs
+  a login (see "Accounts and login").
 - **Modules** listen on `MODULES_BIND_ADDRESS` (127.0.0.1) on an internal
   port, so they are never exposed on their own. They have **no UI of their
   own**: an API, data and jobs. The browser only ever talks to one origin:
@@ -178,11 +185,66 @@ apps/core/src/domains/<name>/
   keys and TanStack Query hooks, `src/generated/model/` every DTO. The
   generated files are checked in; regenerate after every API change.
 
+### Accounts and login
+
+The whole app needs a login; each account is an `admin` or a `user`. User
+guide: `docs/03-modules/14-users.md`.
+
+- **Kernel** `src/platform/auth/`: `UsersStore` (`CORE_DATA_DIR/users.json`,
+  scrypt hashes in `password.ts`), `SessionsStore` (`sessions.json`, only
+  the SHA-256 of each token; 30 days), `AuthService.resolve()` (session
+  cookie `outpost_session`, httpOnly, SameSite=Strict, or the bearer
+  token), `authMiddleware` (401 for `/api/` and `/svc/` without a session;
+  a `/svc/` page load redirects to `/`), `AuthIoAdapter` (Socket.IO),
+  `@CurrentUser()` param decorator. The three files (with `cli.token`) are
+  mode 600 (`JsonFile` takes an optional file mode).
+- **Domain** `src/domains/users/`: `AuthController` (`/api/auth`: state,
+  setup, login, logout, password) and `UsersController` (`/api/users`,
+  admins only).
+- **Security rules** (each one closed a real hole once):
+  - the rules in `auth.middleware.ts` compare `rulePath()` (lower case,
+    slashes collapsed), and routing is case-sensitive (`main.ts`): never
+    match a raw `req.path` against a prefix;
+  - a container's API is never reachable from the browser except through a
+    core domain: the passthrough is read only (see above);
+  - a check followed by an `await` and then a write must check again after
+    the `await` (`UsersStore.create`: the first-run setup and duplicate
+    names), and a rate limit counts an attempt when it starts;
+  - every answer gets `X-Frame-Options: SAMEORIGIN`, `nosniff` and
+    `Referrer-Policy: same-origin`; the auth API `no-store`.
+- **New endpoints are protected by default.** Only add to the public list
+  in `auth.middleware.ts` what the login screen needs. A module marked
+  `"admin": true` is admin only as a whole (see the manifest).
+- **Guards** in `platform/http/control-guard.ts`: `assertCsrf(piMonitor)`
+  (the `X-Pi-Monitor: 1` header on every state-changing call),
+  `assertControl(piMonitor, user)` (CSRF + admin, for control actions:
+  module start/stop, devices and the hotspot, deleting shared data,
+  pinning posts, accounts), `assertAdmin(user)` (admin-only reads). An
+  admin-only method takes `@Headers('x-pi-monitor') piMonitor` and
+  `@CurrentUser() user: SessionUser | undefined` and calls
+  `assertControl(piMonitor, user)`; a user gets 403 "Only an admin can do
+  this."
+- **Scripts**: core writes a random local admin token to
+  `CORE_DATA_DIR/cli.token` at start and accepts it only from a loopback
+  peer (`isLocalPeer`); `core_api` (`lib/modules.sh`) sends it as
+  `Authorization: Bearer`, the whole request as a curl config on stdin (no
+  secret in `ps`), on macOS through `podman machine ssh` so it is local.
+- **First run**: while no account exists, core keeps a one-time setup code
+  in `CORE_DATA_DIR/setup.code` (and logs it); `POST /api/auth/setup`
+  needs it (braked like logins), `start.sh` prints it, `./manage.sh users
+  setup-code` shows it.
+- **Web**: `apps/web/src/app/auth.tsx`: `AuthGate` (wraps the frame in
+  `routes/__root.tsx`, shows the first-run setup or the login),
+  `useMe()` (`{ user, isAdmin }`, to disable admin-only actions),
+  `AccountButton` (in every header). `main.tsx` refetches the auth state
+  on any 401.
+
 ### Adding a feature (endpoint -> screen)
 
 1. In `apps/core/src/domains/<name>/`: the DTO classes, the client call, the
    controller method (and an application service if there is logic). A new
-   domain: also its `<name>.module.ts` in `src/app.module.ts`.
+   domain: also its `<name>.module.ts` in `src/app.module.ts`. An
+   admin-only action calls `assertControl` (see "Accounts and login").
 2. `npm run api:gen`.
 3. In `apps/web`: use the generated hook (`useXxx()` from
    `@outpost/api-client`) in `src/features/<name>/`, and a route in
@@ -233,6 +295,13 @@ domain's hooks and namespaces (e.g. a Maps layer drawn from another domain's
      container, always on; its domain and screen are added as in steps 6
      and 7. A feature whose data is small and needs no program or device
      of its own belongs here, with its data in `CORE_DATA_DIR`.
+   - `admin`: optional, `true` makes the screen admins only (System, Logs,
+     Settings, Diagnostics, Users): hidden from users' nav and tiles
+     (`adminOnly` in `/api/modules`), its route wrapped in `<AdminOnly>`
+     (`apps/web/src/app/AdminOnly.tsx`), and core refuses `/api/<id>/...`
+     and the Socket.IO namespace `/<id>` to non-admins (`authMiddleware`,
+     `AuthIoAdapter`). Exceptions for every account go in `ANY_ACCOUNT` in
+     `auth.middleware.ts` (`/api/system/vitals`, the status strip).
    - `nav`: `"apps"` (top of the nav) or `"system"` (the bottom group);
      default: optional modules are apps, core screens system. Board is a
      core screen with `"nav": "apps"`.
@@ -311,8 +380,10 @@ then sources `lib/common.sh` (and what else it needs).
   its default name and moves existing data), then each module's configure
   hook. 4. A summary, `get_images`, post-build hooks, `ensure_linger`,
   `autostart_enable`, `exec start.sh`. `--advanced` adds the port,
-  `BIND_ADDRESS`, `CONTROL_PIN`, a folder per `*_DIR` and a confirmation
-  before installing; the defaults (8080, every device, no PIN) are otherwise used without asking.
+  `BIND_ADDRESS`, a folder per `*_DIR` and a confirmation before
+  installing; the defaults (8080, every device) are otherwise used without
+  asking. Accounts are not asked: the first visit to the web app creates
+  the admin (`start.sh` prints a reminder while none exists).
 - **Images** (`lib/images.sh`): compose names them
   `$OUTPOST_REGISTRY/outpost-<service>:$OUTPOST_TAG`, the tag being
   `sha-<commit>` of the checkout (`images_init` in `lib/common.sh`, run by
@@ -354,7 +425,9 @@ then sources `lib/common.sh` (and what else it needs).
   `git reset --hard <old> && ./start.sh` way back.
 - **`manage.sh`**: `status`, `start|stop <module>` (through core's API, so
   the dashboard state stays right), `logs [module]`, `autostart
-  on|off|status`, `<module> <cmd>`.
+  on|off|status`, `users` (accounts and roles), `users reset-password
+  NAME` (hidden prompt twice, logs the account out everywhere; the way back
+  from a forgotten admin password), `<module> <cmd>`.
   Destructive commands confirm first and never silently delete data.
 - **`uninstall.sh`** `[--purge] [--yes]`: works with or without `.env` and
   without Podman. Shows what it will do, asks once (default no). Always
@@ -368,7 +441,8 @@ then sources `lib/common.sh` (and what else it needs).
   plain `read` prompts.
 - Only `install.sh` writes `.env` (`set_env`); `start.sh`/`manage.sh` read
   it. Core writes to `CORE_DATA_DIR` (`modules.json`, `history.json`,
-  `board.json`, `supplies.json`) and the Files folder (`FILES_DATA_DIR`).
+  `board.json`, `supplies.json`, `users.json`, `sessions.json`,
+  `cli.token`) and the Files folder (`FILES_DATA_DIR`).
 - Every compose call goes through `compose` in `lib/common.sh`, which adds
   `-p outpost -f compose.yml --env-file .env` and prefers `podman compose`
   over `podman-compose`. On macOS it always uses `podman-compose` (`podman
@@ -385,7 +459,8 @@ log_ok()    { printf '\033[1;32m✔\033[0m %s\n' "$*"; }
 ```
 
 Prompts go through `lib/ui.sh` (sourced by `lib/common.sh`), never a bare
-`read`: `ui_input QUESTION DEFAULT [VALIDATOR]`, `ui_confirm QUESTION y|n`,
+`read`: `ui_input QUESTION DEFAULT [VALIDATOR]`, `ui_secret QUESTION`
+(hidden input, fails with `--yes`), `ui_confirm QUESTION y|n`,
 `ui_select QUESTION DEFAULT "value|label|hint"...`, `ui_multiselect
 QUESTION "value|label|hint|on"...` (answers in `UI_REPLY`), `ui_run MESSAGE
 CMD...` for long steps (spinner, output to `UI_LOG`, its end shown on
@@ -497,11 +572,13 @@ apps/web/src/
   (`src/app/realtime.ts`) for live updates, updating the Query cache. No
   hand-written `fetch` to `/api`, never a module's container directly; raw
   files (tiles, `.pmtiles`, kiwix pages) through `/svc/<module>/`.
-- **Every screen** is `<Screen module="<id>" title=...>` (header with theme
-  toggle, content, module nav; the status strip is shared) and, for a
+- **Every screen** is `<Screen module="<id>" title=...>` (header with the
+  account button and theme toggle, content, module nav; the status strip is shared) and, for a
   module, `<ModuleGate id="<id>">`, which shows "not installed / not
   running / START" instead of the screen. The nav and home tiles come from
-  `/api/modules`, so a new module needs no change in `packages/ui`.
+  `/api/modules`, so a new module needs no change in `packages/ui`. The
+  whole frame is behind `AuthGate`; disable admin-only actions with
+  `useMe().isAdmin`.
 - The status strip is **the same on every screen** (`src/app/strip.tsx`):
   the link to core, internet (`NET`), the host vitals and the UTC time. Screens don't add to
   it; a screen's own state (its data source, counts, progress) goes in its

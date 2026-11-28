@@ -59,9 +59,9 @@ Press ADD ITEM (or ADD next to a category), or tap an item to change it:
 | Note | Optional. |
 
 DELETE (when changing an item) removes it from the list, after a question.
-It asks for the control PIN when one is set (see
-[Home](01-home.md#the-control-pin)). Everything else is open to everyone who
-can open outpost.
+Only admins can delete (see
+[Users and login](14-users.md#admins-and-users)). Everything else is open
+to everyone with an account.
 
 ## Household settings
 

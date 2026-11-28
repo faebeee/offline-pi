@@ -4,6 +4,8 @@ Terms used across these docs and in the project, in alphabetical order.
 
 | Term | Meaning |
 |---|---|
+| **Account** | A user name and password that can log in to outpost, with a role: admin or user. Kept in `CORE_DATA_DIR/users.json`, managed on the Users screen. |
+| **Admin** | The role of an account that may also do the control actions: start and stop modules, block devices and switch the hotspot, delete shared files, Board posts and supplies, pin posts, and manage accounts. The first account is always an admin. |
 | **api-client** | `@outpost/api-client` (`packages/api-client`): the web app's typed client, generated from core's OpenAPI document with `npm run api:gen`. |
 | **Compose project** | The set of containers defined in `compose.yml`, always named `outpost`. Run through Podman Compose (`podman compose` or `podman-compose`). |
 | **Core** | The part of outpost that always runs (`apps/core`, NestJS). The only service the network reaches: it serves the web app, the API, live updates and the passthrough, and starts and stops the modules. |
@@ -27,10 +29,13 @@ Terms used across these docs and in the project, in alphabetical order.
 | **Reconcile** | What core does when it starts: bring every installed module into its desired state (started when switched on and configured, stopped when switched off). |
 | **Region** | A map area downloaded on the Maps screen (a country or a smaller area), stored as one `.pmtiles` file in `MAPS_DATA_DIR`. |
 | **requires** | A manifest field: settings that must be set before a module may start (for example a hypothetical `radio` module that requires `RADIO_DEVICE`). |
+| **Role** | `admin` or `user`, set per account on the Users screen. |
 | **Running** | A module whose container is up. |
+| **Session** | A login in one browser: a random token in the httpOnly cookie `outpost_session`, valid 30 days. Only its hash is stored (`CORE_DATA_DIR/sessions.json`). Logging out, a new password or deleting the account ends it. |
 | **Status strip** | The thin line at the top of every screen: the same everywhere: the link LED to core (`CORE · LIVE`), the Pi's vitals (temperature, voltage, CPU, memory, disk) and the UTC clock. |
 | **Switched on / off** | Whether an installed module should run. Chosen on the home page, stored in `CORE_DATA_DIR/modules.json`, kept across reboots. |
 | **Turborepo** | The build tool that runs `build`, `typecheck` and `dev` across the npm workspaces in the right order. |
+| **User** | The role of an account that can use every screen but not the control actions. Also: anyone with an account. |
 | **Workspace** | One npm package of the monorepo (`@outpost/<name>`), in `apps/` or `packages/`. |
 | **ZIM** | The file format of offline Wikipedia and other books. One file per book, read by kiwix. Stored in `KNOWLEDGE_CONTENT_DIR`. |
 

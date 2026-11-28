@@ -31,6 +31,15 @@ export function gatewayMiddleware(modules: ModulesService) {
       }
       return next();
     }
+    // Read only. The containers trust whatever reaches them, so every change
+    // goes through core's API, where the login, the role and the CSRF header
+    // are checked; the browser only reads here (tiles, fonts, pmtiles ranges,
+    // kiwix pages).
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      res.setHeader('Allow', 'GET, HEAD');
+      res.status(405).json({ statusCode: 405, message: 'Read only: changes go through /api/.' });
+      return;
+    }
     // /svc/library -> /svc/library/ so relative URLs resolve under its path
     if (req.path === m.svcPath.slice(0, -1)) {
       const q = req.originalUrl.slice(req.path.length);
@@ -47,10 +56,13 @@ function target(m: Module, url: string): { host: string; port: number; path: str
   return { host: up.hostname, port: Number(up.port), path };
 }
 
+// the browser's login stays with core: modules never see it
+const PRIVATE = ['cookie', 'authorization'];
+
 function forwardedHeaders(m: Module, req: IncomingMessage) {
   const headers: Record<string, string | string[]> = {};
   for (const [k, v] of Object.entries(req.headers)) {
-    if (v !== undefined && !HOP.includes(k)) headers[k] = v;
+    if (v !== undefined && !HOP.includes(k) && !PRIVATE.includes(k)) headers[k] = v;
   }
   const remote = req.socket.remoteAddress ?? '';
   headers['x-forwarded-for'] = req.headers['x-forwarded-for'] ? `${req.headers['x-forwarded-for']}, ${remote}` : remote;
@@ -104,12 +116,19 @@ function unavailable(m: Module, req: Request, res: Response) {
   res.json({ statusCode: 503, message: `${m.label} is not running. Start it on the dashboard.` });
 }
 
-/** Pipe WebSocket upgrades under a module's passthrough path. */
-export function attachUpgrade(server: Server, modules: ModulesService) {
+/**
+ * Pipe WebSocket upgrades under a module's passthrough path. They never
+ * pass Express, so ALLOWED applies the login here (authMiddleware's rule).
+ */
+export function attachUpgrade(server: Server, modules: ModulesService, allowed: (req: IncomingMessage) => boolean) {
   server.on('upgrade', (req: IncomingMessage, socket: Duplex, head: Buffer) => {
     const path = (req.url ?? '/').split('?')[0];
     const m = modules.forPath(path);
     if (!m) return; // socket.io (core) handles its own path
+    if (!allowed(req)) {
+      socket.end('HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\n');
+      return;
+    }
     const t = target(m, req.url ?? '/');
     const up: Socket = connect(t.port, t.host, () => {
       const headers = forwardedHeaders(m, req);

@@ -20,7 +20,7 @@ const moduleFor = (mods: ModuleStatus[], c: ContainerInfo) =>
 
 /**
  * "Apps and containers": every container on the host. Rows of optional
- * modules get START / STOP (through useControlModule, PIN included);
+ * modules get START / STOP (through useControlModule, admins only);
  * STOP needs a second click within 4 s.
  */
 export function ContainersCard({ info }: { info: ContainersInfo }) {

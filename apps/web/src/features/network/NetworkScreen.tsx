@@ -16,7 +16,7 @@ import { Fragment, useState, type ReactNode } from "react";
 import { Screen } from "../../app/Screen";
 import { Badge, Banner, Icon, Illustration } from "../../ui/outpost";
 import { ModuleGate } from "../modules/ModuleGate";
-import { isRunning, useModule, withControlPin } from "../modules/useModules";
+import { isRunning, useModule } from "../modules/useModules";
 import { duration, monogram, signalText, title } from "./format";
 import "./network.css";
 
@@ -61,7 +61,7 @@ function HotspotSwitch({ status, clients }: { status: NetworkStatus; clients: Ho
   const qc = useQueryClient();
   const h = status.hotspot;
   const toggle = useMutation({
-    mutationFn: (on: boolean) => withControlPin("switch the hotspot", () => networkHotspot({ on })),
+    mutationFn: (on: boolean) => networkHotspot({ on }),
     onSettled: () => qc.invalidateQueries({ queryKey: getNetworkStatusQueryKey() }),
   });
 
@@ -331,7 +331,7 @@ function DeviceRow({ c, open, onToggle }: { c: HotspotClient; open: boolean; onT
   );
 }
 
-/** Block / unblock / forget, through the control PIN like module start/stop. */
+/** Block / unblock / forget (admins only, like module start/stop). */
 function DeviceActions({ c }: { c: HotspotClient }) {
   const qc = useQueryClient();
   const [note, setNote] = useState("");
@@ -340,12 +340,11 @@ function DeviceActions({ c }: { c: HotspotClient }) {
     void qc.invalidateQueries({ queryKey: getNetworkStatusQueryKey() });
   };
   const action = useMutation({
-    mutationFn: (kind: "block" | "unblock" | "forget") =>
-      withControlPin(`${kind} devices`, async () => {
-        if (kind === "block") await networkBlock(c.mac, { note: note.trim() || undefined });
-        else if (kind === "unblock") await networkUnblock(c.mac);
-        else await networkForget(c.mac);
-      }),
+    mutationFn: async (kind: "block" | "unblock" | "forget") => {
+      if (kind === "block") await networkBlock(c.mac, { note: note.trim() || undefined });
+      else if (kind === "unblock") await networkUnblock(c.mac);
+      else await networkForget(c.mac);
+    },
     onSettled: refresh,
   });
 

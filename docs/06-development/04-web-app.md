@@ -51,7 +51,26 @@ function RadioScreen() {
   stopped) and offers START; the screen appears as soon as the module is up.
   Screens that core serves itself (System, Logs, Info) need no gate.
 - The nav and the home tiles come from `GET /api/modules`, so a new module
-  needs no change in `packages/ui`.
+  needs no change in `packages/ui`. A manifest with `"admin": true`
+  (`adminOnly` in the API) is listed for admins only.
+
+## Login
+
+`src/app/auth.tsx` holds the login:
+
+- **`AuthGate`** wraps the whole frame in `routes/__root.tsx`. It reads
+  `GET /api/auth/state` and shows the first-run setup (`Create the admin
+  account`) or the login instead of the app until someone is logged in.
+- **`useMe()`** gives `{ user, isAdmin }`. Use `isAdmin` to disable or hide
+  admin-only actions (module switches, delete buttons); core checks again
+  and answers `403` anyway.
+- **`AccountButton`** is in every `<Screen>` header next to the theme
+  button: user name and role, `Manage users` (admins), password change and
+  log out.
+
+`main.tsx` refetches the auth state on any `401`, so a session that ended
+elsewhere (logged out, new password, account deleted) brings back the
+login.
 
 ## Status strip
 

@@ -3,8 +3,12 @@
 outpost is one web app. Open `http://<pi>:8080` in any browser on the
 same network or hotspot as the Pi (the port is `PORT` in `.env`, 8080 by
 default). Every module is a screen of that app: Maps, Library,
-Network, Files, Board and Supplies, plus System, Logs, Info, Settings and Diagnostics, which are always there. This chapter
-explains how to use each screen.
+Network, Files, Board and Supplies, plus System, Logs, Info, Settings, Diagnostics
+and Users, which are always there. This chapter explains how to use each
+screen.
+
+The app needs a login. On the very first visit you create the admin
+account; see [Users and login](14-users.md).
 
 Nothing in the app loads from the internet. Fonts, icons, map styles and
 the app itself come from the Pi. Only a few actions need an internet
@@ -51,8 +55,10 @@ banner.
 ### Header
 
 Below the strip: the module name as a small label, the screen title, and on
-the right the screen's own buttons (for example a back button) and the
-theme button (a moon, or a sun in a light theme). It opens a list of eight
+the right the screen's own buttons (for example a back button), the
+account button (a person icon: your account, password and log out, see
+[Users and login](14-users.md#the-account-button)) and the theme button (a
+moon, or a sun in a light theme). The theme button opens a list of eight
 themes; a choice applies at once and is stored in this browser:
 
 | Theme | Colours |
@@ -76,7 +82,10 @@ as the map zoom and coordinates on Maps.
 
 The nav lists Home and every installed module. On a phone it is a bar at
 the bottom of the screen. On a wide screen (900 px and up) it becomes a
-rail on the left. The current screen is highlighted.
+rail on the left. The current screen is highlighted. The screens of
+outpost itself (System, Logs, Info, Settings, Diagnostics, Users) are at the
+bottom; System, Logs, Settings, Diagnostics and Users are listed for admins
+only (see [Users and login](14-users.md#admins-and-users)).
 
 A module that is installed but stopped stays in the nav, dimmed. You can
 still open it: it shows the module gate (below) with a button to start it.
@@ -90,13 +99,13 @@ place of its screen. It tells you why and what to do:
 |---|---|---|
 | `<Module> is not installed` | The module was not chosen during installation | Re-run `./install.sh` on the Pi and select it |
 | `<Module> is not configured` | A setting the module needs is still empty | Re-run `./install.sh` on the Pi |
-| `<Module> is not running` | Installed, but stopped | Press the START button (for example START MAPS). The screen opens as soon as the module is up |
+| `<Module> is not running` | Installed, but stopped | An admin presses the START button (for example START MAPS). The screen opens as soon as the module is up. Other users see `Ask an admin to start it` |
 | `Core is not reachable` | The browser cannot reach the Pi at all | Check the network, then see [Troubleshooting](../04-operations/05-troubleshooting.md) |
 
 If core cannot control the containers (for example because the Podman
 socket is missing), the banner shows the reason instead of a START button.
-If a control PIN is set (`CONTROL_PIN`), the browser asks for it before it
-starts or stops a module. See [Home](01-home.md#the-control-pin).
+Only admins can start and stop modules. See
+[Users and login](14-users.md#admins-and-users).
 
 ## Pages
 
@@ -121,3 +130,5 @@ starts or stops a module. See [Home](01-home.md#the-control-pin).
   check-ins.
 - [Supplies](13-supplies.md): your emergency stock, best-before dates and
   how many days the water lasts.
+- [Users and login](14-users.md): the first admin account, logging in, the
+  account button, admins and users, and a forgotten password.

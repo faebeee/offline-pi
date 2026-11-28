@@ -8,9 +8,11 @@ you cannot get back and how to copy it by hand.
 
 | What | Where | Can you get it back without a backup? |
 |---|---|---|
-| Settings | `.env` in the project folder | Partly: `install.sh` asks again, but PINs, ports and module settings are lost. Small, always back it up. |
+| Settings | `.env` in the project folder | Partly: `install.sh` asks again, but ports and module settings are lost. Small, always back it up. |
 | Points of interest | `MAPS_DATA_DIR` (`offline-maps.db`) | **No.** Places you saved yourself. |
 | Shared files | `FILES_DATA_DIR` | **No.** Whatever people uploaded. Plain files and folders: copy them as they are. |
+| Accounts | `CORE_DATA_DIR` (`users.json`) | **No.** User names, roles and password hashes. Without it outpost asks for a new admin account, and everyone else needs a new account. |
+| Logins | `CORE_DATA_DIR` (`sessions.json`, `cli.token`) | Not needed: without them everyone logs in again; core writes a new `cli.token` at every start. |
 | Notice board | `CORE_DATA_DIR` (`board.json`) | **No.** The posts exist only on this Pi. |
 | Supplies list | `CORE_DATA_DIR` (`supplies.json`) | **No.** Your stock list and household settings. |
 | Dashboard data | `CORE_DATA_DIR` (`history.json`, `modules.json`) | Not needed: 24 h history, power events and which modules are switched off. Small. |
@@ -87,6 +89,12 @@ run.
 
 Which modules were switched off is stored in `CORE_DATA_DIR/modules.json`.
 Without it every installed module is switched on.
+
+The accounts come back with `CORE_DATA_DIR/users.json`. Without it, open
+the web app right after the start and create the admin account again (see
+[Users and login](../03-modules/14-users.md)). The files in `CORE_DATA_DIR`
+that hold accounts and logins can only be read by the user who runs
+outpost; copy them as that user.
 
 ## See also
 

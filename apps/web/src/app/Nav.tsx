@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Icon } from "../ui/outpost";
 import { useModules } from "../features/modules/useModules";
+import { useMe } from "./auth";
 
 type Item = { id: string; label: string; icon: string; path: string; running: boolean };
 
@@ -13,7 +14,8 @@ const HOME: Item = { id: "home", label: "Home", icon: "hub", path: "/", running:
  */
 export function Nav({ current }: { current: string }) {
   const { data } = useModules();
-  const installed = (data?.modules ?? []).filter((m) => m.installed);
+  const { isAdmin } = useMe();
+  const installed = (data?.modules ?? []).filter((m) => m.installed && (isAdmin || !m.adminOnly));
   const apps: Item[] = [
     HOME,
     ...installed

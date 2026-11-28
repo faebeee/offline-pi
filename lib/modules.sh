@@ -144,17 +144,48 @@ load_module_hooks() {
 }
 
 
-# core_api METHOD PATH - call core's API on this Pi (module start/stop from
-# manage.sh). Prints the response body; fails when core is unreachable.
+# core_api METHOD PATH [JSON] - call core's API on this Pi as its local
+# admin (manage.sh: module start/stop, accounts). Core writes the token to
+# CORE_DATA_DIR/cli.token when it starts (only this user can read it) and
+# accepts it only on a connection from the machine itself. The request goes
+# to curl as a config on stdin, so neither the token nor a password in the
+# body ever shows up in `ps`. On macOS curl runs inside the Podman machine,
+# where core listens (the Mac's port forward is not a local connection).
+# Prints the response body (also on an error); fails when core is
+# unreachable or answers an error.
 core_api() {
-  local method="$1" path="$2" port pin
+  local method="$1" path="$2" body="${3:-}" port dir token
   port="$(get_env PORT)"
-  pin="$(get_env CONTROL_PIN)"
-  if ! has_cmd curl; then
+  dir="$(get_env CORE_DATA_DIR)"; dir="${dir:-./data/core}"
+  [[ "$dir" == /* ]] || dir="$ROOT_DIR/${dir#./}"
+  token="$(cat "$dir/cli.token" 2>/dev/null || true)"
+  {
+    printf 'url = "http://127.0.0.1:%s%s"\n' "${port:-8080}" "$path"
+    printf 'request = "%s"\n' "$method"
+    printf 'silent\nshow-error\nfail-with-body\n'
+    printf 'header = "X-Pi-Monitor: 1"\n'
+    [[ -n "$token" ]] && printf 'header = "Authorization: Bearer %s"\n' "$token"
+    if [[ -n "$body" ]]; then
+      body="${body//\\/\\\\}"; body="${body//\"/\\\"}"
+      printf 'header = "Content-Type: application/json"\n'
+      printf 'data-binary = "%s"\n' "$body"
+    fi
+  } | if is_macos; then
+    podman machine ssh -- curl --config -
+  elif has_cmd curl; then
+    curl --config -
+  else
     return 1
   fi
-  curl -fsS -X "$method" -H 'X-Pi-Monitor: 1' ${pin:+-H "X-Control-Pin: $pin"} \
-    "http://127.0.0.1:${port:-8080}${path}"
+}
+
+# setup_code - the first-run code for creating the admin account in the web
+# app, while no account exists (core writes CORE_DATA_DIR/setup.code).
+setup_code() {
+  local dir
+  dir="$(get_env CORE_DATA_DIR)"; dir="${dir:-./data/core}"
+  [[ "$dir" == /* ]] || dir="$ROOT_DIR/${dir#./}"
+  cat "$dir/setup.code" 2>/dev/null
 }
 
 # module_stop / module_start SERVICE - through core, so the dashboard knows

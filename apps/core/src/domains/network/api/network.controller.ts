@@ -1,5 +1,7 @@
 import { Body, Controller, Delete, Get, Headers, HttpCode, Ip, Param, Post } from '@nestjs/common';
 import { ApiHeader, ApiParam, ApiTags } from '@nestjs/swagger';
+import { CurrentUser } from '../../../platform/auth/current-user.decorator';
+import type { SessionUser } from '../../../platform/auth/auth.service';
 import { assertControl } from '../../../platform/http/control-guard';
 import { BlockRequest, HotspotClient, HotspotRequest, HotspotState, NetworkStatus } from '../domain/network.dto';
 import { NetworkClient } from '../infrastructure/network.client';
@@ -10,7 +12,7 @@ const plainIp = (ip: string | undefined) => ip?.replace(/^::ffff:/, '');
 /**
  * Domain "network": the devices on the Pi's Wi-Fi hotspot (the network
  * container reads them) and blocking them. Blocks are control actions like
- * module start/stop: X-Pi-Monitor header and CONTROL_PIN. The host helper
+ * module start/stop: X-Pi-Monitor header and an admin. The host helper
  * host/network-guard enforces them in the firewall and switches the hotspot.
  */
 @ApiTags('network')
@@ -32,13 +34,12 @@ export class NetworkController {
   @Post('hotspot')
   @HttpCode(200)
   @ApiHeader({ name: 'X-Pi-Monitor', required: true, description: 'must be "1" (CSRF guard)' })
-  @ApiHeader({ name: 'X-Control-Pin', required: false, description: 'CONTROL_PIN, when set' })
   hotspot(
     @Body() body: HotspotRequest,
     @Headers('x-pi-monitor') piMonitor: string | undefined,
-    @Headers('x-control-pin') pin: string | undefined,
+    @CurrentUser() user: SessionUser | undefined,
   ): Promise<HotspotState> {
-    assertControl(piMonitor, pin);
+    assertControl(piMonitor, user);
     return this.network.switchHotspot(body.on);
   }
 
@@ -53,15 +54,14 @@ export class NetworkController {
   @HttpCode(200)
   @ApiParam({ name: 'mac', example: 'b8:27:eb:11:22:33' })
   @ApiHeader({ name: 'X-Pi-Monitor', required: true, description: 'must be "1" (CSRF guard)' })
-  @ApiHeader({ name: 'X-Control-Pin', required: false, description: 'CONTROL_PIN, when set' })
   block(
     @Param('mac') mac: string,
     @Body() body: BlockRequest,
     @Headers('x-pi-monitor') piMonitor: string | undefined,
-    @Headers('x-control-pin') pin: string | undefined,
+    @CurrentUser() user: SessionUser | undefined,
     @Ip() ip: string,
   ): Promise<HotspotClient> {
-    assertControl(piMonitor, pin);
+    assertControl(piMonitor, user);
     return this.network.block(mac, body.note, plainIp(ip));
   }
 
@@ -69,14 +69,13 @@ export class NetworkController {
   @Delete('clients/:mac/block')
   @ApiParam({ name: 'mac', example: 'b8:27:eb:11:22:33' })
   @ApiHeader({ name: 'X-Pi-Monitor', required: true, description: 'must be "1" (CSRF guard)' })
-  @ApiHeader({ name: 'X-Control-Pin', required: false, description: 'CONTROL_PIN, when set' })
   unblock(
     @Param('mac') mac: string,
     @Headers('x-pi-monitor') piMonitor: string | undefined,
-    @Headers('x-control-pin') pin: string | undefined,
+    @CurrentUser() user: SessionUser | undefined,
     @Ip() ip: string,
   ): Promise<HotspotClient> {
-    assertControl(piMonitor, pin);
+    assertControl(piMonitor, user);
     return this.network.unblock(mac, plainIp(ip));
   }
 
@@ -85,13 +84,12 @@ export class NetworkController {
   @HttpCode(204)
   @ApiParam({ name: 'mac', example: 'b8:27:eb:11:22:33' })
   @ApiHeader({ name: 'X-Pi-Monitor', required: true, description: 'must be "1" (CSRF guard)' })
-  @ApiHeader({ name: 'X-Control-Pin', required: false, description: 'CONTROL_PIN, when set' })
   forget(
     @Param('mac') mac: string,
     @Headers('x-pi-monitor') piMonitor: string | undefined,
-    @Headers('x-control-pin') pin: string | undefined,
+    @CurrentUser() user: SessionUser | undefined,
   ): Promise<void> {
-    assertControl(piMonitor, pin);
+    assertControl(piMonitor, user);
     return this.network.forget(mac);
   }
 }

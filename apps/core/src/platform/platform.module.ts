@@ -1,4 +1,5 @@
 import { Global, Module } from '@nestjs/common';
+import { AuthModule } from './auth/auth.module';
 import { LogBuffer, coreLogBuffer } from './logging/log-buffer';
 import { ModulesService } from './modules/modules.service';
 import { PodmanService } from './modules/podman.service';
@@ -10,10 +11,12 @@ import { UpstreamService } from './upstream/upstream.service';
  * desired/actual state (ModulesService), Podman control, the container and
  * socket sampler (RuntimeService), core's own log lines (LogBuffer, filled
  * by CoreLogger), and UpstreamService, through which a
- * domain talks to its module's container. No feature logic lives here.
+ * domain talks to its module's container, and the accounts and logins
+ * (AuthModule). No feature logic lives here.
  */
 @Global()
 @Module({
+  imports: [AuthModule],
   providers: [
     PodmanService,
     RuntimeService,
@@ -21,6 +24,6 @@ import { UpstreamService } from './upstream/upstream.service';
     UpstreamService,
     { provide: LogBuffer, useValue: coreLogBuffer },
   ],
-  exports: [PodmanService, RuntimeService, ModulesService, UpstreamService, LogBuffer],
+  exports: [PodmanService, RuntimeService, ModulesService, UpstreamService, LogBuffer, AuthModule],
 })
 export class PlatformModule {}

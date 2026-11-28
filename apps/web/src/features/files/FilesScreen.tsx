@@ -16,7 +16,7 @@ import { PromptDialog } from "../../app/Dialog";
 import { Screen } from "../../app/Screen";
 import { Badge, Banner, Icon, Illustration, Progress } from "../../ui/outpost";
 import { ModuleGate } from "../modules/ModuleGate";
-import { isRunning, useModule, withControlPin } from "../modules/useModules";
+import { isRunning, useModule } from "../modules/useModules";
 import { joinPath, useUploads, type Upload } from "./upload";
 import "./files.css";
 
@@ -70,7 +70,7 @@ function Folder({ path, maxUpload }: { path: string; maxUpload: number | null })
   });
 
   const remove = useMutation({
-    mutationFn: (e: FileEntry) => withControlPin("delete shared files", () => filesRemove({ path: e.path })),
+    mutationFn: (e: FileEntry) => filesRemove({ path: e.path }),
     onSuccess: (_, e) => toast(`${e.name} deleted.`),
     onSettled: refresh,
   });

@@ -5,8 +5,8 @@
 # data (e.g. to an SSD). Runs on a Raspberry Pi / Linux and on macOS.
 #
 #   ./install.sh [--advanced] [--yes] [--build] [--no-cache] [--plain] [--verbose]
-#     --advanced  also ask for the port, who may connect, the control PIN,
-#                 and a folder per module
+#     --advanced  also ask for the port, who may connect and a folder per
+#                 module (accounts are made in the web app)
 #     --yes       don't ask: keep the current answers (defaults on a first run)
 #     --build     build the images here instead of downloading them
 #     --no-cache  build them from scratch (implies --build)

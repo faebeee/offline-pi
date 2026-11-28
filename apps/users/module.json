@@ -1,0 +1,13 @@
+{
+  "id": "users",
+  "num": 12,
+  "label": "Users",
+  "icon": "users",
+  "description": "The accounts that can open outpost, and who is an admin.",
+  "service": "core",
+  "path": "/users/",
+  "dirs": [],
+  "optional": false,
+  "nav": "system",
+  "admin": true
+}

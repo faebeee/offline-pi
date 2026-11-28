@@ -1,7 +1,7 @@
 # board
 
 A notice board for everyone on the Pi's network: notices, needs, offers
-and check-ins, without accounts. Open `http://<pi>:8080/board`. User
+and check-ins. Open `http://<pi>:8080/board`. User
 guide: [docs/03-modules/12-board.md](../../docs/03-modules/12-board.md).
 
 Board is a screen core serves itself (like Logs and Info): this folder
@@ -22,6 +22,7 @@ browser ──> core /api/board/* ──> BoardStore (apps/core/src/domains/boar
 - `BoardStore` holds the posts in memory and writes `board.json` on every
   change (temp file + rename, one write at a time).
 - Lists sort pinned first, done last, newest change first.
-- Every change needs `X-Pi-Monitor`; pinning and deleting are control
-  actions (`CONTROL_PIN`).
+- Every change needs `X-Pi-Monitor` and a login; pinning and deleting are
+  control actions (admins only, `assertControl`). `author` is free text,
+  not the account.
 - The screen (`apps/web/src/features/board/`) polls every 10 s.

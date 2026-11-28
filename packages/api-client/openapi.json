@@ -1,6 +1,308 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/api/auth/state": {
+      "get": {
+        "operationId": "authState",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthState"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Whether the first-run setup is due, and who is logged in.",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/setup": {
+      "post": {
+        "operationId": "authSetup",
+        "parameters": [
+          {
+            "name": "X-Pi-Monitor",
+            "in": "header",
+            "description": "must be \"1\" (CSRF guard)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetupRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthState"
+                }
+              }
+            }
+          }
+        },
+        "summary": "First run only: create the admin account and log in with it. Needs the\none-time setup code (CORE_DATA_DIR/setup.code, printed by install.sh and\nstart.sh); wrong codes count like wrong passwords.",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "operationId": "authLogin",
+        "parameters": [
+          {
+            "name": "X-Pi-Monitor",
+            "in": "header",
+            "description": "must be \"1\" (CSRF guard)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthState"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Log in; sets the session cookie.",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "operationId": "authLogout",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Log out: ends this session.",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/password": {
+      "post": {
+        "operationId": "authChangePassword",
+        "parameters": [
+          {
+            "name": "X-Pi-Monitor",
+            "in": "header",
+            "description": "must be \"1\" (CSRF guard)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Change your own password; your other sessions end.",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/users": {
+      "get": {
+        "operationId": "usersList",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Account"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Every account, admins first.",
+        "tags": [
+          "users"
+        ]
+      },
+      "post": {
+        "operationId": "usersCreate",
+        "parameters": [
+          {
+            "name": "X-Pi-Monitor",
+            "in": "header",
+            "description": "must be \"1\" (CSRF guard)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Add an account.",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/api/users/{id}": {
+      "patch": {
+        "operationId": "usersUpdate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Pi-Monitor",
+            "in": "header",
+            "description": "must be \"1\" (CSRF guard)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Change an account's role or set a new password (which logs it out everywhere).",
+        "tags": [
+          "users"
+        ]
+      },
+      "delete": {
+        "operationId": "usersRemove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Pi-Monitor",
+            "in": "header",
+            "description": "must be \"1\" (CSRF guard)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "summary": "Delete an account (not your own, not the last admin); it is logged out.",
+        "tags": [
+          "users"
+        ]
+      }
+    },
     "/api/modules": {
       "get": {
         "operationId": "modulesList",
@@ -43,15 +345,6 @@
                 "start",
                 "stop"
               ],
-              "type": "string"
-            }
-          },
-          {
-            "name": "X-Control-Pin",
-            "in": "header",
-            "description": "CONTROL_PIN, when set",
-            "required": false,
-            "schema": {
               "type": "string"
             }
           },
@@ -100,6 +393,28 @@
           }
         },
         "summary": "Cheap liveness check (container healthcheck): 503 when sampling stalled.",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/system/vitals": {
+      "get": {
+        "operationId": "systemVitals",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Vitals"
+                }
+              }
+            }
+          }
+        },
+        "summary": "The status strip's values (null right after start).",
         "tags": [
           "system"
         ]
@@ -711,15 +1026,6 @@
         "operationId": "networkHotspot",
         "parameters": [
           {
-            "name": "X-Control-Pin",
-            "in": "header",
-            "description": "CONTROL_PIN, when set",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "X-Pi-Monitor",
             "in": "header",
             "description": "must be \"1\" (CSRF guard)",
@@ -796,15 +1102,6 @@
             }
           },
           {
-            "name": "X-Control-Pin",
-            "in": "header",
-            "description": "CONTROL_PIN, when set",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "X-Pi-Monitor",
             "in": "header",
             "description": "must be \"1\" (CSRF guard)",
@@ -854,15 +1151,6 @@
             }
           },
           {
-            "name": "X-Control-Pin",
-            "in": "header",
-            "description": "CONTROL_PIN, when set",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "X-Pi-Monitor",
             "in": "header",
             "description": "must be \"1\" (CSRF guard)",
@@ -900,15 +1188,6 @@
             "in": "path",
             "schema": {
               "example": "b8:27:eb:11:22:33",
-              "type": "string"
-            }
-          },
-          {
-            "name": "X-Control-Pin",
-            "in": "header",
-            "description": "CONTROL_PIN, when set",
-            "required": false,
-            "schema": {
               "type": "string"
             }
           },
@@ -1084,15 +1363,6 @@
             }
           },
           {
-            "name": "X-Control-Pin",
-            "in": "header",
-            "description": "CONTROL_PIN, when set",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "X-Pi-Monitor",
             "in": "header",
             "description": "must be \"1\" (CSRF guard)",
@@ -1236,15 +1506,6 @@
             }
           },
           {
-            "name": "X-Control-Pin",
-            "in": "header",
-            "description": "CONTROL_PIN, when set and pinning",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "X-Pi-Monitor",
             "in": "header",
             "description": "must be \"1\" (CSRF guard)",
@@ -1276,7 +1537,7 @@
             }
           }
         },
-        "summary": "Change a post, mark it done, or pin it (pinning: control PIN).",
+        "summary": "Change a post, mark it done, or pin it (pinning: admin only).",
         "tags": [
           "board"
         ]
@@ -1290,15 +1551,6 @@
             "in": "path",
             "schema": {
               "type": "number"
-            }
-          },
-          {
-            "name": "X-Control-Pin",
-            "in": "header",
-            "description": "CONTROL_PIN, when set",
-            "required": false,
-            "schema": {
-              "type": "string"
             }
           },
           {
@@ -1467,15 +1719,6 @@
             "in": "path",
             "schema": {
               "type": "number"
-            }
-          },
-          {
-            "name": "X-Control-Pin",
-            "in": "header",
-            "description": "CONTROL_PIN, when set",
-            "required": false,
-            "schema": {
-              "type": "string"
             }
           },
           {
@@ -2085,6 +2328,160 @@
   "servers": [],
   "components": {
     "schemas": {
+      "Account": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "role": {
+            "description": "admin: also the control actions (modules, devices, deleting shared data) and the accounts",
+            "enum": [
+              "admin",
+              "user"
+            ],
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "number",
+            "nullable": true,
+            "description": "unix seconds; null for the scripts' local access"
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "role",
+          "createdAt"
+        ]
+      },
+      "AuthState": {
+        "type": "object",
+        "properties": {
+          "setup": {
+            "type": "boolean",
+            "description": "no account exists yet: the web app asks for the admin account (and the setup code)"
+          },
+          "user": {
+            "nullable": true,
+            "description": "the logged-in account, null when logged out",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Account"
+              }
+            ]
+          }
+        },
+        "required": [
+          "setup",
+          "user"
+        ]
+      },
+      "SetupRequest": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "the one-time setup code: CORE_DATA_DIR/setup.code, printed by install.sh / start.sh",
+            "maxLength": 20
+          },
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string",
+            "description": "at least 8 characters",
+            "minLength": 8,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "code",
+          "username",
+          "password"
+        ]
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ]
+      },
+      "ChangePasswordRequest": {
+        "type": "object",
+        "properties": {
+          "current": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "current",
+          "password"
+        ]
+      },
+      "CreateUserRequest": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 200
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "user"
+            ]
+          }
+        },
+        "required": [
+          "username",
+          "password",
+          "role"
+        ]
+      },
+      "UpdateUserRequest": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "user"
+            ]
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 200
+          }
+        }
+      },
       "ModuleStatus": {
         "type": "object",
         "properties": {
@@ -2117,6 +2514,10 @@
               "apps",
               "system"
             ]
+          },
+          "adminOnly": {
+            "type": "boolean",
+            "description": "only shown to admins (e.g. Users)"
           },
           "container": {
             "type": "string",
@@ -2168,6 +2569,7 @@
           "path",
           "optional",
           "nav",
+          "adminOnly",
           "container",
           "installed",
           "enabled",
@@ -2189,10 +2591,6 @@
             "type": "string",
             "nullable": true
           },
-          "pinRequired": {
-            "type": "boolean",
-            "description": "start/stop needs the X-Control-Pin header (CONTROL_PIN is set)"
-          },
           "modules": {
             "type": "array",
             "items": {
@@ -2203,7 +2601,6 @@
         "required": [
           "control",
           "controlError",
-          "pinRequired",
           "modules"
         ]
       },
@@ -2231,6 +2628,86 @@
         "required": [
           "ok",
           "ts"
+        ]
+      },
+      "VitalsDisk": {
+        "type": "object",
+        "properties": {
+          "used": {
+            "type": "number"
+          },
+          "free": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "used",
+          "free",
+          "total"
+        ]
+      },
+      "Vitals": {
+        "type": "object",
+        "properties": {
+          "internet": {
+            "type": "string",
+            "enum": [
+              "online",
+              "offline",
+              "checking",
+              "disabled"
+            ]
+          },
+          "cpuTemp": {
+            "type": "number",
+            "nullable": true,
+            "description": "°C"
+          },
+          "inputVolts": {
+            "type": "number",
+            "nullable": true
+          },
+          "coreVolts": {
+            "type": "number",
+            "nullable": true
+          },
+          "underVoltage": {
+            "type": "boolean",
+            "description": "under-voltage right now"
+          },
+          "cpuUsage": {
+            "type": "number",
+            "nullable": true,
+            "description": "percent"
+          },
+          "memoryPercent": {
+            "type": "number",
+            "nullable": true,
+            "description": "percent of memory in use"
+          },
+          "disk": {
+            "nullable": true,
+            "description": "the root file system",
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/VitalsDisk"
+              }
+            ]
+          }
+        },
+        "required": [
+          "internet",
+          "cpuTemp",
+          "inputVolts",
+          "coreVolts",
+          "underVoltage",
+          "cpuUsage",
+          "memoryPercent",
+          "disk"
         ]
       },
       "HostAddress": {

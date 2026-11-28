@@ -44,7 +44,6 @@ services:
       CORE_LOG_LEVEL: ${CORE_LOG_LEVEL:-log}
       PODMAN_GRAPH_ROOT: ${PODMAN_GRAPH_ROOT:-}
       PODMAN_SOCKET: ${PODMAN_SOCKET:-}
-      CONTROL_PIN: ${CONTROL_PIN:-}
       MODULES: ${MODULES:-}
       # the project folder (set by lib/common.sh): the Settings screen reads
       # its .env through /hostfs and resolves relative *_DIRs against it

@@ -2,7 +2,8 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 import "@outpost/ui/outpost.css";
 import { initTheme } from "@outpost/ui/outpost.js";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { getAuthStateQueryKey } from "@outpost/api-client";
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -12,7 +13,14 @@ import "./styles.css";
 // before the first paint, so a stored day theme does not flash dark
 initTheme();
 
-const queryClient = new QueryClient({
+/** A 401 means the session ended (logged out elsewhere, account deleted): show the login. */
+const onError = (err: unknown) => {
+  if ((err as { status?: number }).status === 401) void queryClient.invalidateQueries({ queryKey: getAuthStateQueryKey() });
+};
+
+const queryClient: QueryClient = new QueryClient({
+  queryCache: new QueryCache({ onError }),
+  mutationCache: new MutationCache({ onError }),
   defaultOptions: {
     queries: {
       // everything is on the LAN: retry quickly, but not forever

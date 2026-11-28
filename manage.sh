@@ -23,6 +23,9 @@ Usage: ./manage.sh <command> [args]
   start MODULE / stop MODULE  same as the dashboard's START / STOP
   logs [MODULE]               follow the logs (default: core)
   autostart on|off|status     start outpost when this machine boots (on by default)
+  users                       the accounts that can log in, and their role
+  users reset-password NAME   set a new password (e.g. the admin's, when forgotten)
+  users setup-code            the code for creating the admin account (first run)
 
 Module commands:
 USAGE
@@ -51,6 +54,61 @@ require_module() {
     log_error "$(module_label "$1") is not installed. Add it with ./install.sh."
     exit 1
   fi
+}
+
+# cmd_users [reset-password NAME] - the accounts, through core's API as the
+# local admin (core_api), so it works when no admin can log in any more.
+cmd_users() {
+  local list id pw again out code
+  if [[ "${1:-}" == setup-code ]]; then
+    if code="$(setup_code)" && [[ -n "$code" ]]; then
+      echo "$code"
+    else
+      log_info "No setup code: the admin account exists already (or core has not started yet)."
+    fi
+    return
+  fi
+  if ! list="$(core_api GET /api/users 2>&1)"; then
+    log_error "Core did not answer: ${list:-is it running? (./start.sh)}"
+    exit 1
+  fi
+  case "${1:-}" in
+    "")
+      if [[ "$list" == "[]" ]]; then
+        log_info "No accounts yet: open the web app to create the admin account."
+        return
+      fi
+      printf '%-34s %s\n' USER ROLE
+      printf '%s\n' "$list" | grep -o '"username":"[^"]*","role":"[a-z]*"' \
+        | sed 's/"username":"\([^"]*\)","role":"\([a-z]*\)"/\1 \2/' \
+        | while read -r name role; do printf '%-34s %s\n' "$name" "$role"; done
+      ;;
+    reset-password)
+      [[ -n "${2:-}" ]] || { usage; exit 1; }
+      id="$(printf '%s\n' "$list" | grep -o "\"id\":\"[^\"]*\",\"username\":\"$(printf '%s' "$2" | tr 'A-Z' 'a-z')\"" | sed 's/"id":"\([^"]*\)".*/\1/' || true)"
+      if [[ -z "$id" ]]; then
+        log_error "No account '$2'. See ./manage.sh users"
+        exit 1
+      fi
+      ui_secret "New password for $2 (at least 8 characters)" || exit 1
+      pw="$UI_REPLY"
+      ui_secret "The same password again" || exit 1
+      again="$UI_REPLY"
+      if [[ "$pw" != "$again" ]]; then
+        log_error "The two passwords differ; nothing changed."
+        exit 1
+      fi
+      # JSON string: escape backslashes and quotes
+      pw="${pw//\\/\\\\}"; pw="${pw//\"/\\\"}"
+      if out="$(core_api PATCH "/api/users/$id" "{\"password\":\"$pw\"}" 2>&1)"; then
+        log_ok "New password set for $2; it is logged out everywhere."
+      else
+        log_error "Not changed: $out"
+        exit 1
+      fi
+      ;;
+    *) usage; exit 1 ;;
+  esac
 }
 
 cmd_status() {
@@ -83,6 +141,7 @@ case "${1:-}" in
     if [[ -n "${2:-}" && "$2" != core ]]; then require_module "$2"; fi
     podman logs -f "outpost-${2:-core}"
     ;;
+  users) require_env; shift; cmd_users "$@" ;;
   autostart)
     case "${2:-status}" in
       on) require_env; ensure_linger; autostart_enable ;;

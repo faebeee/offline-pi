@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useMe } from "../../app/auth";
 import { Badge, Banner } from "../../ui/outpost";
 import { describe } from "./describe";
 import { useControlModule, useModules } from "./useModules";
@@ -7,6 +8,7 @@ import { useControlModule, useModules } from "./useModules";
 export function ModuleSwitches() {
   const { data } = useModules();
   const control = useControlModule();
+  const { isAdmin } = useMe();
   const [failed, setFailed] = useState<{ label: string; action: string; message: string } | null>(null);
   if (!data) return null;
 
@@ -33,7 +35,7 @@ export function ModuleSwitches() {
           const pending = m.id === pendingId ? control.variables?.action : undefined;
           const d = describe(m, pending);
           const busy = !!pending || !!m.busy;
-          const can = data.control && m.installed && !m.missing.length && !busy;
+          const can = isAdmin && data.control && m.installed && !m.missing.length && !busy;
           const why = !m.installed
             ? "Not installed: add it with ./install.sh"
             : m.missing.length
@@ -74,6 +76,7 @@ export function ModuleSwitches() {
         })}
       </div>
       <p className="body-sm fg2 help">
+        {isAdmin ? "" : "Only an admin can switch modules on and off. "}
         Stopped modules stay stopped after a restart until you switch them on again. Add or remove modules with{" "}
         <span className="mono">./install.sh</span> on the Pi.
       </p>

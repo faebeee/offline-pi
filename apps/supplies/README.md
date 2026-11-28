@@ -31,4 +31,4 @@ browser ──> core /api/supplies/* ──> SuppliesStore (apps/core/src/domain
 - The store holds everything in memory and saves `supplies.json` on every
   change (temp file + rename, `platform/storage/json-file.ts`).
 - Every change needs `X-Pi-Monitor`; deleting an item is a control action
-  (`CONTROL_PIN`).
+  (admins only).

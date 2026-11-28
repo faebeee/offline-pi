@@ -12,7 +12,6 @@ current values and ask whether you want to change them.
 |---|---|---|
 | `PORT` | `8080` | The one port outpost uses on the Pi: web app, API and every module. |
 | `BIND_ADDRESS` | `0.0.0.0` | `0.0.0.0`: every device on the network (LAN, Wi-Fi hotspot). `127.0.0.1`: only the Pi itself. |
-| `CONTROL_PIN` | empty | PIN asked before a module is started or stopped from the web app. Empty: anyone who can open the web app can do it. |
 
 You can also edit them in `.env` and run `./start.sh`.
 
@@ -33,14 +32,17 @@ The LAN line shows the Pi's first IP address and is left out when
 The address can change when the Pi joins another network; `hostname -I` on
 the Pi shows the current one.
 
-## Access and PINs
+## Access and accounts
 
-outpost has no user accounts. Anyone who can open the web app can read
-maps, books and logs. Two settings limit what they can do:
+Everyone who can reach the port sees the login screen, but only people with
+an account get further. On the first visit you create the admin account;
+create it right after installing, because whoever opens outpost first can
+claim it. Admins add the other accounts and are the only ones who can start
+and stop modules, block devices and delete shared data. See
+[Users and login](../03-modules/14-users.md).
 
-- `CONTROL_PIN`: required to start and stop modules. The web app asks for
-  it once per browser tab. `./manage.sh start|stop` sends it for you.
-- `BIND_ADDRESS=127.0.0.1`: nobody but the Pi itself can open outpost.
+`BIND_ADDRESS=127.0.0.1` goes further: nobody but the Pi itself can open
+outpost.
 
 ## Wi-Fi hotspot fallback
 

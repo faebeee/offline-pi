@@ -17,13 +17,16 @@ only to core (one origin, no CORS, no ports).
 
 ```
 src/
-  main.tsx              QueryClient, router
+  main.tsx              QueryClient (refetches the auth state on a 401), router
   routes/               one file per screen: / (home), /system, /maps,
                         /library, ...
   features/<domain>/    components, hooks and CSS of one domain
   app/
-    Screen.tsx          the frame: header (label, title, actions, theme
-                        toggle), optional context line, content, module nav
+    Screen.tsx          the frame: header (label, title, actions, account
+                        button, theme toggle), optional context line,
+                        content, module nav
+    auth.tsx            AuthGate (first-run setup, login), useMe,
+                        AccountButton
     strip.tsx           shared status strip: useStripLink, useStripItems
     Nav.tsx             module nav from /api/modules
     realtime.ts         useSocket / useSocketEvent (Socket.IO namespaces)
@@ -54,7 +57,12 @@ function Radio() {
   generated `get...QueryKey()`). Raw module files (map tiles, `.pmtiles`,
   kiwix articles) come from core's passthrough `/svc/<module>/`.
 - **`ModuleGate`** renders the screen only while the module's container
-  runs; otherwise it explains why and offers START.
+  runs; otherwise it explains why and offers START (to admins; users see
+  "Ask an admin to start it").
+- **Login**: `AuthGate` (in `routes/__root.tsx`) wraps the whole frame and
+  shows the first-run setup or the login until someone is logged in.
+  `useMe()` gives `{ user, isAdmin }`: disable admin-only actions for users
+  (core answers 403 anyway). See [Users and login](../../docs/03-modules/14-users.md).
 - A new endpoint in core: `npm run api:gen` at the root, then use its hook.
 
 ## Development

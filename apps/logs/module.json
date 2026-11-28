@@ -7,5 +7,6 @@
   "service": "core",
   "path": "/logs/",
   "dirs": [],
-  "optional": false
+  "optional": false,
+  "admin": true
 }

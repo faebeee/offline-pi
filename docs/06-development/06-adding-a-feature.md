@@ -73,6 +73,13 @@ summary(): Promise<MapsSummary> {
 }
 ```
 
+Every route needs a login without you doing anything. If the action is
+for admins only (it starts or stops something, or deletes shared data), take
+`@Headers('x-pi-monitor') piMonitor` and `@CurrentUser() user` and call
+`assertControl(piMonitor, user)` first; any other state-changing route
+calls `assertCsrf(piMonitor)`. See
+[Core API](03-core-api.md#accounts-and-admin-only-actions).
+
 Inject the service in the controller's constructor
 (`private readonly summaries: MapsSummaryService`). The method name decides
 the generated names: `MapsController.summary`
@@ -134,6 +141,8 @@ commit, and `./start.sh` to try it in the real images.
 - [ ] DTOs are classes in `*.dto.ts`, request DTOs validated
 - [ ] Logic in `application/`, container calls in `infrastructure/`
 - [ ] Controller method named for the client
+- [ ] Admin-only actions call `assertControl`, and the screen disables them
+  for users (`useMe().isAdmin`)
 - [ ] `npm run api:gen` run, generated files committed
 - [ ] Data in the web app only through `@outpost/api-client`
 - [ ] Screen uses Outpost components, no restyling

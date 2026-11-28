@@ -50,8 +50,7 @@ On a first install there are only a few questions:
    whether to install its small host helper.
 
 Everything else uses defaults: port `8080`, every device on the network
-may open outpost, and no control PIN. `./install.sh --advanced` asks for
-those too (see [Options](#options)).
+may open outpost. `./install.sh --advanced` asks for those too (see [Options](#options)).
 
 ## What it does
 
@@ -76,7 +75,7 @@ the Pi instead. That takes 10 to 30 minutes the first time.
 
 | Option | Effect |
 |---|---|
-| `--advanced` | Also asks for the port, who may open outpost (every device, or only this machine), the control PIN and a separate folder for each kind of data. Shows a summary and asks before installing. |
+| `--advanced` | Also asks for the port, who may open outpost (every device, or only this machine) and a separate folder for each kind of data. Shows a summary and asks before installing. |
 | `--yes` | Asks nothing: keeps the current answers (the defaults on a first run). |
 | `--build` | Builds the images on this machine instead of downloading them. |
 | `--no-cache` | Builds them from scratch (implies `--build`). |
@@ -111,10 +110,26 @@ answers. It prints the addresses:
 Open the LAN address in a browser on any device on the same network:
 `http://<pi>:8080`, where `<pi>` is the Pi's IP address or host name.
 
+**Create the admin account.** The installer ends with a setup code, for
+example:
+
+```
+[info] First run: open outpost in a browser and create the admin account
+[info] with this setup code (also: ./manage.sh users setup-code):
+
+      K7Q2-9MXD
+```
+
+The first visit shows `Welcome` and `Create the admin account`: enter the
+setup code, choose a user name (`admin` by default) and a password of at
+least 8 characters. The code makes sure only someone with access to the Pi
+can become admin. Add accounts for everyone else on the Users screen. See
+[Users and login](../03-modules/14-users.md).
+
 From now on outpost starts by itself whenever the Pi boots, and stops
 cleanly when it shuts down. `./manage.sh autostart off` turns that off.
 
-The home page lists every installed module. Next steps:
+After logging in, the home page lists every installed module. Next steps:
 
 - **Maps**: download a region. See [Maps](../03-modules/02-maps.md).
 - **Library**: choose books, start with the emergency set. See
@@ -128,7 +143,7 @@ command. Use it to:
 - add or remove modules,
 - move the data to another disk: answer the data question with the new
   folder and the existing data is moved there,
-- change the port, access or control PIN (`./install.sh --advanced`).
+- change the port or access (`./install.sh --advanced`).
 
 Settings that `install.sh` does not ask about can be edited in `.env`
 directly; run `./start.sh` afterwards. See

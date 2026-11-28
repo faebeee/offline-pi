@@ -1,6 +1,4 @@
 import {
-  ApiError,
-  controlPin,
   getModulesListQueryKey,
   modulesControl,
   useModulesList,
@@ -22,36 +20,12 @@ export function isRunning(m: ModuleStatus | undefined): boolean {
   return !!m && m.installed && (!m.optional || m.state === "running");
 }
 
-/**
- * Runs a control action (start/stop, blocking a device). When core wants
- * the control PIN (CONTROL_PIN) it asks for it, keeps it for this tab and
- * tries again. WHAT completes "a PIN is needed to ...".
- */
-export async function withControlPin<T>(what: string, action: () => Promise<T>): Promise<T> {
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      return await action();
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 403 && /PIN/.test(err.message)) {
-        const had = controlPin.get();
-        controlPin.set("");
-        const entered = window.prompt(had ? "Wrong PIN. Control PIN:" : "Control PIN (CONTROL_PIN in .env):");
-        if (!entered) throw new Error(`Cancelled: a PIN is needed to ${what}.`);
-        controlPin.set(entered);
-        continue;
-      }
-      throw err;
-    }
-  }
-  throw new Error("Wrong PIN.");
-}
-
-/** Start/stop a module (asks for the control PIN when needed). */
+/** Start/stop a module (admins only; core answers 403 otherwise). */
 export function useControlModule() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, action }: { id: string; action: "start" | "stop" }) =>
-      (await withControlPin("start or stop modules", () => modulesControl(id, action))).module,
+      (await modulesControl(id, action)).module,
     onSettled: () => qc.invalidateQueries({ queryKey: getModulesListQueryKey() }),
   });
 }

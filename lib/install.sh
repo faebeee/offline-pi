@@ -11,13 +11,6 @@ valid_port() {
   fi
 }
 
-valid_pin() {
-  if [[ "$1" =~ [[:space:]] ]]; then
-    echo "No spaces (or empty for no PIN)."
-    return 1
-  fi
-}
-
 # ------------------------------------------------------------ host check --
 
 # install_host_check - Raspberry Pi firmware device, Podman's state DB and
@@ -71,21 +64,19 @@ install_host_check() {
 
 # ---------------------------------------------------------------- basics --
 
-# install_basics - port, who can reach it, control PIN (install.sh
-# --advanced; otherwise the defaults: 8080, every device, no PIN).
+# install_basics - port and who can reach it (install.sh --advanced;
+# otherwise the defaults: 8080, every device). Who may log in is set in the
+# web app (the first visit creates the admin account).
 install_basics() {
-  local port bind pin
+  local port bind
   port="$(get_env PORT)"; port="${port:-8080}"
   bind="$(get_env BIND_ADDRESS)"; bind="${bind:-0.0.0.0}"
-  pin="$(get_env CONTROL_PIN)"
   ui_input "Port for the web app" "$port" valid_port
   set_env PORT "$UI_REPLY"
   ui_select "Who can open it?" "$bind" \
     "0.0.0.0|Every device on the network|LAN, Wi-Fi hotspot (0.0.0.0)" \
     "127.0.0.1|Only this machine|127.0.0.1"
   set_env BIND_ADDRESS "$UI_REPLY"
-  ui_input "PIN for control actions: start/stop modules, delete shared data (empty = none)" "$pin" valid_pin
-  set_env CONTROL_PIN "$UI_REPLY"
 }
 
 # --------------------------------------------------------------- modules --
@@ -134,7 +125,6 @@ install_summary() {
     printf '  %-22s %s\n' "" "http://${ip}:${PORT}" >&2
   fi
   printf '  %-22s %s\n' "Modules" "${MODULES:-none}" >&2
-  printf '  %-22s %s\n' "Control PIN" "${CONTROL_PIN:+set}${CONTROL_PIN:-none (./install.sh --advanced)}" >&2
   for var in $(active_dir_vars); do
     printf '  %-22s %s\n' "$var" "${!var:-}" >&2
   done

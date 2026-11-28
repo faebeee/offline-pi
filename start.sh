@@ -161,6 +161,14 @@ if [[ -n "$LAN_IP" && "${BIND_ADDRESS:-0.0.0.0}" != "127.0.0.1" ]]; then
   echo "  LAN:     http://${LAN_IP}:${PORT}"
 fi
 echo "  Modules: ${MODS[*]:-none} (start and stop them on the dashboard)"
+# first run: the admin account needs the one-time setup code
+if code="$(setup_code)" && [[ -n "$code" ]]; then
+  echo
+  log_info "First run: open outpost in a browser and create the admin account"
+  log_info "with this setup code (also: ./manage.sh users setup-code):"
+  echo
+  printf '      \033[1m%s\033[0m\n' "$code"
+fi
 if [[ ${#failed[@]} -gt 0 ]]; then
   log_warn "Not available: ${failed[*]} (see the errors above)"
 fi

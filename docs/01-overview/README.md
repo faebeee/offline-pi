@@ -53,6 +53,7 @@ on the home page.
 | Info | `/info` | This documentation. |
 | Settings | `/settings` | Every setting of the Pi, the data folders and their size. Read only. |
 | Diagnostics | `/diagnostics` | What works and what does not: modules, folder permissions, free space, the USB drive, power. With a fix for each problem. |
+| Users | `/users` | The accounts that can log in, and who is an admin. Admins only. |
 
 The pages of [chapter 3](../03-modules/README.md) explain each screen.
 

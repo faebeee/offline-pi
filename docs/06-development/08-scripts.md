@@ -67,11 +67,12 @@ work inside `$(...)`, and it needs no dependencies.
 | `ui_input QUESTION DEFAULT [VALIDATOR]` | Text; Enter keeps the default. The validator is a function that prints why an answer is wrong and returns non-zero. |
 | `ui_confirm QUESTION y\|n` | Yes or no; returns 0 for yes. |
 | `ui_select QUESTION DEFAULT ITEM...` | One of a list; each item is `"value\|label\|hint"`. |
+| `ui_secret QUESTION` | Hidden input, for a password. Fails with `--yes` (someone has to type it). |
 | `ui_multiselect QUESTION ITEM...` | Several of a list; items are `"value\|label\|hint\|on"`. The answer is the chosen values, comma separated. |
 | `ui_run MESSAGE COMMAND [ARGS...]` | Run a long step with a spinner and its latest output line; the full output goes to `UI_LOG`, the end of it is shown on failure. |
 | `ui_banner`, `ui_step N TOTAL TITLE`, `ui_note TEXT` | Headings and dimmed explanations. |
 
-The answer of `ui_input`, `ui_select` and `ui_multiselect` is left in the
+The answer of `ui_input`, `ui_secret`, `ui_select` and `ui_multiselect` is left in the
 global `UI_REPLY` (Bash 3.2 has no namerefs). Read it right after the call:
 
 ```bash
@@ -166,6 +167,11 @@ radio_configure() {
   `--purge`), and never deletes `/`, `$HOME`, mount roots or anything
   containing the checkout.
 - Module start and stop go through core (`core_api`), so the web app's
-  state stays right.
+  state stays right. `core_api` sends the local admin token from
+  `CORE_DATA_DIR/cli.token` (written by core at every start) as
+  `Authorization: Bearer`, so the scripts need no login; a password in a
+  request body goes through stdin, never on the command line.
+- `./manage.sh users` and `users reset-password NAME` manage accounts
+  through the same API (`ui_secret` for the password).
 - Every installer has an uninstaller that reverses it, also for host
   utilities like `host/hotspot-pi`.

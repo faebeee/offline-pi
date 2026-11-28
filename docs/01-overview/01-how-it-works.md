@@ -92,11 +92,20 @@ header, the module navigation and a status strip at the bottom. If a module
 is not installed, not configured or not running, its screen says so and,
 where possible, offers a START button.
 
-There is no login. Anyone who can open the web app can use it. To limit
-that:
+## Accounts
 
-- Set `CONTROL_PIN` to require a PIN before modules are started or stopped.
-- Set `BIND_ADDRESS=127.0.0.1` to allow only the Pi itself.
+outpost needs a login. Core checks it on every API call, every module file
+it passes through (map tiles, Library pages) and every live connection;
+only the login screen itself loads without one. On the first visit you
+create the admin account. Admins add more accounts, each with a role:
+
+- **admin**: everything, including starting and stopping modules, blocking
+  devices, deleting shared data and managing accounts,
+- **user**: every screen, but not those control actions.
+
+The accounts are kept on the Pi in `CORE_DATA_DIR`. Set
+`BIND_ADDRESS=127.0.0.1` to allow only the Pi itself. See
+[Users and login](../03-modules/14-users.md).
 
 ## Nothing loaded from the internet at runtime
 

@@ -1,0 +1,42 @@
+/* Login and first-run setup: layout only, tokens only (components from @outpost/ui). */
+
+.auth {
+  display: flex;
+  min-height: 100dvh;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+.auth-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-5) var(--space-4);
+}
+
+.auth-art {
+  width: min(100%, 560px);
+  height: auto;
+}
+
+.auth-card {
+  width: min(100%, 420px);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.auth-form .h2,
+.auth-form p {
+  margin: 0;
+}
+
+/* destructive action at the far left of the account dialog's actions */
+.account-logout {
+  margin-right: auto;
+}

@@ -68,7 +68,7 @@ export class CreatePostRequest {
   author?: string;
 }
 
-/** Only the fields given change. Pinning needs the control PIN. */
+/** Only the fields given change. Pinning is for admins. */
 export class UpdatePostRequest {
   @IsOptional()
   @IsIn(POST_KINDS)

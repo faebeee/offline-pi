@@ -1,0 +1,35 @@
+/* Users: layout only, tokens only (components from @outpost/ui). */
+
+.users {
+  gap: var(--space-4);
+}
+
+.users-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.users-bar p {
+  flex: 1 1 320px;
+  margin: 0;
+}
+
+.users-list > li {
+  background: var(--s1);
+}
+
+.users-list .row-main {
+  min-width: 0;
+}
+
+.users-you {
+  color: var(--fg3);
+}
+
+.users-role {
+  width: auto;
+  flex: none;
+}

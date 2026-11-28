@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { ThemeToggle } from "../ui/outpost";
+import { Banner, Illustration, ThemeToggle } from "../ui/outpost";
+import { AccountButton, useMe } from "./auth";
 import { useModules } from "../features/modules/useModules";
 import { Nav } from "./Nav";
 
@@ -27,7 +28,12 @@ export function Screen({
   children: ReactNode;
 }) {
   const { data } = useModules();
-  const label = module === "home" ? "Home" : (data?.modules.find((m) => m.id === module)?.label ?? module);
+  const { isAdmin } = useMe();
+  const entry = data?.modules.find((m) => m.id === module);
+  const label = module === "home" ? "Home" : (entry?.label ?? module);
+  // admin-only screens (System, Logs, Settings, Diagnostics, Users): core
+  // refuses their data to others anyway; say so instead of showing errors
+  const blocked = !!entry?.adminOnly && !isAdmin;
   return (
     <>
       <header className="header">
@@ -38,15 +44,27 @@ export function Screen({
         <div className="header-actions">
           {actions}
           <ThemeToggle />
+          <AccountButton />
         </div>
       </header>
-      {context && (
+      {context && !blocked && (
         <div className="context" aria-live="off">
           {context}
         </div>
       )}
       <div className="frame-body">
-        <main className={bleed ? "content bleed" : "content grid-bg"}>{children}</main>
+        <main className={bleed && !blocked ? "content bleed" : "content grid-bg"}>
+          {blocked ? (
+            <>
+              <Illustration name="lost" className="gate-art" />
+              <Banner tone="info" title="Admins only">
+                {label} is only open to admins. Ask an admin if you need something from it.
+              </Banner>
+            </>
+          ) : (
+            children
+          )}
+        </main>
         <Nav current={module} />
       </div>
     </>

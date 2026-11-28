@@ -49,7 +49,7 @@ head shows how many installed modules are running, for example
 - Turn a switch on to start the module, off to stop it. The badge changes
   to `STARTING` or `STOPPING` while core works.
 - A switch is disabled when the module is not installed, not configured,
-  busy, or when core cannot control containers. The line under the name
+  busy, when core cannot control containers, or when you are not an admin. The line under the name
   says why.
 - If starting or stopping fails, a red banner `Could not start <module>`
   or `Could not stop <module>` shows the error.
@@ -74,14 +74,11 @@ The switches only start and stop modules that are installed. To add or
 remove a module, run `./install.sh` on the Pi again and change your choice.
 See [Install](../02-installation/01-install.md).
 
-## The control PIN
+## Admins and users
 
-By default anyone who can open the app can start and stop modules. To
-prevent that, set `CONTROL_PIN` in `.env` (see
-[Settings](../05-reference/01-settings.md)) and restart with `./start.sh`.
-
-With a PIN set, the browser asks `Control PIN` the first time you start or
-stop a module in a tab. The PIN is kept for that browser tab only. If it is
-wrong, you are asked again. Cancel the prompt to leave the module as it is.
-The same PIN is asked for the START and STOP buttons on the module gate and
-on the [System](05-system.md) screen.
+Only admins can start and stop modules (see
+[Users and login](14-users.md#admins-and-users)). For a user, the switches
+are disabled and the card says
+`Only an admin can switch modules on and off.` The START button on the
+module gate and the buttons on the [System](05-system.md) screen are for
+admins too; a user sees `Ask an admin to start it` on the gate.

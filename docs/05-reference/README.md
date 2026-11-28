@@ -23,6 +23,6 @@ file in the checkout disagree, the file wins:
   passthrough paths, internal ports, container names, data mounts and log
   files.
 - [API](03-api.md): core's REST endpoints by domain, the Socket.IO
-  namespaces and events, error codes and the control PIN.
+  namespaces and events, error codes, the login and the admin-only actions.
 - [Glossary](04-glossary.md): core, module, domain, passthrough, ZIM,
   PMTiles and the other terms used in these docs.

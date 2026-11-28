@@ -3,7 +3,7 @@
 Logs shows the log lines that core and every module write, live, in the
 browser. Use it to find out why something does not work, without a
 terminal on the Pi. It is part of core, so it is always on. Open it with
-Logs in the module nav (`/logs`).
+Logs in the module nav (`/logs`). Only admins can open it (see [Users and login](14-users.md#admins-and-users)).
 
 ## Sources
 
@@ -75,7 +75,7 @@ someone for help.
 - `No logs from <module>`: the container's logs cannot be read, with the
   reason.
 
-Anyone who can open outpost can read its logs. To keep them to the Pi,
+Every account, admin or user, can read the logs. To keep outpost to the Pi,
 see `BIND_ADDRESS` in [Settings](../05-reference/01-settings.md). For logs
 in a terminal, see [Everyday commands](../04-operations/01-everyday-commands.md)
 and [Troubleshooting](../04-operations/05-troubleshooting.md).

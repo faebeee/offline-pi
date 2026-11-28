@@ -18,12 +18,14 @@ export class JsonFile<T> {
   constructor(
     readonly path: string,
     private readonly fallback: () => T,
+    /** file mode, e.g. 0o600 for accounts and sessions */
+    private readonly mode = 0o644,
   ) {
     this.logger = new Logger(`JsonFile ${path.split('/').pop()}`);
   }
 
-  static inDataDir<T>(name: string, fallback: () => T): JsonFile<T> {
-    return new JsonFile(join(CORE_DATA_DIR, name), fallback);
+  static inDataDir<T>(name: string, fallback: () => T, mode?: number): JsonFile<T> {
+    return new JsonFile(join(CORE_DATA_DIR, name), fallback, mode);
   }
 
   /** The stored document, or the fallback when there is none (or it is unreadable). */
@@ -43,7 +45,7 @@ export class JsonFile<T> {
     const write = async () => {
       await mkdir(dirname(this.path), { recursive: true });
       const tmp = `${this.path}.tmp`;
-      await writeFile(tmp, text, 'utf8');
+      await writeFile(tmp, text, { encoding: 'utf8', mode: this.mode });
       await rename(tmp, this.path);
     };
     this.writing = this.writing.then(write, write);

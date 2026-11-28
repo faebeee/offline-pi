@@ -74,6 +74,7 @@ it with `sed`) and arrays on one line:
 | `optional` | `true` for a module the user chooses in `install.sh` |
 | `requires` | Variables that must be non-empty before it may start (radio: `RADIO_DEVICE`) |
 | `dependsOn` | Installed modules started together with it, first |
+| `admin` | Optional. `true` makes the screen admins only, like System or Users: hidden from users (nav, tiles; `adminOnly` in `/api/modules`), route wrapped in `<AdminOnly>`, and core refuses `/api/<id>/...` and the Socket.IO namespace `/<id>` to non-admins |
 
 A screen that core serves itself has `"service": "core"`, no `portEnv` and
 `"optional": false`: no container, always on.

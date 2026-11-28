@@ -44,6 +44,8 @@ export interface Module {
   optional: boolean;
   /** nav group: apps on top, system screens at the bottom (default: optional modules are apps) */
   nav: 'apps' | 'system';
+  /** only admins see it (manifest "admin": true), e.g. Users */
+  adminOnly: boolean;
   /** env vars that must be non-empty before it may start */
   requires: string[];
   /** installed modules started with it, in order */
@@ -84,6 +86,7 @@ function parseManifest(raw: string): Module {
     health: json.health,
     dirs: json.dirs ?? [],
     optional: json.optional ?? true,
+    adminOnly: (json as { admin?: boolean }).admin === true,
     nav: json.nav === 'apps' || json.nav === 'system' ? json.nav : (json.optional ?? true) ? 'apps' : 'system',
     requires: json.requires ?? [],
     dependsOn: json.dependsOn ?? [],

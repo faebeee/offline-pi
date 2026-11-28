@@ -12,7 +12,38 @@ The full, typed contract is the OpenAPI document:
   is checked in as `packages/api-client/openapi.json`, from which the web
   app's client is generated.
 
+Every route needs a login (the session cookie), except the few the login
+screen needs: `auth/state`, `auth/setup`, `auth/login`, `auth/logout` and
+`system/status`. See [Login and control headers](#login-and-control-headers).
+
 The tables below are an overview. Paths are relative to `/api/`.
+
+## auth
+
+Logging in and out, and the first-run setup. Open without a login, except
+`auth/password`.
+
+| Method | Path | What it does |
+|---|---|---|
+| `GET` | `auth/state` | Whether the first-run setup is due (`setup`), and the logged-in account (`user`, or `null`) |
+| `POST` | `auth/setup` | First run only: create the admin account (`{code, username, password}`; `code` is the setup code from `CORE_DATA_DIR/setup.code`, `403` when wrong, counted like a wrong password) and log in. `409` once any account exists |
+| `POST` | `auth/login` | Log in (`{username, password}`); sets the session cookie. `401` for a wrong user name or password, `429` after too many |
+| `POST` | `auth/logout` | End this session and clear the cookie |
+| `POST` | `auth/password` | Change your own password (`{current, password}`); your other sessions end |
+
+## users
+
+The accounts. Admins only (`403` otherwise).
+
+| Method | Path | What it does |
+|---|---|---|
+| `GET` | `users` | Every account, admins first |
+| `POST` | `users` | Add an account (`{username, password, role}`, role `admin` or `user`) |
+| `PATCH` | `users/:id` | Change the role and/or set a new password (`{role?, password?}`); a new password logs the account out everywhere |
+| `DELETE` | `users/:id` | Delete an account and log it out; not your own, not the last admin |
+
+User names are 1 to 32 letters, digits, dots, dashes or underscores, stored
+in lower case. Passwords have at least 8 characters.
 
 ## modules
 
@@ -21,18 +52,24 @@ stopping them.
 
 | Method | Path | What it does |
 |---|---|---|
-| `GET` | `modules` | Every module with its state, whether start/stop is available and whether a PIN is required |
+| `GET` | `modules` | Every module with its state, whether start/stop is available, and `adminOnly` for screens only admins see |
 | `POST` | `modules/:id/start` | Start a module; the choice survives reboots |
 | `POST` | `modules/:id/stop` | Stop a module; it stays off after a reboot |
 
-The `POST` routes need the header `X-Pi-Monitor: 1`, and `X-Control-Pin`
-when `CONTROL_PIN` is set (see [Control headers](#control-headers)).
+The `POST` routes need the header `X-Pi-Monitor: 1` and an admin (see
+[Login and control headers](#login-and-control-headers)).
 
 ## system
 
+Admins only (`403` otherwise), except `system/status` and `system/vitals`.
+The same goes for `logs`, `settings`, `diagnostics` and `users`, and for the
+Socket.IO namespaces `/system` and `/logs`: every module whose manifest says
+`"admin": true`.
+
 | Method | Path | What it does |
 |---|---|---|
-| `GET` | `system/status` | Cheap liveness check used by core's health check: `503` when sampling stalled |
+| `GET` | `system/status` | Cheap liveness check used by core's health check: `503` when sampling stalled. No login needed |
+| `GET` | `system/vitals` | What the status strip shows (internet, CPU temperature, voltage, CPU, memory, root disk), for every account; `null` right after start |
 | `GET` | `system/snapshot` | The latest snapshot of the Pi (`null` right after start), including `internet` (outgoing internet: `online`, `offline`, `checking`, `disabled`) |
 | `GET` | `system/history` | One point per minute for 24 h, and the power events |
 
@@ -84,7 +121,7 @@ when `CONTROL_PIN` is set (see [Control headers](#control-headers)).
 | `GET` | `files/list?path=` | One folder, folders first |
 | `POST` | `files/folders` | Make a folder |
 | `POST` | `files/move` | Rename or move a file or folder |
-| `DELETE` | `files/entries?path=` | Delete a file, or a folder with everything in it (control PIN) |
+| `DELETE` | `files/entries?path=` | Delete a file, or a folder with everything in it (admins only) |
 
 The bytes have their own routes (not in the OpenAPI document):
 `GET files/raw/<path>` downloads (`?download=true` as an attachment; HTML,
@@ -100,8 +137,8 @@ requests), `PUT files/raw/<path>` uploads the request body as
 | `GET` | `board/status` | Posts per kind, open and done |
 | `GET` | `board/posts?kind=&includeDone=` | Every post: pinned first, done last |
 | `POST` | `board/posts` | Add a post (`notice`, `need`, `offer` or `checkin`) |
-| `PATCH` | `board/posts/:id` | Change a post or mark it done; changing `pinned` needs the control PIN |
-| `DELETE` | `board/posts/:id` | Delete a post (control PIN) |
+| `PATCH` | `board/posts/:id` | Change a post or mark it done; changing `pinned` is for admins only |
+| `DELETE` | `board/posts/:id` | Delete a post (admins only) |
 
 ## supplies
 
@@ -112,7 +149,7 @@ requests), `PUT files/raw/<path>` uploads the request body as
 | `POST` | `supplies/items` | Add an item |
 | `PATCH` | `supplies/items/:id` | Change an item |
 | `POST` | `supplies/items/:id/adjust` | Add to or take from its quantity |
-| `DELETE` | `supplies/items/:id` | Delete an item (control PIN) |
+| `DELETE` | `supplies/items/:id` | Delete an item (admins only) |
 | `GET` | `supplies/settings` | People, water per day, target days, expiry warning |
 | `PUT` | `supplies/settings` | Change them |
 
@@ -146,7 +183,8 @@ Troubleshooting checks, read only.
 ## Live updates
 
 Socket.IO on `/socket.io`, one namespace per domain. The payloads are the
-same DTOs as in the OpenAPI document.
+same DTOs as in the OpenAPI document. A connection needs a login (the
+session cookie), like the API.
 
 | Namespace | Core sends | The browser sends |
 |---|---|---|
@@ -168,21 +206,46 @@ Errors are JSON with `statusCode` and `message`. For a module's domain:
 A request body that fails validation answers `400`. Unknown fields are
 dropped.
 
-## Control headers
+For the login and the roles:
 
-Starting and stopping modules gives access to the user's Podman, and some
-actions delete shared data, so core guards them:
+| Status | Meaning |
+|---|---|
+| `401` | No login: `Log in first.`, or `Create the admin account first.` while no account exists |
+| `403` | Logged in, but not an admin: `Only an admin can do this.` |
+| `409` | `auth/setup` when an account exists already |
+| `429` | `auth/login` after too many wrong passwords: `Too many wrong passwords. Try again in N seconds.` |
 
-| Header | Required | Why |
+## Login and control headers
+
+**Login.** Every `/api/` and `/svc/` request and every Socket.IO connection
+needs a session: the cookie `outpost_session` that `auth/login` and
+`auth/setup` set (httpOnly, SameSite=Strict, 30 days). Without one, the API
+answers `401`, and a page load of a `/svc/` URL redirects to `/`, the login.
+Open without a login are `auth/state`, `auth/setup`, `auth/login`,
+`auth/logout`, `system/status` (core's health check) and the web app's own
+files (`/`, `/assets/`, `/ui/`).
+
+**Control headers.** Starting and stopping modules gives access to the
+user's Podman, and some actions delete shared data, so core guards them:
+
+| Guard | Required | Why |
 |---|---|---|
-| `X-Pi-Monitor: 1` | On every call that changes something (`POST`, `PUT`, `PATCH`, `DELETE`) of modules, network, files, board and supplies | Another web page can't send it with a plain form post (CSRF guard). Missing: `400`. |
-| `X-Control-Pin` | When `CONTROL_PIN` is set, on control actions: module start/stop, blocking devices and the hotspot switch, deleting shared files, board posts and supplies, pinning posts | Wrong or missing: `403`. |
+| `X-Pi-Monitor: 1` | On every call that changes something (`POST`, `PUT`, `PATCH`, `DELETE`), including `auth/setup`, `auth/login` and `auth/password` | Another web page can't send it with a plain form post (CSRF guard). Missing: `400`. |
+| An admin's session | On control actions: module start/stop, blocking, unblocking and forgetting devices and the hotspot switch, deleting shared files, board posts and supplies, pinning posts, and every `users` route | A user's session: `403` `Only an admin can do this.` |
+
+From the Pi, log in with a cookie jar and send the cookie along:
 
 ```bash
-curl -X POST -H 'X-Pi-Monitor: 1' -H 'X-Control-Pin: 1234' \
+curl -c jar -H 'X-Pi-Monitor: 1' -H 'Content-Type: application/json' \
+  -d '{"username":"admin","password":"..."}' http://127.0.0.1:8080/api/auth/login
+curl -b jar -X POST -H 'X-Pi-Monitor: 1' \
   http://127.0.0.1:8080/api/modules/maps/start
 ```
 
-`./manage.sh start <module>` and `stop <module>` make the same call. There
-is no login: anyone who can open the web app can use the API. Set
-`BIND_ADDRESS=127.0.0.1` to keep it on the Pi.
+**Scripts.** `./manage.sh` needs no login: core writes a random local admin
+token to `CORE_DATA_DIR/cli.token` (readable by the owner only) at every
+start, and the scripts send it as `Authorization: Bearer <token>`. Core
+accepts it only on a connection from the machine itself (`127.0.0.1`,
+`::1`); from the network it counts as no login.
+`./manage.sh start <module>` and `stop <module>` make the call above that
+way.

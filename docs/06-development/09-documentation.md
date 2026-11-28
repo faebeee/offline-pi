@@ -39,7 +39,7 @@ docs/
 Use only **relative links to `.md` files inside `docs/`**, anchors allowed:
 
 ```markdown
-See [Storage](../02-installation/02-storage.md#moving-data).
+See [Storage](../02-installation/02-storage.md#choosing-or-changing-a-location).
 ```
 
 Such links work in a file browser, on a Git host and in the app, which

@@ -10,7 +10,7 @@ type Show = "all" | "problems";
 type Status = DiagCheck["status"];
 
 const GROUPS: { id: DiagCheck["group"]; title: string; help: string }[] = [
-  { id: "setup", title: "Setup", help: "Configuration, Podman, PIN and clock." },
+  { id: "setup", title: "Setup", help: "Configuration, Podman, accounts and clock." },
   { id: "modules", title: "Modules", help: "Is every installed module running and answering?" },
   { id: "storage", title: "Storage", help: "Data folders: drive mounted, writable, enough free space." },
   { id: "host", title: "Host", help: "Temperature, power supply, memory and the system disk." },

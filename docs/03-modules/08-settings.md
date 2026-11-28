@@ -2,8 +2,8 @@
 
 Settings shows every setting of the Pi in one place: what is in `.env`,
 what each value means, and where the data lives and how big it is. It is
-module 08, served by core: it has no container of its own and is always
-on. Open it with Settings in the module nav (`/settings`).
+module 10, served by core: it has no container of its own and is always
+on. Open it with Settings in the module nav (`/settings`). Only admins can open it (see [Users and login](14-users.md#admins-and-users)).
 
 The screen is read only. `.env` is written by `./install.sh` alone; to
 change a setting, run `./install.sh` in the project folder on the Pi (see

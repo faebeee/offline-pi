@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { Stats } from 'node:fs';
 import { lstat, opendir, stat } from 'node:fs/promises';
 import { hostname } from 'node:os';
+import { UsersStore } from '../../../platform/auth/users.store';
 import { join } from 'node:path';
 import { HOST_ROOT } from '../../../platform/host/host';
 import { ModulesService } from '../../../platform/modules/modules.service';
@@ -93,6 +94,7 @@ export class DiagnosticsService {
     private readonly settings: SettingsService,
     private readonly collector: CollectorService,
     private readonly internet: InternetService,
+    private readonly users: UsersStore,
   ) {}
 
   /** Runs every check; parallel requests share one run. */
@@ -180,19 +182,14 @@ export class DiagnosticsService {
           }),
     );
 
+    const accounts = this.users.list();
+    const admins = accounts.filter((u) => u.role === 'admin').length;
     out.push(
-      process.env.CONTROL_PIN
-        ? check('setup', 'pin', 'Control PIN', 'ok', 'Starting and stopping modules needs the PIN')
-        : check(
-            'setup',
-            'pin',
-            'Control PIN',
-            'info',
-            'No control PIN: anyone on the network can start and stop modules',
-            {
-              fix: 'Set one with ./install.sh if others use this network.',
-            },
-          ),
+      accounts.length
+        ? check('setup', 'accounts', 'Accounts', 'ok', `${accounts.length} ${accounts.length === 1 ? 'account' : 'accounts'}, ${admins} ${admins === 1 ? 'admin' : 'admins'}`)
+        : check('setup', 'accounts', 'Accounts', 'warn', 'No admin account yet', {
+            fix: 'Open the web app and create the admin account.',
+          }),
     );
 
     const year = new Date().getUTCFullYear();

@@ -3,7 +3,8 @@
 outpost has one configuration file: `.env` in the project folder. It is
 created by `./install.sh` from `.env.example`, which documents every
 variable. `start.sh` and `manage.sh` only read it, and core only writes its
-own state file (`CORE_DATA_DIR/modules.json`), never `.env`.
+own files in `CORE_DATA_DIR`, never `.env`. Accounts are not settings: they
+are managed in the web app (see [Users and login](../03-modules/14-users.md)).
 
 `compose.yml` gives every variable a default (`${VAR:-default}`), so a
 variable missing from `.env` falls back to the default below. That is why
@@ -15,12 +16,12 @@ new in `.env.example`.
 | Kind | Variables | How to change them |
 |---|---|---|
 | Asked by `install.sh` | `MODULES`, `OUTPOST_DATA_DIR` (and from it every `*_DIR`), `NETWORK_LEASES_PATH` | Re-run `./install.sh` and answer differently |
-| Asked by `install.sh --advanced` | `PORT`, `BIND_ADDRESS`, `CONTROL_PIN`, each `*_DIR` on its own | Re-run `./install.sh --advanced` |
+| Asked by `install.sh --advanced` | `PORT`, `BIND_ADDRESS`, each `*_DIR` on its own | Re-run `./install.sh --advanced` |
 | Detected by `install.sh` | `PODMAN_GRAPH_ROOT`, `PODMAN_SOCKET`, `VCIO_DEVICE` | Leave as is; detected again on every run |
 | Edited by hand | everything else (`SAMPLE_INTERVAL_MS`, `CORE_LOG_LEVEL`, the ports, `KNOWLEDGE_AUTO_SYNC`, ...) | Edit `.env`, then `./start.sh` |
 
-Without `--advanced`, `PORT`, `BIND_ADDRESS` and `CONTROL_PIN` keep their
-current values (the defaults on a first run: `8080`, every device, no PIN).
+Without `--advanced`, `PORT` and `BIND_ADDRESS` keep their current values
+(the defaults on a first run: `8080`, every device).
 
 ## Applying a change
 
@@ -50,10 +51,9 @@ current values (the defaults on a first run: `8080`, every device, no PIN).
 | `BIND_ADDRESS` | `0.0.0.0` | `0.0.0.0` for access from the LAN or hotspot, `127.0.0.1` for this machine only. |
 | `MODULES_BIND_ADDRESS` | `127.0.0.1` | Address the modules listen on. Keep `127.0.0.1`: modules are reached through core and must not be exposed on their own. |
 | `MODULES` | `maps,knowledge` | Installed modules, comma separated. Available: `maps`, `knowledge`, `network`. Only these get an image and a container; Files, Board and Supplies are part of core. |
-| `CORE_DATA_DIR` | `./data/core` | Core's data: 24 h metric history and power events (`history.json`), `modules.json` (the modules switched off), Board posts (`board.json`) and the Supplies list with its household settings (`supplies.json`). Small. |
+| `CORE_DATA_DIR` | `./data/core` | Core's data: 24 h metric history and power events (`history.json`), `modules.json` (the modules switched off), Board posts (`board.json`), the Supplies list with its household settings (`supplies.json`), and the accounts: `users.json` (user names, roles, password hashes; back it up), `sessions.json` (hashes of the login tokens) and `cli.token` (the local admin token for `./manage.sh`), readable by the owner only. Small. |
 | `SAMPLE_INTERVAL_MS` | `2000` | How often the Pi is sampled and pushed to open dashboards, in milliseconds (minimum 500). |
 | `CORE_LOG_LEVEL` | `log` | Least severe level core logs: `verbose`, `debug`, `log`, `warn`, `error`, `fatal`. The Logs screen shows core's lines from this level up. |
-| `CONTROL_PIN` | empty | PIN asked before control actions in the web app: starting or stopping a module, blocking devices, deleting shared files, Board posts and supplies, pinning posts. Empty: anyone who can open the web app may do them. |
 | `CORE_INTERNET_CHECK_URLS` | `https://build.protomaps.com/,https://download.kiwix.org/` | Servers asked whether the Pi gets out to the internet, for `NET` in the status strip: a HEAD request to the first that answers. These are servers outpost downloads from anyway. Empty: no check, no `NET` item. |
 | `CORE_INTERNET_CHECK_INTERVAL_MS` | `60000` | How often that check runs, in milliseconds (minimum 10000). |
 | `PODMAN_GRAPH_ROOT` | empty | Podman's storage root on the host; its `db.sql` lists the containers. Empty: core searches the default locations. Detected. |

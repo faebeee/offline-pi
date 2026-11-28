@@ -26,10 +26,11 @@ and off on the dashboard.
 | [Info](apps/info/README.md) (core) | `/info` | `/api/info` | | This project's documentation ([`docs/`](docs/README.md)), rendered from the Markdown files, with chapters and search. |
 | [Settings](apps/settings/README.md) (core) | `/settings` | `/api/settings` | | Every setting of the Pi, read only: the `.env` values with their meaning and default, the data folders with their drive, free space and size. |
 | [Diagnostics](apps/diagnostics/README.md) (core) | `/diagnostics` | `/api/diagnostics` | | Troubleshooting: checks every part of outpost (modules running and answering, data folders mounted, writable and not full, the USB drive, power, temperature, memory, clock) and says what to do about each problem. |
+| [Users](apps/users/README.md) (core) | `/users` | `/api/users`, `/api/auth` | | The accounts that can log in, with their role (admin or user); admins only. Login and first-run setup for the whole app. |
 | [Maps](apps/maps/README.md) | `/maps` | `/api/maps` | `8081` | Self-hosted vector maps: download a region once, then pan, zoom and search with no internet connection. |
 | [Network](apps/network/README.md) | `/network` | `/api/network` | `8085` | Who is on the Pi's Wi-Fi hotspot: MAC address, vendor (offline IEEE registry), IP, hostname, signal, traffic; block and unblock devices, switch the hotspot on and off (through the host helper [`host/network-guard`](host/network-guard)). |
 | [Files](apps/files/README.md) (core) | `/files` | `/api/files` | | A shared folder for everyone on the Pi's network: upload, download, folders, rename; uploads and downloads stream through `/api/files/raw/`. |
-| [Board](apps/board/README.md) (core) | `/board` | `/api/board` | | Notice board: notices, needs, offers and check-ins, without accounts; needs and offers can be marked done. |
+| [Board](apps/board/README.md) (core) | `/board` | `/api/board` | | Notice board: notices, needs, offers and check-ins; needs and offers can be marked done. |
 | [Supplies](apps/supplies/README.md) (core) | `/supplies` | `/api/supplies` | | The household's emergency stock: what, how much, where, best-before dates; warns about expired, expiring and low items and says how many days the water lasts. |
 | [Library](apps/knowledge/README.md) | `/library` | `/api/library` | `8082` | Offline Wikipedia, medical and survival guides via `kiwix-serve`; you choose the books on the Library screen, the container downloads them itself. |
 
@@ -52,7 +53,10 @@ normal user:
 curl -fsSL https://raw.githubusercontent.com/faebeee/offline-pi/main/get.sh | bash
 ```
 
-Then open `http://<pi>:8080/`.
+Then open `http://<pi>:8080/` and **create the admin account** (setup code,
+user name and password): the installer prints the setup code at the end,
+so only someone with access to the Pi can become admin. Every later visit needs a login; admins add accounts on the
+Users screen. See [Users and login](docs/03-modules/14-users.md).
 
 That installs git if needed, clones outpost to `~/outpost` and runs
 `install.sh`, which asks only:
@@ -69,7 +73,7 @@ none), starts outpost and makes it **start by itself at boot**. The output
 goes to `install.log`; on an error the installer shows its end.
 
 ```sh
-./install.sh --advanced  # also ask port, access, control PIN, a folder per module
+./install.sh --advanced  # also ask port, access, a folder per module
 ./install.sh --yes       # no questions: keep the current answers (defaults on a first run)
 ./install.sh --build     # build the images here instead of downloading them
 ./install.sh --plain     # line-by-line prompts instead of menus (also used without a terminal)
@@ -119,6 +123,8 @@ The data stays where it was.
 ./manage.sh stop knowledge
 ./manage.sh logs [module]       # follow logs (default: core)
 ./manage.sh autostart off       # don't start at boot (on|off|status)
+./manage.sh users               # the accounts and their roles
+./manage.sh users reset-password admin  # forgotten password: set a new one
 ./manage.sh knowledge list      # module commands, see ./manage.sh help
 ```
 
@@ -150,9 +156,8 @@ documents every variable. The main ones:
 | `BIND_ADDRESS` | `0.0.0.0` | `0.0.0.0` for LAN/hotspot, `127.0.0.1` for this Pi only. |
 | `MODULES` | `maps,knowledge` | Installed modules (set by `install.sh`). |
 | `CORE_LOG_LEVEL` | `log` | Least severe level core logs and the Logs screen shows for core (`debug` for more detail). |
-| `CONTROL_PIN` | empty | PIN asked before control actions: starting/stopping modules, deleting shared data. |
 | `CORE_INTERNET_CHECK_URLS` | Protomaps, Kiwix | Servers asked about once a minute for the `NET` item in the status strip. Empty: no check. |
-| `CORE_DATA_DIR` | `./data/core` | Dashboard history, power events, module on/off state, Board posts, Supplies list. |
+| `CORE_DATA_DIR` | `./data/core` | Dashboard history, power events, module on/off state, Board posts, Supplies list, the accounts (`users.json`: back it up) and logins. |
 | `MAPS_DATA_DIR` | `./data/maps` | Map regions (GBs) and POIs. Point at the SSD. |
 | `MAPS_ASSETS_DIR` | `./data/maps-assets` | Map fonts and sprites (~100 MB). |
 | `KNOWLEDGE_CONTENT_DIR` | `./data/knowledge` | ZIM files chosen on the Library screen (MB to hundreds of GB). Point at the SSD. |

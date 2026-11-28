@@ -13,6 +13,17 @@ under **Unreleased**.
 
 ### Added
 
+- Accounts and login: outpost is only open to logged-in accounts. On the
+  first visit after installing (or after this update) the web app asks you
+  to create the admin account, with a setup code that `./install.sh` and
+  `./start.sh` print (also `./manage.sh users setup-code`), so only someone
+  with access to the Pi can become admin. Admins add further accounts on the new Users
+  screen (`/users`) and choose the role: `admin` or `user`. The account
+  button in every header changes your password and logs you out. Forgot
+  the admin password? `./manage.sh users reset-password NAME` on the Pi.
+- System, Logs, Settings, Diagnostics and Users are for admins only:
+  users don't see them, and core refuses their data to users. The status
+  strip stays visible to everyone.
 - One-line install:
   `curl -fsSL https://raw.githubusercontent.com/faebeee/offline-pi/main/get.sh | bash`
   installs git if needed, clones outpost to `~/outpost` and runs the
@@ -28,12 +39,12 @@ under **Unreleased**.
   `./install.sh` or `./update.sh`.
 - Files (`/files`): a shared folder on the Pi. Everyone on its network can
   upload (button or drag and drop, with progress), make folders, rename,
-  open and download files; deleting asks for the control PIN. Files are
+  open and download files; deleting is for admins. Files are
   plain files in `FILES_DATA_DIR`; `FILES_MAX_UPLOAD_MB` and
   `FILES_MIN_FREE_MB` limit uploads. Part of outpost itself: always there.
 - Board (`/board`): a notice board for notices, needs, offers and
   check-ins, no accounts needed. Needs and offers can be marked done;
-  pinning and deleting ask for the control PIN. It is part of outpost
+  pinning and deleting are for admins. It is part of outpost
   itself (posts in `CORE_DATA_DIR/board.json`), so it is there after
   `./start.sh`, no install step needed.
 - Supplies (`/supplies`): your emergency stock with quantities, places
@@ -108,9 +119,15 @@ under **Unreleased**.
 
 ### Changed
 
+- The passthrough to the modules (`/svc/...`: map tiles, Library pages) is
+  read only: changes go through the API, where your login and role are
+  checked.
+- Starting and stopping modules, blocking devices, the hotspot switch,
+  deleting shared files, Board posts and supplies, and pinning posts are
+  for admins now, instead of asking for a control PIN.
 - The installer asks much less. A first install asks which modules, one
   folder for all data (for example on the SSD) and what a module can't do
-  without. Port, access, control PIN and a folder per module are asked
+  without. Port, access and a folder per module are asked
   only with `./install.sh --advanced`.
   Re-running it with a new data folder moves all data there.
 - `./update.sh` now downloads the new images instead of rebuilding them
@@ -162,6 +179,8 @@ under **Unreleased**.
 
 ### Removed
 
+- The `CONTROL_PIN` setting: the admin role replaces it. It is ignored if
+  it is still in your `.env`.
 - Mesh: the Meshtastic messaging module, its screen and the nodes layer
   of Maps are gone, together with the old Mesh map module and the `MESH_*`
   settings. On an existing install, remove the old container and images

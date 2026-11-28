@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { AdminOnly } from "../app/AdminOnly";
 import { LogsScreen } from "../features/logs/LogsScreen";
 
 type Search = { source?: string };
@@ -13,5 +14,9 @@ export const Route = createFileRoute("/logs")({
 /** Logs (served by core, always on: no ModuleGate). */
 function LogsRoute() {
   const { source } = Route.useSearch();
-  return <LogsScreen source={source ?? "core"} />;
+  return (
+    <AdminOnly id="logs">
+      <LogsScreen source={source ?? "core"} />
+    </AdminOnly>
+  );
 }

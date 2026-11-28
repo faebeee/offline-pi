@@ -70,7 +70,19 @@ socket's host path is `PODMAN_SOCKET`, reached through the read-only
 
 The socket gives full control over the user's containers, so core only
 exposes start and stop of module containers, behind the `X-Pi-Monitor`
-header and the optional `CONTROL_PIN`.
+header and an admin's session.
+
+## Accounts and login
+
+Core checks a login before anything else: `authMiddleware`
+(`src/platform/auth/`) answers `401` for every `/api/` and `/svc/` request
+without a session, and `AuthIoAdapter` refuses Socket.IO connections
+without one. Only the login screen's needs are open (`/api/auth/state`,
+`setup`, `login`, `logout`, `/api/system/status` and the web app's own
+files). Accounts (`users.json`) and sessions (`sessions.json`) are JSON
+files in `CORE_DATA_DIR`. Each account is an `admin` or a `user`; control
+actions are for admins. The scripts use a local admin token
+(`CORE_DATA_DIR/cli.token`). Details: [Core API](03-core-api.md#accounts-and-admin-only-actions).
 
 ## Passthrough
 
@@ -79,6 +91,12 @@ Some things a module serves are not JSON: map tiles, fonts, sprites,
 `/svc/<module path>/` to the module's port
 (`src/platform/passthrough/passthrough.ts`).
 
+- It is read only: GET and HEAD, anything else gets `405`. The module
+  containers trust every request that reaches them, so a change must go
+  through a domain of core's API, where the login, the role and the CSRF
+  header are checked. The browser's cookie and the scripts' token are not
+  passed on to the module.
+- It needs a login like the API (see [Core API](03-core-api.md)).
 - It is installed before the body parser, so request bodies pass untouched.
 - It streams both ways: range requests, SSE and large downloads are not
   buffered. WebSocket upgrades are piped too.

@@ -20,37 +20,13 @@ export class ApiError extends Error {
   }
 }
 
-const PIN_KEY = "outpost-control-pin";
-
-/** Control PIN for start/stop (CONTROL_PIN), kept for this browser tab. */
-export const controlPin = {
-  get(): string {
-    try {
-      return sessionStorage.getItem(PIN_KEY) ?? "";
-    } catch {
-      return "";
-    }
-  },
-  set(pin: string) {
-    try {
-      if (pin) sessionStorage.setItem(PIN_KEY, pin);
-      else sessionStorage.removeItem(PIN_KEY);
-    } catch {
-      // storage blocked: the PIN is asked again next time
-    }
-  },
-};
-
 export async function apiFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
   const headers = new Headers(options.headers);
   headers.set("Accept", "application/json");
   const method = (options.method ?? "GET").toUpperCase();
-  if (method !== "GET" && method !== "HEAD") {
-    // CSRF guard core asks for on state-changing calls
-    headers.set("X-Pi-Monitor", "1");
-    const pin = controlPin.get();
-    if (pin && !headers.has("X-Control-Pin")) headers.set("X-Control-Pin", pin);
-  }
+  // CSRF guard core asks for on state-changing calls; the session cookie
+  // goes along by itself (same origin)
+  if (method !== "GET" && method !== "HEAD") headers.set("X-Pi-Monitor", "1");
 
   const res = await fetch(url, { ...options, headers });
   const text = res.status === 204 ? "" : await res.text();

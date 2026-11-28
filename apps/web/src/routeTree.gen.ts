@@ -19,6 +19,7 @@ import { Route as NetworkRouteImport } from './routes/network'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SuppliesRouteImport } from './routes/supplies'
 import { Route as SystemRouteImport } from './routes/system'
+import { Route as UsersRouteImport } from './routes/users'
 import { Route as InfoIndexRouteImport } from './routes/info.index'
 import { Route as InfoSplatRouteImport } from './routes/info.$'
 import { Route as LibraryIndexRouteImport } from './routes/library.index'
@@ -75,6 +76,11 @@ const SystemRoute = SystemRouteImport.update({
   path: '/system',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UsersRoute = UsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InfoIndexRoute = InfoIndexRouteImport.update({
   id: '/info/',
   path: '/info/',
@@ -112,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/supplies': typeof SuppliesRoute
   '/system': typeof SystemRoute
+  '/users': typeof UsersRoute
   '/info/$': typeof InfoSplatRoute
   '/library/catalog': typeof LibraryCatalogRoute
   '/library/read': typeof LibraryReadRoute
@@ -129,6 +136,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/supplies': typeof SuppliesRoute
   '/system': typeof SystemRoute
+  '/users': typeof UsersRoute
   '/info/$': typeof InfoSplatRoute
   '/library/catalog': typeof LibraryCatalogRoute
   '/library/read': typeof LibraryReadRoute
@@ -147,6 +155,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/supplies': typeof SuppliesRoute
   '/system': typeof SystemRoute
+  '/users': typeof UsersRoute
   '/info/$': typeof InfoSplatRoute
   '/library/catalog': typeof LibraryCatalogRoute
   '/library/read': typeof LibraryReadRoute
@@ -166,6 +175,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/supplies'
     | '/system'
+    | '/users'
     | '/info/$'
     | '/library/catalog'
     | '/library/read'
@@ -183,6 +193,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/supplies'
     | '/system'
+    | '/users'
     | '/info/$'
     | '/library/catalog'
     | '/library/read'
@@ -200,6 +211,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/supplies'
     | '/system'
+    | '/users'
     | '/info/$'
     | '/library/catalog'
     | '/library/read'
@@ -218,6 +230,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   SuppliesRoute: typeof SuppliesRoute
   SystemRoute: typeof SystemRoute
+  UsersRoute: typeof UsersRoute
   InfoSplatRoute: typeof InfoSplatRoute
   LibraryCatalogRoute: typeof LibraryCatalogRoute
   LibraryReadRoute: typeof LibraryReadRoute
@@ -297,6 +310,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SystemRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/users': {
+      id: '/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof UsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/info/': {
       id: '/info/'
       path: '/info'
@@ -346,6 +366,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   SuppliesRoute: SuppliesRoute,
   SystemRoute: SystemRoute,
+  UsersRoute: UsersRoute,
   InfoSplatRoute: InfoSplatRoute,
   LibraryCatalogRoute: LibraryCatalogRoute,
   LibraryReadRoute: LibraryReadRoute,

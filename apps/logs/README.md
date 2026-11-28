@@ -48,5 +48,5 @@ filtering.
   `entries` (`{ source, entries }`) and `followError` when a stream fails or
   ends (container stopped; the screen offers RESUME).
 
-Like the rest of core there is no login: anyone who can open outpost can
-read its logs. Set `BIND_ADDRESS=127.0.0.1` to keep it to the Pi.
+Like the rest of core, it needs a login: every account, admin or user, can
+read the logs. Set `BIND_ADDRESS=127.0.0.1` to keep outpost to the Pi.

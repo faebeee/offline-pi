@@ -356,7 +356,7 @@ export const useBoardCreate = <TError = ErrorType<unknown>,
 }
 
 /**
- * @summary Change a post, mark it done, or pin it (pinning: control PIN).
+ * @summary Change a post, mark it done, or pin it (pinning: admin only).
  */
 export const boardUpdate = async (id: number,
     updatePostRequest: UpdatePostRequest, options?: Parameters<typeof apiFetch>[1]): Promise<BoardPost> => {
@@ -422,7 +422,7 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     export type BoardUpdateMutationError = ErrorType<unknown>
     export type BoardUpdateMutationVariables = {id: number;data: UpdatePostRequest}
 
-    /** @summary Change a post, mark it done, or pin it (pinning: control PIN). */
+    /** @summary Change a post, mark it done, or pin it (pinning: admin only). */
 export const useBoardUpdate = <TError = ErrorType<unknown>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof boardUpdate>>, TError,BoardUpdateMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient): UseMutationResult<

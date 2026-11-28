@@ -11,6 +11,7 @@ import { SettingsModule } from './domains/settings/settings.module';
 import { ModulesModule } from './domains/modules/modules.module';
 import { SuppliesModule } from './domains/supplies/supplies.module';
 import { SystemModule } from './domains/system/system.module';
+import { UsersModule } from './domains/users/users.module';
 import { PlatformModule } from './platform/platform.module';
 
 /**
@@ -20,6 +21,6 @@ import { PlatformModule } from './platform/platform.module';
  * feature = a new domain module listed here (see AGENTS.md).
  */
 @Module({
-  imports: [PlatformModule, ModulesModule, SystemModule, MapsModule, NetworkModule, FilesModule, BoardModule, SuppliesModule, LibraryModule, LogsModule, InfoModule, SettingsModule, DiagnosticsModule],
+  imports: [PlatformModule, UsersModule, ModulesModule, SystemModule, MapsModule, NetworkModule, FilesModule, BoardModule, SuppliesModule, LibraryModule, LogsModule, InfoModule, SettingsModule, DiagnosticsModule],
 })
 export class AppModule {}

@@ -3,7 +3,7 @@
 System shows the health of the Pi itself: temperature, power, CPU, memory,
 storage, network, the containers of outpost and the network connections.
 It is part of core, so it is always on. Open it with System in the module
-nav (`/system`).
+nav (`/system`). Only admins can open it (see [Users and login](14-users.md#admins-and-users)).
 
 The header shows the Pi's hostname. The context line shows the model, the
 operating system and the uptime. Values refresh every 2 seconds
@@ -86,7 +86,8 @@ their screen.
 
 Optional modules have START and STOP buttons. STOP asks for a second press
 (CONFIRM STOP within 4 seconds). Core's own row says `This app`. This works
-like the switches on [Home](01-home.md), including the control PIN.
+like the switches on [Home](01-home.md), and only admins can use the
+buttons.
 
 ### Connections
 

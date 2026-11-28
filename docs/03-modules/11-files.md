@@ -24,7 +24,7 @@ Each row has three buttons:
 |---|---|
 | Download | Saves the file on your device. |
 | Rename | Gives the file or folder a new name. |
-| Delete | Deletes the file, or the folder with everything in it, after a question. Asks for the control PIN when one is set. |
+| Delete | Deletes the file, or the folder with everything in it, after a question. Admins only. |
 
 Pictures, videos, audio, PDFs and plain text open in the browser. Every
 other file is downloaded. Web pages (HTML) and SVG images are always
@@ -51,11 +51,12 @@ Press FOLDER to make a new folder in the one you are in.
 
 ## Who can do what
 
-There are no accounts. Everyone who can open outpost can upload, rename
-and download. Deleting asks for the control PIN when `CONTROL_PIN` is set
-(see [Home](01-home.md#the-control-pin)). If outpost is reachable by people
-you don't know, for example on an open hotspot, set a control PIN and use
-[Network](10-network.md) to block devices that misbehave.
+Everyone with an account can upload, rename and download. Only admins can
+delete files and folders (see
+[Users and login](14-users.md#admins-and-users)). If outpost is reachable
+by people you don't know, for example on an open hotspot, give them a user
+account rather than an admin one, and use [Network](10-network.md) to block
+devices that misbehave.
 
 ## Where the files are
 

@@ -12,7 +12,5 @@ export interface ModulesOverview {
   control: boolean;
   /** @nullable */
   controlError: string | null;
-  /** start/stop needs the X-Control-Pin header (CONTROL_PIN is set) */
-  pinRequired: boolean;
   modules: ModuleStatus[];
 }

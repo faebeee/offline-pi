@@ -16,6 +16,6 @@ downloaded the maps and books you want, outpost runs without it.
 - [Storage and SSD](02-storage.md): every data directory, what grows where,
   moving data to an SSD.
 - [Network and hotspot](03-network-and-hotspot.md): port, who can reach
-  outpost, the control PIN, the Wi-Fi hotspot fallback.
+  outpost, accounts, the Wi-Fi hotspot fallback.
 - [macOS (development)](04-macos.md): what differs when you run outpost
   on a Mac.

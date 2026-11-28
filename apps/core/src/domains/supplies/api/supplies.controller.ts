@@ -1,5 +1,7 @@
 import { Body, Controller, Delete, Get, Headers, HttpCode, Param, ParseIntPipe, Patch, Post, Put } from '@nestjs/common';
 import { ApiHeader, ApiTags } from '@nestjs/swagger';
+import { CurrentUser } from '../../../platform/auth/current-user.decorator';
+import type { SessionUser } from '../../../platform/auth/auth.service';
 import { assertControl, assertCsrf } from '../../../platform/http/control-guard';
 import {
   AdjustItemRequest,
@@ -16,7 +18,7 @@ import { SuppliesStore } from '../infrastructure/supplies.store';
  * Domain "supplies": the household's emergency stock (what, how much,
  * where, until when), kept by core itself (CORE_DATA_DIR/supplies.json). Anyone on the
  * network may add and change items; deleting one is a control action
- * (CONTROL_PIN).
+ * (admin only).
  */
 @ApiTags('supplies')
 @Controller('api/supplies')
@@ -72,13 +74,12 @@ export class SuppliesController {
   @Delete('items/:id')
   @HttpCode(204)
   @ApiHeader({ name: 'X-Pi-Monitor', required: true, description: 'must be "1" (CSRF guard)' })
-  @ApiHeader({ name: 'X-Control-Pin', required: false, description: 'CONTROL_PIN, when set' })
   remove(
     @Param('id', ParseIntPipe) id: number,
     @Headers('x-pi-monitor') piMonitor: string | undefined,
-    @Headers('x-control-pin') pin: string | undefined,
+    @CurrentUser() user: SessionUser | undefined,
   ): Promise<void> {
-    assertControl(piMonitor, pin);
+    assertControl(piMonitor, user);
     return this.supplies.remove(id);
   }
 

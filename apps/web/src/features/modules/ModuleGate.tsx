@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useMe } from "../../app/auth";
 import { Banner, Illustration } from "../../ui/outpost";
 import { isRunning, useControlModule, useModules } from "./useModules";
 
@@ -35,6 +36,7 @@ function Gate({
 }) {
   const { data, error } = useModules();
   const control = useControlModule();
+  const { isAdmin } = useMe();
 
   if (error && !data) {
     return fallback(
@@ -72,7 +74,8 @@ function Gate({
         tone="info"
         title={`${m.label} is not running`}
         action={
-          data.control && (
+          data.control &&
+          isAdmin && (
             <button
               type="button"
               className="btn btn-primary"
@@ -84,7 +87,11 @@ function Gate({
           )
         }
       >
-        {data.control ? "Start it here; the page opens as soon as it is up." : data.controlError}
+        {!data.control
+          ? data.controlError
+          : isAdmin
+            ? "Start it here; the page opens as soon as it is up."
+            : "Ask an admin to start it; the page opens as soon as it is up."}
       </Banner>
       {control.error && (
         <Banner tone="crit" title={`Could not start ${m.label}`}>

@@ -21,7 +21,7 @@ The output is checked in; regenerate after every API change.
 | `src/generated/<tag>/<tag>.ts` | per domain (OpenAPI tag): fetch functions (`mapsRegions()`), query keys (`getMapsRegionsQueryKey()`), TanStack Query hooks (`useMapsRegions()`, `useMapsCreatePoi()`) |
 | `src/generated/model/` | every DTO of core, including socket event payloads |
 | `src/events.ts` | Socket.IO namespaces and their events, typed (hand-written: OpenAPI has no events) |
-| `src/fetcher.ts` | the one `fetch` behind every call: same origin, `ApiError` with core's message, `X-Pi-Monitor` and the control PIN on state-changing calls |
+| `src/fetcher.ts` | the one `fetch` behind every call: same origin, `ApiError` with core's message (and status, so the web app sees a 401), `X-Pi-Monitor` on state-changing calls; the session cookie goes along by itself |
 
 Operation ids, and so the names, are `<controller><Method>`:
 `LibraryController.startSync` -> `libraryStartSync()` /

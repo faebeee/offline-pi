@@ -18,7 +18,8 @@ their data and logs are.
 | `/ui/` | The Outpost design system package (`packages/ui`) as static files. |
 
 The paths `/api`, `/svc`, `/socket.io` and `/ui` are never routes of the web
-app.
+app. Everything under `/api`, `/svc` and `/socket.io` needs a login, except
+what the login screen needs (see [API](03-api.md#login-and-control-headers)).
 
 ## Screens
 
@@ -32,6 +33,7 @@ app.
 | Info | `/info`, `/info/<chapter>/<page>` | `info` | core |
 | Settings | `/settings` | `settings` | core (reads `.env` through the read-only host mount) |
 | Diagnostics | `/diagnostics` | `diagnostics` | core (reads the host through the read-only host mount) |
+| Users | `/users` | `users` | core (`CORE_DATA_DIR/users.json`); admins only |
 
 The screens are routes of the one web app. The last column says where the
 data behind the screen comes from. The user guide for each screen is in

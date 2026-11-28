@@ -112,6 +112,57 @@ export class MapsEvents {
 - Add the events to `packages/api-client/src/events.ts` by hand (OpenAPI has
   no events), under the namespace, with the server and client events.
 
+## Accounts and admin-only actions
+
+The auth kernel is `src/platform/auth/`:
+
+| File | What it does |
+|---|---|
+| `users.store.ts` | `UsersStore`: the accounts in `CORE_DATA_DIR/users.json` (user name, role, scrypt hash) |
+| `password.ts` | scrypt hashing and verifying |
+| `sessions.store.ts` | `SessionsStore`: `sessions.json`, the SHA-256 of each session token, 30 days |
+| `auth.service.ts` | `AuthService.resolve()`: the `outpost_session` cookie or the `cli.token` bearer token to a `SessionUser`; writes `cli.token` at start |
+| `auth.middleware.ts` | `authMiddleware`: `401` for `/api/` and `/svc/` without a session, except the public list |
+| `auth-io.adapter.ts` | `AuthIoAdapter`: the same check for Socket.IO connections |
+| `current-user.decorator.ts` | `@CurrentUser()`: the logged-in `SessionUser` in a controller method |
+
+`users.json`, `sessions.json` and `cli.token` are written with mode 600
+(`JsonFile` in `platform/storage/json-file.ts` takes an optional file
+mode). The domain `src/domains/users/` has the `AuthController`
+(`/api/auth`) and the `UsersController` (`/api/users`).
+
+**New endpoints are protected by default.** Only add a path to the public
+list in `auth.middleware.ts` if the login screen needs it.
+
+`platform/http/control-guard.ts` has the guards:
+
+| Guard | Checks |
+|---|---|
+| `assertCsrf(piMonitor)` | The `X-Pi-Monitor: 1` header on a state-changing call (`400` otherwise) |
+| `assertControl(piMonitor, user)` | The header and an admin (`401` without a session, `403` `Only an admin can do this.` for a user) |
+| `assertAdmin(user)` | An admin, for reads (no header on a `GET`) |
+
+A controller method for an admin-only action:
+
+```ts
+// apps/core/src/domains/board/api/board.controller.ts
+/** Delete a post. */
+@Delete('posts/:id')
+@HttpCode(204)
+@ApiHeader({ name: 'X-Pi-Monitor', required: true, description: 'must be "1" (CSRF guard)' })
+remove(
+  @Param('id', ParseIntPipe) id: number,
+  @Headers('x-pi-monitor') piMonitor: string | undefined,
+  @CurrentUser() user: SessionUser | undefined,
+): Promise<void> {
+  assertControl(piMonitor, user);
+  return this.board.remove(id);
+}
+```
+
+Everything else a logged-in user may do only calls `assertCsrf` when it
+changes something.
+
 ## Using another domain
 
 A feature may combine domains: import the other domain's Nest module and
@@ -134,7 +185,7 @@ npm run api:gen
 |---|---|
 | `src/generated/<tag>/` | Per domain: fetch functions (`mapsRegions()`), query keys (`getMapsRegionsQueryKey()`), TanStack Query hooks (`useMapsRegions()`) |
 | `src/generated/model/` | Every DTO, including event payloads |
-| `src/fetcher.ts` | Hand-written: the one `fetch` behind every call, `ApiError` with core's message, `X-Pi-Monitor` and the control PIN on state-changing calls |
+| `src/fetcher.ts` | Hand-written: the one `fetch` behind every call, `ApiError` with core's message, `X-Pi-Monitor` on state-changing calls; the session cookie goes along by itself (same origin) |
 
 The generated files are checked in. Regenerate after every API change and
 commit them with it.

@@ -187,3 +187,29 @@ export class Liveness {
   ok!: boolean;
   ts!: number;
 }
+
+export class VitalsDisk {
+  used!: number;
+  free!: number;
+  total!: number;
+}
+
+/**
+ * The few host values the status strip shows on every screen, for every
+ * logged-in account (the full Snapshot is the System screen's, admins only).
+ */
+export class Vitals {
+  internet!: 'online' | 'offline' | 'checking' | 'disabled';
+  /** °C */
+  cpuTemp!: number | null;
+  inputVolts!: number | null;
+  coreVolts!: number | null;
+  /** under-voltage right now */
+  underVoltage!: boolean;
+  /** percent */
+  cpuUsage!: number | null;
+  /** percent of memory in use */
+  memoryPercent!: number | null;
+  /** the root file system */
+  disk!: VitalsDisk | null;
+}

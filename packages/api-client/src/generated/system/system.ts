@@ -23,7 +23,8 @@ import type {
 import type {
   History,
   Liveness,
-  Snapshot
+  Snapshot,
+  Vitals
 } from '../model';
 
 import { apiFetch } from '../../fetcher';
@@ -138,6 +139,106 @@ export function useSystemStatus<TData = Awaited<ReturnType<typeof systemStatus>>
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getSystemStatusQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getSystemVitalsUrl = () => {
+
+
+
+
+  return `/api/system/vitals`
+}
+
+/**
+ * @summary The status strip's values (null right after start).
+ */
+export const systemVitals = async ( options?: Parameters<typeof apiFetch>[1]): Promise<Vitals> => {
+
+  return apiFetch<Vitals>(getSystemVitalsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getSystemVitalsQueryKey = () => {
+    return [
+    `/api/system/vitals`
+    ] as const;
+    }
+
+
+export const getSystemVitalsQueryOptions = <TData = Awaited<ReturnType<typeof systemVitals>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof systemVitals>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSystemVitalsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof systemVitals>>> = ({ signal }) => systemVitals({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof systemVitals>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SystemVitalsQueryResult = NonNullable<Awaited<ReturnType<typeof systemVitals>>>
+export type SystemVitalsQueryError = ErrorType<unknown>
+
+
+/** @summary The status strip's values (null right after start). */
+export function useSystemVitals<TData = Awaited<ReturnType<typeof systemVitals>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof systemVitals>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof systemVitals>>,
+          TError,
+          Awaited<ReturnType<typeof systemVitals>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary The status strip's values (null right after start). */
+export function useSystemVitals<TData = Awaited<ReturnType<typeof systemVitals>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof systemVitals>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof systemVitals>>,
+          TError,
+          Awaited<ReturnType<typeof systemVitals>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary The status strip's values (null right after start). */
+export function useSystemVitals<TData = Awaited<ReturnType<typeof systemVitals>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof systemVitals>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/** @summary The status strip's values (null right after start). */
+export function useSystemVitals<TData = Awaited<ReturnType<typeof systemVitals>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof systemVitals>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getSystemVitalsQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

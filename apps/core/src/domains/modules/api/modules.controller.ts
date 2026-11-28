@@ -9,6 +9,8 @@ import {
   Post,
 } from '@nestjs/common';
 import { ApiHeader, ApiParam, ApiTags } from '@nestjs/swagger';
+import { CurrentUser } from '../../../platform/auth/current-user.decorator';
+import type { SessionUser } from '../../../platform/auth/auth.service';
 import { assertControl } from '../../../platform/http/control-guard';
 import { ModuleActionResult, ModulesOverview } from '../../../platform/modules/module-status.dto';
 import { ModulesService } from '../../../platform/modules/modules.service';
@@ -20,7 +22,7 @@ import { PodmanService } from '../../../platform/modules/podman.service';
  * socket gives full control over the user's Podman, so this only ever
  * starts/stops a module container, and requires the X-Pi-Monitor header so
  * another site can't trigger it with a simple form post (CSRF), plus an
- * optional CONTROL_PIN.
+ * logged-in admin.
  */
 @ApiTags('modules')
 @Controller('api/modules')
@@ -35,7 +37,6 @@ export class ModulesController {
     return {
       control: this.podman.unavailableReason === null,
       controlError: this.podman.unavailableReason,
-      pinRequired: !!process.env.CONTROL_PIN,
       modules: this.modules.list(),
     };
   }
@@ -45,14 +46,13 @@ export class ModulesController {
   @HttpCode(200)
   @ApiParam({ name: 'action', enum: ['start', 'stop'] })
   @ApiHeader({ name: 'X-Pi-Monitor', required: true, description: 'must be "1" (CSRF guard)' })
-  @ApiHeader({ name: 'X-Control-Pin', required: false, description: 'CONTROL_PIN, when set' })
   async control(
     @Param('id') id: string,
     @Param('action') action: string,
     @Headers('x-pi-monitor') piMonitor: string | undefined,
-    @Headers('x-control-pin') pin: string | undefined,
+    @CurrentUser() user: SessionUser | undefined,
   ): Promise<ModuleActionResult> {
-    assertControl(piMonitor, pin);
+    assertControl(piMonitor, user);
     if (action !== 'start' && action !== 'stop') throw new NotFoundException(`unknown action "${action}"`);
 
     if (!this.modules.get(id)) throw new NotFoundException(`unknown module "${id}"`);

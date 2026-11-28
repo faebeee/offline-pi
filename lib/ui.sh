@@ -209,6 +209,19 @@ ui_input() {
   UI_REPLY="$answer"
 }
 
+# ui_secret QUESTION - like ui_input, but what is typed is not shown (a
+# password). Needs someone at the keyboard: fails with --yes.
+ui_secret() {
+  local question="$1" answer
+  if [[ "$UI_ASSUME_YES" == true ]]; then
+    log_error "$question: needs an answer typed in (not with --yes)."
+    return 1
+  fi
+  IFS= read -r -s -p "$question: " answer || answer=""
+  printf '\n' >&2
+  UI_REPLY="$answer"
+}
+
 # ui_confirm QUESTION DEFAULT(y|n) - returns 0 for yes, 1 for no.
 ui_confirm() {
   local question="$1" default="${2:-n}" yes reply key

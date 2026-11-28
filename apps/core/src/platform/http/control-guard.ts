@@ -1,4 +1,5 @@
-import { BadRequestException, ForbiddenException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import type { SessionUser } from '../auth/auth.service';
 
 /**
  * The CSRF check every state-changing call needs: the X-Pi-Monitor header,
@@ -11,11 +12,18 @@ export function assertCsrf(piMonitor: string | undefined): void {
 }
 
 /**
- * The checks every control action needs (module start/stop, blocking a
- * device, deleting shared data): the CSRF header and CONTROL_PIN when set.
+ * Admin only (module start/stop, blocking devices, the hotspot, deleting
+ * shared data, pinning posts, managing accounts): the CSRF header and a
+ * logged-in admin. USER comes from @CurrentUser().
  */
-export function assertControl(piMonitor: string | undefined, pin: string | undefined): void {
+export function assertControl(piMonitor: string | undefined, user: SessionUser | undefined): void {
   assertCsrf(piMonitor);
-  const required = process.env.CONTROL_PIN;
-  if (required && pin !== required) throw new ForbiddenException('wrong or missing Control PIN');
+  if (!user) throw new UnauthorizedException('Log in first.');
+  if (user.role !== 'admin') throw new ForbiddenException('Only an admin can do this.');
+}
+
+/** Admin only, for reads (no CSRF header on a GET). */
+export function assertAdmin(user: SessionUser | undefined): void {
+  if (!user) throw new UnauthorizedException('Log in first.');
+  if (user.role !== 'admin') throw new ForbiddenException('Only an admin can do this.');
 }

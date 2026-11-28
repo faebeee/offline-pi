@@ -26,7 +26,8 @@ seems stuck. It:
    containers and images of retired modules),
 5. recreates and starts core, which then starts the modules that are
    switched on,
-6. waits until the web app answers and prints its address.
+6. waits until the web app answers and prints its address, and, while no
+   account exists, the setup code for creating the admin account.
 
 A failed download or build stops at step 2: the running containers keep
 their old images. Images of earlier versions are removed at the end, to
@@ -68,6 +69,9 @@ machine running (`podman machine stop` stops it too).
 | `./manage.sh stop <module>` | Switches a module off. It stays off after a reboot. |
 | `./manage.sh logs` | Follows core's log (Ctrl+C to quit). |
 | `./manage.sh logs <module>` | Follows a module's log. |
+| `./manage.sh users` | Lists the accounts and their roles. |
+| `./manage.sh users reset-password <name>` | Sets a new password for an account (asked twice, not shown) and logs it out on every device. |
+| `./manage.sh users setup-code` | The code for creating the admin account, while none exists. |
 | `./manage.sh autostart on\|off\|status` | Whether outpost starts when the Pi boots (on by default). |
 | `./manage.sh help` | Prints the usage with every module command. |
 
@@ -76,8 +80,10 @@ Module names are the ones in `MODULES`: `maps`, `knowledge`,
 Note that the Library module is called `knowledge` here.
 
 `start` and `stop` go through core's API, so the home page shows the same
-state and core remembers it at the next boot. They send `CONTROL_PIN` for
-you. If core is not running, they fail with "is core running?"; run
+state and core remembers it at the next boot. They need no login: core
+writes a local admin token to `cli.token` in `CORE_DATA_DIR` at every
+start, and the script sends it. Core accepts the token only from the Pi
+itself (on a Mac, the script runs curl inside the Podman machine for that). If core is not running, they fail with "is core running?"; run
 `./start.sh`.
 
 Example output of `status`:
@@ -89,6 +95,19 @@ maps         yes        Up 2 hours (healthy)
 knowledge    yes        Up 2 hours (healthy)
 network      no         -
 ```
+
+## Accounts
+
+```sh
+./manage.sh users                       # list the accounts and their roles
+./manage.sh users reset-password admin  # new password for "admin"
+```
+
+`reset-password` asks for the new password twice without showing it, and
+logs the account out on every device. It is the way back in when the admin
+password is forgotten. It needs core to be running and can't be used with
+`--yes`. Everything else about accounts happens on the Users screen; see
+[Users and login](../03-modules/14-users.md).
 
 ## Library commands
 
@@ -111,7 +130,8 @@ web app.
 |---|---|
 | Modules installed | `./install.sh` |
 | A data directory | `./install.sh` (moves the data along) |
-| Port, access, control PIN | `./install.sh`, or edit `.env` and run `./start.sh` |
+| Port, access | `./install.sh --advanced`, or edit `.env` and run `./start.sh` |
+| Accounts, passwords, roles | The Users screen in the web app; a forgotten password: `./manage.sh users reset-password <name>` |
 | Anything else in `.env` | Edit `.env`, then `./start.sh` |
 
 ## See also
