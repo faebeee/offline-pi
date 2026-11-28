@@ -4,6 +4,7 @@ import { EMERGENCY, STARTER_SET } from '../domain/emergency';
 import type { Book, EmergencyArticle, EmergencyIndex } from '../domain/library.dto';
 import { ContentDir } from '../infrastructure/content-dir';
 import { KiwixClient } from '../infrastructure/kiwix.client';
+import { LibrarySearch } from './search.service';
 
 const CACHE_MS = 10 * 60_000;
 const CACHE_MAX = 500;
@@ -21,6 +22,7 @@ export class EmergencyService {
   constructor(
     private readonly kiwix: KiwixClient,
     private readonly content: ContentDir,
+    private readonly search: LibrarySearch,
   ) {}
 
   /** English when an English book has a full-text index, else the language with the most such books. */
@@ -56,7 +58,8 @@ export class EmergencyService {
     const cached = this.cache.get(key);
     if (cached && Date.now() - cached.at < CACHE_MS) return cached.value;
 
-    const res = await this.kiwix.search(topic.query, { lang }, 0, 1);
+    // medical books first: the top hit of the first book that has one
+    const res = await this.search.search(topic.query, { lang }, 0, 1);
     const value: EmergencyArticle = { topic: id, hit: res.hits[0] ?? null, total: res.total };
     if (this.cache.size >= CACHE_MAX) this.cache.clear();
     this.cache.set(key, { at: Date.now(), value });

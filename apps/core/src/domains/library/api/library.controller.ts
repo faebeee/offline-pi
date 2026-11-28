@@ -2,6 +2,7 @@ import { BadRequestException, Body, Controller, DefaultValuePipe, Get, HttpCode,
 import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { CatalogService } from '../application/catalog.service';
 import { EmergencyService } from '../application/emergency.service';
+import { LibrarySearch } from '../application/search.service';
 import {
   BooksResponse,
   EmergencyArticle,
@@ -30,6 +31,7 @@ export class LibraryController {
     private readonly catalogs: CatalogService,
     private readonly commands: KnowledgeCommands,
     private readonly emergency: EmergencyService,
+    private readonly librarySearch: LibrarySearch,
   ) {}
 
   /** Every installed book, by title. */
@@ -97,6 +99,6 @@ export class LibraryController {
   ): Promise<SearchResponse> {
     if (!q?.trim()) throw new BadRequestException('q is empty');
     if (!bookId && !lang) throw new BadRequestException('give bookId or lang');
-    return this.kiwix.search(q.trim(), { bookId, lang }, Math.max(0, start), Math.min(100, Math.max(1, pageLength)));
+    return this.librarySearch.search(q.trim(), { bookId, lang }, Math.max(0, start), Math.min(100, Math.max(1, pageLength)));
   }
 }

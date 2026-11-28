@@ -163,6 +163,11 @@ under **Unreleased**.
 
 ### Fixed
 
+- Library: searching all books of a language, and the "In an emergency"
+  topics, could fail with `Library answered HTTP 400` when a book without
+  a full-text index (`TITLES ONLY`) or a book in several languages was
+  installed. Such books are now left out or searched one by one, and an
+  error from the Library says what is wrong.
 - Maps: the setup failed with `ENOTEMPTY: directory not empty, rmdir
   '.../assets/fonts/Noto Sans Regular'` when the map assets live on a
   damaged exFAT drive (after a power cut). The setup now puts the new

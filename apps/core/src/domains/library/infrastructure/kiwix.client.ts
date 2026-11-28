@@ -84,11 +84,13 @@ export class KiwixClient {
       .sort((a, b) => a.title.localeCompare(b.title));
   }
 
-  /** Full-text search in one book or every book of one language. */
-  async search(q: string, scope: { bookId?: string; lang?: string }, start: number, pageLength: number): Promise<SearchResponse> {
-    const query: Record<string, string | number> = { pattern: q, format: 'xml', start, pageLength };
-    if (scope.bookId) query['books.id'] = scope.bookId;
-    else if (scope.lang) query['books.filter.lang'] = scope.lang;
+  /**
+   * Full-text search in the given books (kiwix ids). kiwix refuses (400) a
+   * selection with a book without a full-text index or with books in
+   * different languages; LibrarySearch picks the books and falls back.
+   */
+  async search(q: string, bookIds: readonly string[], start: number, pageLength: number): Promise<SearchResponse> {
+    const query = { pattern: q, format: 'xml', start, pageLength, 'books.id': bookIds };
     const xml = await this.c.text('/search', { query, timeoutMs: 30_000 });
     const channel = ((parser.parse(xml) as Node).rss as Node | undefined)?.channel as Node | undefined;
     const items = (channel?.item as Node[] | undefined) ?? [];

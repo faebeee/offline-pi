@@ -120,8 +120,12 @@ press SEARCH. You can search all books of one language, or one book.
 Books in different languages are searched one language at a time. Results
 come in pages. Tap a result to open the article.
 
-Search only covers books with a full-text index. If none has one, the
-Library says there is nothing to search.
+Search only covers books with a full-text index; books marked
+`TITLES ONLY` are left out of a language-wide search. If none has one, the
+Library says there is nothing to search. When kiwix can't search some
+books together (for example a book in several languages), the Library
+searches them one after the other and lists the results book by book,
+medical books first.
 
 ## Updates and pruning
 

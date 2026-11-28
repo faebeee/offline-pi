@@ -11,7 +11,8 @@ import { Module } from '../modules/registry';
 const DEFAULT_TIMEOUT_MS = 15_000;
 
 export interface UpstreamRequest {
-  query?: Record<string, string | number | boolean | undefined | null>;
+  /** an array repeats the key (e.g. books.id=a&books.id=b) */
+  query?: Record<string, string | number | boolean | readonly string[] | undefined | null>;
   body?: unknown;
   headers?: Record<string, string | undefined>;
   timeoutMs?: number;
@@ -36,7 +37,8 @@ export class UpstreamClient {
     const prefix = this.module.stripPrefix === false ? this.module.svcPath.slice(0, -1) : '';
     const url = new URL(prefix + path, base);
     for (const [k, v] of Object.entries(query ?? {})) {
-      if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, String(v));
+      if (Array.isArray(v)) for (const item of v) url.searchParams.append(k, item);
+      else if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, String(v));
     }
     return url;
   }
@@ -120,19 +122,40 @@ export class UpstreamClient {
 
   private async httpError(res: Response): Promise<HttpException> {
     let message = `${this.module.label} answered HTTP ${res.status}`;
+    const raw = await res.text().catch(() => '');
     try {
-      const body = (await res.json()) as { message?: unknown; detail?: unknown; error?: unknown };
+      const body = JSON.parse(raw) as { message?: unknown; detail?: unknown; error?: unknown };
       const m = body.message ?? body.detail ?? body.error;
       if (typeof m === 'string') message = m;
       else if (Array.isArray(m)) message = m.map(String).join(', ');
     } catch {
-      // not JSON
+      // not JSON (kiwix answers XML/HTML): its text, without the markup
+      const plain = errorText(raw);
+      if (plain) message = `${this.module.label}: ${plain}`;
     }
     const ex = new HttpException({ statusCode: res.status, message }, res.status);
     const retry = res.headers.get('retry-after');
     if (retry) (ex as HttpException & { retryAfter?: string }).retryAfter = retry;
     return ex;
   }
+}
+
+/**
+ * The readable part of an HTML/XML error page, e.g. kiwix's "Invalid request
+ * ... is not a valid request. No such book: x" -> "No such book: x".
+ */
+export function errorText(body: string): string {
+  const plain = body
+    .replace(/<(script|style)[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const reason = /is not a valid request\.\s*(.+)$/i.exec(plain)?.[1] ?? plain;
+  return reason.slice(0, 300);
 }
 
 /** 503 for a module whose container is not running. */
